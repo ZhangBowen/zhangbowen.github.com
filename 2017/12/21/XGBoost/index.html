@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"berwynzhang.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="总结 在GBDT的基础上加了诸多创新点和工程化的东西达到了可以快速、分布式训练的目的 首先通过层层推导，利用泰勒展开的二阶项信息得到了一个判断分割点收益的方程：L_{split} &#x3D; \frac {1} 2 [\frac {\sum_{i \in I_L}g_i^2} {\sum_{i \in {I_L}}(h_i + \lambda)} + \frac {\sum_{i \in I_R}g_i^">
+<meta property="og:type" content="article">
+<meta property="og:title" content="XGBoost">
+<meta property="og:url" content="https://berwynzhang.com/2017/12/21/XGBoost/index.html">
+<meta property="og:site_name" content="Berwyn&#39;s Blog">
+<meta property="og:description" content="总结 在GBDT的基础上加了诸多创新点和工程化的东西达到了可以快速、分布式训练的目的 首先通过层层推导，利用泰勒展开的二阶项信息得到了一个判断分割点收益的方程：L_{split} &#x3D; \frac {1} 2 [\frac {\sum_{i \in I_L}g_i^2} {\sum_{i \in {I_L}}(h_i + \lambda)} + \frac {\sum_{i \in I_R}g_i^">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/XGBoost/1513852576044.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/XGBoost/1513854918109.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/XGBoost/1513856199220.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/XGBoost/1513856434358.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/XGBoost/1513856619352.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/XGBoost/1513860146850.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/XGBoost/1513860590001.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/XGBoost/1513861832847.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/XGBoost/1513862629340.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/XGBoost/1513862706116.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/XGBoost/1513862970910.png">
+<meta property="article:published_time" content="2017-12-20T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-01-09T15:12:13.348Z">
+<meta property="article:author" content="Berwyn Zhang">
+<meta property="article:tag" content="machine_learning">
+<meta property="article:tag" content="note">
+<meta property="article:tag" content="2016">
+<meta property="article:tag" content="UW">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://berwynzhang.com/assets/image/XGBoost/1513852576044.png">
+
+<link rel="canonical" href="https://berwynzhang.com/2017/12/21/XGBoost/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>XGBoost | Berwyn's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Berwyn's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2017/12/21/XGBoost/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          XGBoost
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2017-12-21 00:00:00" itemprop="dateCreated datePublished" datetime="2017-12-21T00:00:00+08:00">2017-12-21</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-09 23:12:13" itemprop="dateModified" datetime="2021-01-09T23:12:13+08:00">2021-01-09</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>在GBDT的基础上加了诸多创新点和工程化的东西达到了可以快速、分布式训练的目的</li>
+<li>首先通过层层推导，利用泰勒展开的二阶项信息得到了一个判断分割点收益的方程：<script type="math/tex; mode=display">L_{split} = \frac {1} 2 [\frac {\sum_{i \in I_L}g_i^2} {\sum_{i \in {I_L}}(h_i + \lambda)} + \frac {\sum_{i \in I_R}g_i^2} {\sum_{i \in {I_R}}(h_i + \lambda)} - \frac {\sum_{i \in I}g_i^2} {\sum_{i \in {I}}(h_i + \lambda)}] - \gamma</script></li>
+<li>提出了两个防止过拟合的方法<ul>
+<li>新训练出的树所给出的预测结果需要乘上shrinkage因子再加到森林中去</li>
+<li>对于特征（列）做采样（等同于RF中的方法）</li>
+</ul>
+</li>
+<li>介绍了两种找最佳分割点的方法<ul>
+<li>枚举所有分割点，然后找出最佳</li>
+<li>利用二阶导数信息当做权重，然后根据权重值来进行等权重划分，划分点即为分割点的候选点，然后依次遍历，此种方法可以应用于分布式计算</li>
+</ul>
+</li>
+<li>针对于稀疏数据，提出了学习default路径的思路，在枚举分割点的时候，将缺失的信息归到两个分支的其中一个，比较效果后决定default路径的方向</li>
+<li>文章的工程化创新思路也非常多<ul>
+<li>针对树训练中所需的大量排序操作设计了Block结构，把每个特征按照特征值排序，存成索引。这样可以在计算前完成排序工作</li>
+<li>文章还针对CPU的cache机制进行了存储优化，主要是使CPU的访问地址尽量连续</li>
+<li>在内存不足时，设计了Out-of-core机制，过多的数据先写在硬盘上，在要用的时候由一个独立的线程预先加载进来，加大了训练数据的最大规模。在此基础上加入了，内容压缩，存储块共享技术，对训练过程提速</li>
+</ul>
+</li>
+<li><strong>补充一些与传统GBM的区别</strong><ul>
+<li>使用了泰勒展开二阶项信息（牛顿法）计算下降方向</li>
+<li>不搜索步长</li>
+<li>加入正则项</li>
+<li>可以并行处理</li>
+<li>内置缺失值处理规则</li>
+<li>使用后剪枝而非预剪枝（GBM）</li>
+</ul>
+</li>
+</ul>
+<h2 id="ABSTRACT"><a href="#ABSTRACT" class="headerlink" title="ABSTRACT"></a>ABSTRACT</h2><p>We propose a novel sparsity-aware algorithm for sparse data and weighted quantile sketch for approximate tree learning.</p>
+<h2 id="INTRODUCTION"><a href="#INTRODUCTION" class="headerlink" title="INTRODUCTION"></a>INTRODUCTION</h2><p>factor of success is scalability in all scenarios</p>
+<ul>
+<li>a novel tree learning algorithm is for handling sparse data</li>
+<li>a theoretically justified weighted quantile sketch procedure enables handling instance weights in approximate tree learning</li>
+<li>We propose an effective cache-aware block structure for out-of-core tree learning.</li>
+</ul>
+<p>we also make additional improvements in proposing a regularized learning objective</p>
+<h2 id="TREE-BOOSTING-IN-A-NUTSHELL"><a href="#TREE-BOOSTING-IN-A-NUTSHELL" class="headerlink" title="TREE BOOSTING IN A NUTSHELL"></a>TREE BOOSTING IN A NUTSHELL</h2><h3 id="Regularized-Learning-Objective"><a href="#Regularized-Learning-Objective" class="headerlink" title="Regularized Learning Objective"></a>Regularized Learning Objective</h3><script type="math/tex; mode=display">L(\phi) = \sum_il(\hat {y_i}, y_i) + \sum_k\Omega(f_k)</script><p>Where $\Omega(f_k) = \gamma T + \frac {1} {2}\lambda||w||^2$<br>It penalizes the complexity of the model to avoid over-fitting</p>
+<h3 id="Gradient-Tree-Boosting"><a href="#Gradient-Tree-Boosting" class="headerlink" title="Gradient Tree Boosting"></a>Gradient Tree Boosting</h3><p>The model is trained in an additive manner:</p>
+<script type="math/tex; mode=display">L^{(t)} = \sum_{i = 1}^nl(y_i, \hat {y_i}^{(t - 1)}  + f_t(x_i)) + \Omega(f_t)</script><p>Second-order approximation can be used to quickly optimize the objective:</p>
+<script type="math/tex; mode=display">L^{(t)} = \sum_{i = 1}^n[l(y_i, \hat y^{(t - 1)}) + g_if_t(x_i) + \frac {1} {2} h_if_t^2(x_i)] + \Omega(f_t)</script><p>where $g_i = \partial_{\hat y^{(t - 1)}}l(y_i, \hat y^{(t - 1)})$ and $h_i = \partial^2_{\hat y^{(t - 1)}}l(y_i, \hat y^{(t - 1)})$</p>
+<p>define $I_j = \{i | q(x_i) = j\}$ as the instance set of leaf j, we rewrite L as follows:</p>
+<script type="math/tex; mode=display">\tilde L^{(t)} = \sum_{j = 1}^T[(\sum_{i \in I_j }g_i)w_j + \frac {1} {2}(\sum_{i \in I_j}h_i + \lambda)w_j^2] + \gamma T</script><p>for a fixed structure q(x), we can compute the optimal weight $w_j^*$ of j (set derivative of $w_j$ to 0):</p>
+<script type="math/tex; mode=display">w_j^* = - \frac {\sum_{i \in I_j}g_i} {\sum_{i \in I_j}h_i + \lambda}</script><p>and calculate the corresponding optimal value by:</p>
+<script type="math/tex; mode=display">\tilde L^{(t)} = - \frac {1} {2} \sum_{j = 1}^T \frac {\sum_{i \in I_j} g_i^2} {\sum_{i \in I_j} h_i + \lambda} + \gamma T</script><p>This equation can be used as a scoring function to measure the quality of a tree structure q</p>
+<p>We can also give the function of the loss reduction after the split:</p>
+<script type="math/tex; mode=display">L_{split} = \frac {1} 2 [\frac {\sum_{i \in I_L}g_i^2} {\sum_{i \in {I_L}}(h_i + \lambda)} + \frac {\sum_{i \in I_R}g_i^2} {\sum_{i \in {I_R}}(h_i + \lambda)} - \frac {\sum_{i \in I}g_i^2} {\sum_{i \in {I}}(h_i + \lambda)}] - \gamma</script><h3 id="Shrinkage-and-Column-Subsampling"><a href="#Shrinkage-and-Column-Subsampling" class="headerlink" title="Shrinkage and Column Subsampling"></a>Shrinkage and Column Subsampling</h3><p>Prevent over-fitting:</p>
+<ul>
+<li>shrinkage</li>
+<li>column (feature) sub-sampling (better than row sub-sampling)</li>
+</ul>
+<h2 id="SPLIT-FINDING-ALGORITHMS"><a href="#SPLIT-FINDING-ALGORITHMS" class="headerlink" title="SPLIT FINDING ALGORITHMS"></a>SPLIT FINDING ALGORITHMS</h2><h3 id="Basic-Exact-Greedy-Algorithm"><a href="#Basic-Exact-Greedy-Algorithm" class="headerlink" title="Basic Exact Greedy Algorithm"></a>Basic Exact Greedy Algorithm</h3><p><img src="/assets/image/XGBoost/1513852576044.png" alt="Alt text"></p>
+<h3 id="Approximate-Algorithm"><a href="#Approximate-Algorithm" class="headerlink" title="Approximate Algorithm"></a>Approximate Algorithm</h3><p>To support effective gradient tree boosting in:</p>
+<ul>
+<li>the data dose not fit entirely into memory</li>
+<li>distributed setting</li>
+</ul>
+<p>we need an approximate algorithm:</p>
+<ul>
+<li>first proposes candidate splitting points according to percentiles of feature distribution</li>
+<li>then maps the continuous features into buckets split by these candidate points</li>
+<li>aggregates the statistics and finds the best solution among proposals based on the aggregated statistics</li>
+</ul>
+<h3 id="Weighted-Quantile-Sketch"><a href="#Weighted-Quantile-Sketch" class="headerlink" title="Weighted Quantile Sketch"></a>Weighted Quantile Sketch</h3><p>define rank function:</p>
+<p><img src="/assets/image/XGBoost/1513854918109.png" alt="Alt text"></p>
+<p>the goal is to find candidate split points $\{s_{k1}, s_{k2}, \dots, s_{kl}\}$, such that:</p>
+<script type="math/tex; mode=display">|r_k(s_{k, j}) - r_k(s_{k, j+1})| < \epsilon</script><script type="math/tex; mode=display">s_{k, 1} = \underset {i} {min}x_{ik}, s_{k,l} = \underset {i} {max} x_{ik}</script><p>where $\epsilon$ is an approximation factor</p>
+<h3 id="Sparsity-aware-Split-Finding"><a href="#Sparsity-aware-Split-Finding" class="headerlink" title="Sparsity-aware Split Finding"></a>Sparsity-aware Split Finding</h3><p>We propose to add a default direction in each tree node</p>
+<p><img src="/assets/image/XGBoost/1513856199220.png" alt="Alt text"></p>
+<p><img src="/assets/image/XGBoost/1513856434358.png" alt="Alt text"></p>
+<p>The key improvement is to only visit the non-missing entries $I_k$</p>
+<p><img src="/assets/image/XGBoost/1513856619352.png" alt="Alt text"></p>
+<h2 id="SYSTEM-DESIGN"><a href="#SYSTEM-DESIGN" class="headerlink" title="SYSTEM DESIGN"></a>SYSTEM DESIGN</h2><h3 id="Column-Block-for-Parallel-Learning"><a href="#Column-Block-for-Parallel-Learning" class="headerlink" title="Column Block for Parallel Learning"></a>Column Block for Parallel Learning</h3><p><img src="/assets/image/XGBoost/1513860146850.png" alt="Alt text"></p>
+<h3 id="Cache-aware-Access"><a href="#Cache-aware-Access" class="headerlink" title="Cache-aware Access"></a>Cache-aware Access</h3><p>we allocate an internal buffer in each thread, fetch the gradient statistics into it, and then perform accumulation in a mini-batch manner.</p>
+<p><img src="/assets/image/XGBoost/1513860590001.png" alt="Alt text"></p>
+<h3 id="Blocks-for-Out-of-core-Computation"><a href="#Blocks-for-Out-of-core-Computation" class="headerlink" title="Blocks for Out-of-core Computation"></a>Blocks for Out-of-core Computation</h3><p>During computation, it is important to use an independent thread to pre-fetch the block into a main memory buffer</p>
+<p>It is important to reduce the overhead and increase the throughput of disk IO</p>
+<p>We mainly use two techniques to improve the out-of-core computation:</p>
+<ul>
+<li>Block Compression</li>
+<li>Block Sharding</li>
+</ul>
+<h2 id="RELATED-WORKS"><a href="#RELATED-WORKS" class="headerlink" title="RELATED WORKS"></a>RELATED WORKS</h2><p><img src="/assets/image/XGBoost/1513861832847.png" alt="Alt text"></p>
+<h2 id="END-TO-END-EVALUATIONS"><a href="#END-TO-END-EVALUATIONS" class="headerlink" title="END TO END EVALUATIONS"></a>END TO END EVALUATIONS</h2><h3 id="System-Implementation"><a href="#System-Implementation" class="headerlink" title="System Implementation"></a>System Implementation</h3><p>skip</p>
+<h3 id="Dataset-and-Setup"><a href="#Dataset-and-Setup" class="headerlink" title="Dataset and Setup"></a>Dataset and Setup</h3><p>skip</p>
+<h3 id="Classification"><a href="#Classification" class="headerlink" title="Classification"></a>Classification</h3><p><img src="/assets/image/XGBoost/1513862629340.png" alt="Alt text"></p>
+<h3 id="Learning-to-Rank"><a href="#Learning-to-Rank" class="headerlink" title="Learning to Rank"></a>Learning to Rank</h3><p><img src="/assets/image/XGBoost/1513862706116.png" alt="Alt text"></p>
+<h3 id="Out-of-core-Experiment"><a href="#Out-of-core-Experiment" class="headerlink" title="Out-of-core Experiment"></a>Out-of-core Experiment</h3><p><img src="/assets/image/XGBoost/1513862970910.png" alt="Alt text"></p>
+<h3 id="Distributed-Experiment"><a href="#Distributed-Experiment" class="headerlink" title="Distributed Experiment"></a>Distributed Experiment</h3><p>It is able to take advantage of out-of-core computing and smoothly scale to all 1.7 billion examples</p>
+<h2 id="CONCLUSION"><a href="#CONCLUSION" class="headerlink" title="CONCLUSION"></a>CONCLUSION</h2><p>skip</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/machine-learning/" rel="tag"># machine_learning</a>
+              <a href="/tags/note/" rel="tag"># note</a>
+              <a href="/tags/2016/" rel="tag"># 2016</a>
+              <a href="/tags/UW/" rel="tag"># UW</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/11/19/%E5%90%8E%E7%BC%80%E6%95%B0%E7%BB%84/" rel="prev" title="后缀数组">
+      <i class="fa fa-chevron-left"></i> 后缀数组
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/03/09/%E3%80%8A%E5%8C%BA%E5%9D%97%E9%93%BE%E6%BC%94%E4%B9%89%E3%80%8B%E7%AC%94%E8%AE%B0/" rel="next" title="《区块链演义》笔记">
+      《区块链演义》笔记 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">1.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ABSTRACT"><span class="nav-number">2.</span> <span class="nav-text">ABSTRACT</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#INTRODUCTION"><span class="nav-number">3.</span> <span class="nav-text">INTRODUCTION</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#TREE-BOOSTING-IN-A-NUTSHELL"><span class="nav-number">4.</span> <span class="nav-text">TREE BOOSTING IN A NUTSHELL</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Regularized-Learning-Objective"><span class="nav-number">4.1.</span> <span class="nav-text">Regularized Learning Objective</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Gradient-Tree-Boosting"><span class="nav-number">4.2.</span> <span class="nav-text">Gradient Tree Boosting</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Shrinkage-and-Column-Subsampling"><span class="nav-number">4.3.</span> <span class="nav-text">Shrinkage and Column Subsampling</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SPLIT-FINDING-ALGORITHMS"><span class="nav-number">5.</span> <span class="nav-text">SPLIT FINDING ALGORITHMS</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Basic-Exact-Greedy-Algorithm"><span class="nav-number">5.1.</span> <span class="nav-text">Basic Exact Greedy Algorithm</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Approximate-Algorithm"><span class="nav-number">5.2.</span> <span class="nav-text">Approximate Algorithm</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Weighted-Quantile-Sketch"><span class="nav-number">5.3.</span> <span class="nav-text">Weighted Quantile Sketch</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Sparsity-aware-Split-Finding"><span class="nav-number">5.4.</span> <span class="nav-text">Sparsity-aware Split Finding</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SYSTEM-DESIGN"><span class="nav-number">6.</span> <span class="nav-text">SYSTEM DESIGN</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Column-Block-for-Parallel-Learning"><span class="nav-number">6.1.</span> <span class="nav-text">Column Block for Parallel Learning</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Cache-aware-Access"><span class="nav-number">6.2.</span> <span class="nav-text">Cache-aware Access</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Blocks-for-Out-of-core-Computation"><span class="nav-number">6.3.</span> <span class="nav-text">Blocks for Out-of-core Computation</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RELATED-WORKS"><span class="nav-number">7.</span> <span class="nav-text">RELATED WORKS</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#END-TO-END-EVALUATIONS"><span class="nav-number">8.</span> <span class="nav-text">END TO END EVALUATIONS</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#System-Implementation"><span class="nav-number">8.1.</span> <span class="nav-text">System Implementation</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Dataset-and-Setup"><span class="nav-number">8.2.</span> <span class="nav-text">Dataset and Setup</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Classification"><span class="nav-number">8.3.</span> <span class="nav-text">Classification</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Learning-to-Rank"><span class="nav-number">8.4.</span> <span class="nav-text">Learning to Rank</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Out-of-core-Experiment"><span class="nav-number">8.5.</span> <span class="nav-text">Out-of-core Experiment</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Distributed-Experiment"><span class="nav-number">8.6.</span> <span class="nav-text">Distributed Experiment</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CONCLUSION"><span class="nav-number">9.</span> <span class="nav-text">CONCLUSION</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Berwyn Zhang</p>
+  <div class="site-description" itemprop="description">Learn & output</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">29</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">26</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-address-card"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Berwyn Zhang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+</body>
+</html>

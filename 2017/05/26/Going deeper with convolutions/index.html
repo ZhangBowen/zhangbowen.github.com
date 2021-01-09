@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"berwynzhang.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="总结 提出了一个代号为Inception的神经网络结构，开头点出此结构的最大作用是提升计算资源的利用率 是NIN的deep版本 参考Serre et al. 15 用多个size的filter来抽取信息；有两个不同点 所有网络中的filter都是学习得来 重复使用Inception结构组成一个更深的网络   又参考了Lin et al. 12使用1 * 1的卷积核来提升模型的表达能力；并且可以减少">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Going deeper with convolutions">
+<meta property="og:url" content="https://berwynzhang.com/2017/05/26/Going%20deeper%20with%20convolutions/index.html">
+<meta property="og:site_name" content="Berwyn&#39;s Blog">
+<meta property="og:description" content="总结 提出了一个代号为Inception的神经网络结构，开头点出此结构的最大作用是提升计算资源的利用率 是NIN的deep版本 参考Serre et al. 15 用多个size的filter来抽取信息；有两个不同点 所有网络中的filter都是学习得来 重复使用Inception结构组成一个更深的网络   又参考了Lin et al. 12使用1 * 1的卷积核来提升模型的表达能力；并且可以减少">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/Goingdeeperwithconvolutions/1508400245236.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/Goingdeeperwithconvolutions/1508404608910.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/Goingdeeperwithconvolutions/1508409734340.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/Goingdeeperwithconvolutions/1508485350446.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/Goingdeeperwithconvolutions/1508485365002.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/Goingdeeperwithconvolutions/1508488494731.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/Goingdeeperwithconvolutions/1508488504627.png">
+<meta property="article:published_time" content="2017-05-25T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-01-04T15:58:30.684Z">
+<meta property="article:author" content="Berwyn Zhang">
+<meta property="article:tag" content="machine_learning">
+<meta property="article:tag" content="note">
+<meta property="article:tag" content="Inception">
+<meta property="article:tag" content="CNN">
+<meta property="article:tag" content="google">
+<meta property="article:tag" content="2014">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://berwynzhang.com/assets/image/Goingdeeperwithconvolutions/1508400245236.png">
+
+<link rel="canonical" href="https://berwynzhang.com/2017/05/26/Going%20deeper%20with%20convolutions/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Going deeper with convolutions | Berwyn's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Berwyn's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2017/05/26/Going%20deeper%20with%20convolutions/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Going deeper with convolutions
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2017-05-26 00:00:00" itemprop="dateCreated datePublished" datetime="2017-05-26T00:00:00+08:00">2017-05-26</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-04 23:58:30" itemprop="dateModified" datetime="2021-01-04T23:58:30+08:00">2021-01-04</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>提出了一个代号为Inception的神经网络结构，开头点出此结构的最大作用是<strong>提升计算资源的利用率</strong></li>
+<li>是NIN的deep版本</li>
+<li>参考Serre et al. <sup><a href="#fn_15" id="reffn_15">15</a></sup> 用多个size的filter来抽取信息；有两个不同点<ul>
+<li>所有网络中的filter都是学习得来</li>
+<li>重复使用Inception结构组成一个更深的网络</li>
+</ul>
+</li>
+<li>又参考了Lin et al. <sup><a href="#fn_12" id="reffn_12">12</a></sup>使用1 * 1的卷积核来提升模型的表达能力；并且可以减少维度，使在同等的计算资源下网络可以更深更宽，从而提升效果</li>
+<li>ILSVRC 2014 数据集<ul>
+<li>1 model; 1 crops; top5 error: 10.07%</li>
+<li>ensemble(7 models, 144 crops); top5 error: 6.67%</li>
+</ul>
+</li>
+</ul>
+<h3 id="Inception-诞生的心路历程"><a href="#Inception-诞生的心路历程" class="headerlink" title="Inception 诞生的心路历程"></a>Inception 诞生的心路历程</h3><ul>
+<li>现如今提升网络效果主要靠提升网络的宽度和深度；这么做有两个问题：<ul>
+<li>容易过拟合</li>
+<li>计算资源需求快速增长</li>
+</ul>
+</li>
+<li>因为权重矩阵中有很多的0，因此人们提出从全连接结构改成稀疏链接结构的方式</li>
+<li>后来证明不行，因为稀疏结构的查找开销太大盖过了计算开销的节省，还不如不用</li>
+<li>后来提出了用网络结构解决此问题的方式——Inception</li>
+</ul>
+<h3 id="Inception结构详解"><a href="#Inception结构详解" class="headerlink" title="Inception结构详解"></a>Inception结构详解</h3><ul>
+<li>中心思想是找到一种简单可用的稠密结构去近似局部最优的稀疏结构</li>
+<li>有两种方式可以从同样的数据中抽取更多的信息<ul>
+<li>在抽取信息后用1*1卷积再抽象一层</li>
+<li>用少量不同size的filter对同样的信息做处理然后再拼在一起</li>
+</ul>
+</li>
+<li>为了避免patch-alignment issues(不懂), filter的size固定在1 <em> 1, 3 </em> 3, 5 * 5</li>
+<li>除此之外又加了pooling结构</li>
+<li>由于高层网络中空间信息变少，越高层的网络中3 <em> 3和5 </em> 5卷积层的比例也应该越来越少</li>
+</ul>
+<h4 id="结构改进"><a href="#结构改进" class="headerlink" title="结构改进"></a>结构改进</h4><ul>
+<li>上述结构filter数量的增长太快计算不过来</li>
+<li>引入1 <em> 1卷积层，在3 </em> 3 和 5 * 5的卷积计算之前先降低filter的数量</li>
+</ul>
+<p><strong>实验表明Inception结构只在高层网络中有收益，所以底层网络结构保持传统方式</strong></p>
+<h2 id="Abstract"><a href="#Abstract" class="headerlink" title="Abstract"></a>Abstract</h2><ul>
+<li>propose a deep convolutional neural network architecture codenamed Inception</li>
+<li>the main hallmark of this architecture is the improved utilization of the computing resources inside the network</li>
+<li>the architectural decisions were based on the Hebbian principle and the intuition of multi-scale processing</li>
+</ul>
+<h2 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h2><p>the design of the deep architecture presented in this paper included this factor rather than having a sheer fixation on accuracy numbers —— 1.5 billion multiply-adds at inference time</p>
+<h3 id="meanings-of-“deep”"><a href="#meanings-of-“deep”" class="headerlink" title="meanings of “deep”"></a>meanings of “deep”</h3><ul>
+<li>in the sense that we introduce a new level of organization in the form of the “Inception module” and also in the more direct sense of increased network depth</li>
+<li>In general, one can view the Inception model as a logical culmination of <code>Network in Network</code>while taking inspiration and guidance from the theoretical work by Arora et al</li>
+</ul>
+<h2 id="Related-Work"><a href="#Related-Work" class="headerlink" title="Related Work"></a>Related Work</h2><h4 id="standard-structure-starting-with-LeNet-5"><a href="#standard-structure-starting-with-LeNet-5" class="headerlink" title="standard structure starting with LeNet-5"></a>standard structure starting with LeNet-5</h4><ul>
+<li>stacked convolutional layers</li>
+<li>followed by contrast normalization(optionally)</li>
+<li>followed by max-pooling(optionally)</li>
+<li>one or more fully-connected layers</li>
+</ul>
+<h4 id="recent-trend"><a href="#recent-trend" class="headerlink" title="recent trend"></a>recent trend</h4><ul>
+<li>increase number of layers</li>
+<li>increase layer size</li>
+<li>using dropout to address the problem of overfitting</li>
+</ul>
+<h4 id="filters-of-different-sizes"><a href="#filters-of-different-sizes" class="headerlink" title="filters of different sizes"></a>filters of different sizes</h4><p>Inspired by a neuroscience </p>
+<p>Serre et al. <sup><a href="#fn_15" id="reffn_15">15</a></sup> use a series of fixed Gabor filters of different sizes in order to handle multiple scales</p>
+<p>differences in Inception:</p>
+<ul>
+<li>all filters in the Inception model are learned</li>
+<li>Inception layers are repeated many times</li>
+</ul>
+<h4 id="1-x-1-convolutions"><a href="#1-x-1-convolutions" class="headerlink" title="1 x 1 convolutions"></a>1 x 1 convolutions</h4><p>proposed by Lin et al. <sup><a href="#fn_12" id="reffn_12">12</a></sup> in order to increase the representational power of neural networks</p>
+<p>remove computational bottlenecks $\rightarrow$  increasing the depth &amp; width</p>
+<h4 id="R-CNN"><a href="#R-CNN" class="headerlink" title="R-CNN"></a>R-CNN</h4><p>leading approach for object detection</p>
+<ul>
+<li>to first utilize low-level cues such as color and superpixel consistency for potential object proposals in a category-agnostic fashion</li>
+<li>and to then use CNN classifiers to identify object categories at those locations</li>
+</ul>
+<p>enhancements:</p>
+<ul>
+<li>multi-box</li>
+<li>prediction for higher object bounding box recall</li>
+<li>ensemble approaches for better categorization of bounding box proposals</li>
+</ul>
+<h2 id="Motivation-and-High-Level-Considerations"><a href="#Motivation-and-High-Level-Considerations" class="headerlink" title="Motivation and High Level Considerations"></a>Motivation and High Level Considerations</h2><p>if we improve the performance of neural network only by increasing their size, there are two major <strong>drawbacks</strong>:</p>
+<ul>
+<li>more prone to overfitting</li>
+<li>dramatically increased use of computational resources</li>
+</ul>
+<p><strong>solution</strong>:</p>
+<ul>
+<li>moving from fully connected to sparsely connected architectures</li>
+</ul>
+<p><strong>but</strong>:</p>
+<ul>
+<li>the overhead of lookups and cache misses is so dominant that switching to sparse matrices would not pay off</li>
+</ul>
+<p><strong>another way</strong>:</p>
+<ul>
+<li>use architecture to do this —— <code>Inception</code></li>
+<li>implied by <sup><a href="#fn_2" id="reffn_2">2</a></sup></li>
+</ul>
+<p><strong>cautious</strong>:</p>
+<ul>
+<li>whether its quality can be attributed to the guiding principles that have lead to its construction</li>
+</ul>
+<h2 id="Architectural-Details"><a href="#Architectural-Details" class="headerlink" title="Architectural Details"></a>Architectural Details</h2><p>The <strong>main idea</strong> of the Inception architecture is based on finding out how an optimal local <code>sparse structure</code> in a convolutional vision network can be approximated and covered by readily available <code>dense components</code></p>
+<p>two way to gain more information:</p>
+<ul>
+<li>a lot of clusters concentrated in a single region and they can be covered by a layer of 1 X 1 convolutions —— suggested in <sup><a href="#fn_12" id="reffn_12">12</a></sup></li>
+<li>a smaller number of more spatially spread out clusters —— proposed in this paper</li>
+</ul>
+<p>In order to avoid patch-alignment issues, current incarnations of the Inception architecture are restricted to filter sizes  <code>1X1, 3X3 and 5X5</code></p>
+<p>it suggests that adding an alternative parallel pooling path in each such stage should have additional beneficial effect, too</p>
+<p><img src="/assets/image/Goingdeeperwithconvolutions/1508400245236.png" alt="Alt text"></p>
+<p>as features of higher abstraction are captured by higher layers, their spatial concentration is expected to decrease suggesting that the ratio of 3X3 and 5X5 convolutions should increase as we move to higher layers.</p>
+<p><strong>problem</strong>:</p>
+<ul>
+<li>inevitable increase in the number of outputs from stage to stage</li>
+</ul>
+<p><strong>solution</strong>:</p>
+<ul>
+<li>applying dimension reductions</li>
+<li>even low dimensional embeddings might contain a lot of information</li>
+<li>compress the signals only whenever they have to be aggregated union</li>
+<li>That is, 1 X 1 convolutions are used to compute reductions before the expensive 3 X 3 and 5 X 5 convolutions</li>
+<li>(only for pooling?) also include the use of rectified linear activation which makes them dual-purpose</li>
+</ul>
+<p><img src="/assets/image/Goingdeeperwithconvolutions/1508404608910.png" alt="Alt text"></p>
+<p><strong>use only at higher layer</strong><br>it seemed beneficial to start using Inception modules only at higher layers while keeping the lower layers in traditional convolutional fashion</p>
+<p><strong>main benefits of this architecture</strong></p>
+<ul>
+<li>it allows for increasing the number of units at each stage significantly without an uncontrolled blow-up in computational complexity</li>
+<li>it aligns with the intuition that visual information should be processed at various scales and then aggregated so that the next stage can abstract features from different scales simultaneously</li>
+</ul>
+<p>Another way to utilize the inception architecture is to create slightly inferior, but computationally cheaper versions of it.</p>
+<h2 id="GoogLeNet"><a href="#GoogLeNet" class="headerlink" title="GoogLeNet"></a>GoogLeNet</h2><p><img src="/assets/image/Goingdeeperwithconvolutions/1508409734340.png" alt="Alt text"></p>
+<ul>
+<li>activation: rectified linear unit</li>
+<li>input:<ul>
+<li>224 * 224</li>
+<li>RGB</li>
+<li>mean subtraction</li>
+</ul>
+</li>
+</ul>
+<p>It was found that a move from fully connected layers to average pooling improved the top-1 accuracy by about 0.6%</p>
+<p><strong>back-propagate effectively:</strong></p>
+<ul>
+<li>adding auxiliary classifiers connected to these intermediate layers</li>
+<li>add discount weighted by 0.3 to total loss</li>
+<li>At inference time, these auxiliary networks are discarded</li>
+</ul>
+<h2 id="Training-Methodology"><a href="#Training-Methodology" class="headerlink" title="Training Methodology"></a>Training Methodology</h2><ul>
+<li>asynchronous stochastic gradient descent with 0.9 momentum</li>
+<li>decreasing the learning rate by 4% every 8 epochs</li>
+<li>Polyak averaging</li>
+</ul>
+<p>sampling: </p>
+<ul>
+<li>work very well after the competition includes sampling of various sized patches of the image</li>
+<li>work very well after the competition includes sampling of various sized patches of the image</li>
+</ul>
+<h2 id="Experiment"><a href="#Experiment" class="headerlink" title="Experiment"></a>Experiment</h2><h3 id="ILSVRC-2014-Classification-Challenge-Setup-and-Results"><a href="#ILSVRC-2014-Classification-Challenge-Setup-and-Results" class="headerlink" title="ILSVRC 2014 Classification Challenge Setup and Results"></a>ILSVRC 2014 Classification Challenge Setup and Results</h3><ul>
+<li>7 models ensemble</li>
+<li>aggressive cropping<ul>
+<li>resize the image to 4 scales(256, 288, 320 and 352)</li>
+<li>take the left, center and right square</li>
+<li>For each square, we then take the 4 corners and the center 224 X 224 crop as well as the square itself</li>
+<li>mirror</li>
+<li>This results in 4 X 3 X 6 X 2 = 144</li>
+</ul>
+</li>
+</ul>
+<p><img src="/assets/image/Goingdeeperwithconvolutions/1508485350446.png" alt="Alt text"></p>
+<p><img src="/assets/image/Goingdeeperwithconvolutions/1508485365002.png" alt="Alt text"></p>
+<h3 id="ILSVRC-2014-Detection-Challenge-Setup-and-Results"><a href="#ILSVRC-2014-Detection-Challenge-Setup-and-Results" class="headerlink" title="ILSVRC 2014 Detection Challenge Setup and Results"></a>ILSVRC 2014 Detection Challenge Setup and Results</h3><ul>
+<li>6 models ensemble</li>
+</ul>
+<p><img src="/assets/image/Goingdeeperwithconvolutions/1508488494731.png" alt="Alt text"></p>
+<p><img src="/assets/image/Goingdeeperwithconvolutions/1508488504627.png" alt="Alt text"></p>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><blockquote id="fn_2">
+<sup>2</sup>.  Sanjeev Arora, Aditya Bhaskara, Rong Ge, and Tengyu Ma. Provable bounds for learning some deep representations. CoRR, abs/1310.6343, 2013.<a href="#reffn_2" title="Jump back to footnote [2] in the text."> &#8617;</a>
+</blockquote>
+<blockquote id="fn_12">
+<sup>12</sup>. Min Lin, Qiang Chen, and Shuicheng Yan. Network in network. CoRR, abs/1312.4400, 2013.<a href="#reffn_12" title="Jump back to footnote [12] in the text."> &#8617;</a>
+</blockquote>
+<blockquote id="fn_15">
+<sup>15</sup>. Thomas Serre, Lior Wolf, Stanley M. Bileschi, Maximilian Riesenhuber, and Tomaso Poggio. Robust object recognition with cortex-like mechanisms. IEEE Trans. Pattern Anal. Mach. Intell., 29(3):411–426, 2007.<a href="#reffn_15" title="Jump back to footnote [15] in the text."> &#8617;</a>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/machine-learning/" rel="tag"># machine_learning</a>
+              <a href="/tags/note/" rel="tag"># note</a>
+              <a href="/tags/Inception/" rel="tag"># Inception</a>
+              <a href="/tags/CNN/" rel="tag"># CNN</a>
+              <a href="/tags/google/" rel="tag"># google</a>
+              <a href="/tags/2014/" rel="tag"># 2014</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/05/19/Network%20In%20Network/" rel="prev" title="Network In Network">
+      <i class="fa fa-chevron-left"></i> Network In Network
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/06/04/Batch%20Normalization_%20Accelerating%20Deep%20Network%20Training%20by%20Reducing%20Internal%20Covariate%20Shift/" rel="next" title="Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift">
+      Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">1.</span> <span class="nav-text">总结</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Inception-%E8%AF%9E%E7%94%9F%E7%9A%84%E5%BF%83%E8%B7%AF%E5%8E%86%E7%A8%8B"><span class="nav-number">1.1.</span> <span class="nav-text">Inception 诞生的心路历程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Inception%E7%BB%93%E6%9E%84%E8%AF%A6%E8%A7%A3"><span class="nav-number">1.2.</span> <span class="nav-text">Inception结构详解</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BB%93%E6%9E%84%E6%94%B9%E8%BF%9B"><span class="nav-number">1.2.1.</span> <span class="nav-text">结构改进</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Abstract"><span class="nav-number">2.</span> <span class="nav-text">Abstract</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Introduction"><span class="nav-number">3.</span> <span class="nav-text">Introduction</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#meanings-of-%E2%80%9Cdeep%E2%80%9D"><span class="nav-number">3.1.</span> <span class="nav-text">meanings of “deep”</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Related-Work"><span class="nav-number">4.</span> <span class="nav-text">Related Work</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#standard-structure-starting-with-LeNet-5"><span class="nav-number">4.0.1.</span> <span class="nav-text">standard structure starting with LeNet-5</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#recent-trend"><span class="nav-number">4.0.2.</span> <span class="nav-text">recent trend</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#filters-of-different-sizes"><span class="nav-number">4.0.3.</span> <span class="nav-text">filters of different sizes</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#1-x-1-convolutions"><span class="nav-number">4.0.4.</span> <span class="nav-text">1 x 1 convolutions</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#R-CNN"><span class="nav-number">4.0.5.</span> <span class="nav-text">R-CNN</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Motivation-and-High-Level-Considerations"><span class="nav-number">5.</span> <span class="nav-text">Motivation and High Level Considerations</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Architectural-Details"><span class="nav-number">6.</span> <span class="nav-text">Architectural Details</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GoogLeNet"><span class="nav-number">7.</span> <span class="nav-text">GoogLeNet</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Training-Methodology"><span class="nav-number">8.</span> <span class="nav-text">Training Methodology</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Experiment"><span class="nav-number">9.</span> <span class="nav-text">Experiment</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ILSVRC-2014-Classification-Challenge-Setup-and-Results"><span class="nav-number">9.1.</span> <span class="nav-text">ILSVRC 2014 Classification Challenge Setup and Results</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ILSVRC-2014-Detection-Challenge-Setup-and-Results"><span class="nav-number">9.2.</span> <span class="nav-text">ILSVRC 2014 Detection Challenge Setup and Results</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-number">10.</span> <span class="nav-text">Reference</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Berwyn Zhang</p>
+  <div class="site-description" itemprop="description">Learn & output</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">29</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">26</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-address-card"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Berwyn Zhang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+</body>
+</html>

@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"berwynzhang.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="概述 Recurrent Neural Networks 用来处理序列数据 当前状态的输出与前面状态的输出也有关 目前在NLP上表现不错，目前的应用 文本生成 机器翻译 语音识别   使用最广泛的模型是LSTM——Long Short-Term Memory 长短时期记忆模型  模型举例Simple RNNs(SRNs循环网络)三层神经网络，并在隐藏层加了上下文单元上下文单元与隐藏层之间的链接是固">
+<meta property="og:type" content="article">
+<meta property="og:title" content="循环神经网络总结">
+<meta property="og:url" content="https://berwynzhang.com/2016/07/19/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/index.html">
+<meta property="og:site_name" content="Berwyn&#39;s Blog">
+<meta property="og:description" content="概述 Recurrent Neural Networks 用来处理序列数据 当前状态的输出与前面状态的输出也有关 目前在NLP上表现不错，目前的应用 文本生成 机器翻译 语音识别   使用最广泛的模型是LSTM——Long Short-Term Memory 长短时期记忆模型  模型举例Simple RNNs(SRNs循环网络)三层神经网络，并在隐藏层加了上下文单元上下文单元与隐藏层之间的链接是固">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/循环神经网络/1464689637852.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/循环神经网络/1464776903435.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/循环神经网络/1464777020584.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/循环神经网络/1465286699322.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/循环神经网络/1465287983754.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/循环神经网络/1465293400919.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/循环神经网络/1465289834752.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/循环神经网络/1465290120344.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/循环神经网络/1465294614277.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/循环神经网络/1465295292794.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/循环神经网络/1465296032639.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/循环神经网络/1465296228401.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/循环神经网络/1465297445098.png">
+<meta property="article:published_time" content="2016-07-18T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-01-04T15:30:19.089Z">
+<meta property="article:author" content="Berwyn Zhang">
+<meta property="article:tag" content="machine_learning">
+<meta property="article:tag" content="summary">
+<meta property="article:tag" content="rnn">
+<meta property="article:tag" content="lstm">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://berwynzhang.com/assets/image/循环神经网络/1464689637852.png">
+
+<link rel="canonical" href="https://berwynzhang.com/2016/07/19/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>循环神经网络总结 | Berwyn's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Berwyn's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2016/07/19/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          循环神经网络总结
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2016-07-19 00:00:00" itemprop="dateCreated datePublished" datetime="2016-07-19T00:00:00+08:00">2016-07-19</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-04 23:30:19" itemprop="dateModified" datetime="2021-01-04T23:30:19+08:00">2021-01-04</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><ul>
+<li>Recurrent Neural Networks</li>
+<li>用来处理序列数据</li>
+<li>当前状态的输出与前面状态的输出也有关<br><img src="/assets/image/循环神经网络/1464689637852.png" alt="Alt text"></li>
+<li>目前在NLP上表现不错，目前的应用<ul>
+<li>文本生成</li>
+<li>机器翻译</li>
+<li>语音识别</li>
+</ul>
+</li>
+<li>使用最广泛的模型是LSTM——Long Short-Term Memory 长短时期记忆模型</li>
+</ul>
+<h2 id="模型举例"><a href="#模型举例" class="headerlink" title="模型举例"></a>模型举例</h2><h3 id="Simple-RNNs-SRNs循环网络"><a href="#Simple-RNNs-SRNs循环网络" class="headerlink" title="Simple RNNs(SRNs循环网络)"></a>Simple RNNs(SRNs循环网络)</h3><p>三层神经网络，并在隐藏层加了上下文单元<br>上下文单元与隐藏层之间的链接是固定的，并且权重也是固定的<br>前向反馈传播<br>上下文节点保存上文，即隐藏层接收输入层的输出和上一时刻自己的状态</p>
+<h3 id="Bidirectional-RNNs-双向循环网络"><a href="#Bidirectional-RNNs-双向循环网络" class="headerlink" title="Bidirectional RNNs(双向循环网络)"></a>Bidirectional RNNs(双向循环网络)</h3><p>当前输出不仅与之前的状态相关，还与之后的状态相关<br>由两个SRNs叠加而成<br><img src="/assets/image/循环神经网络/1464776903435.png" alt="Alt text"></p>
+<h3 id="Deep-Bidirectional-RNNs-深度双向循环网络"><a href="#Deep-Bidirectional-RNNs-深度双向循环网络" class="headerlink" title="Deep (Bidirectional) RNNs(深度双向循环网络)"></a>Deep (Bidirectional) RNNs(深度双向循环网络)</h3><p>多层BRN<br>更强的表达和学习能力，所需的训练数据也更多了<br><img src="/assets/image/循环神经网络/1464777020584.png" alt="Alt text"></p>
+<h3 id="Echo-State-Networks"><a href="#Echo-State-Networks" class="headerlink" title="Echo State Networks"></a>Echo State Networks</h3><p>与传统RNNs相差巨大</p>
+<ul>
+<li>核心结构是一个随机生成的且保持不变的储备池(Reservoir)，储备池的链接是稀疏链接(SD 为 1% ~ 5%之间)</li>
+<li>输出层的权重矩阵是唯一可变的部分</li>
+<li>简单的线性回归即可完成训练</li>
+</ul>
+<p>模型参数：</p>
+<ul>
+<li>$W$为储备池中节点链接的权值矩阵</li>
+<li>$W_{in}$为输入层到储备池之间的连接权值矩阵</li>
+<li>$W_{out}$为输入层、储备池、输出层到输出层的连接权值矩阵</li>
+<li>$W_{back}$为输出层到储备池之间的链接权值矩阵</li>
+<li>$W_{bias}^{out}$为输出层的偏置项</li>
+</ul>
+<p>储备池参数：</p>
+<ul>
+<li>内部连接权谱半径SR<script type="math/tex; mode=display">SR = \lambda_{max} = max\{|W的特征值|\}</script></li>
+<li>储备池神经元个数N</li>
+<li>输入信号连接到储备池内部神经元之间需要相乘的尺度因子IS</li>
+<li>储备池稀疏程度SD</li>
+</ul>
+<h3 id="Long-Short-Term-Memory-Networks-LSTMs-长短时期记忆模型"><a href="#Long-Short-Term-Memory-Networks-LSTMs-长短时期记忆模型" class="headerlink" title="Long Short Term Memory Networks(LSTMs 长短时期记忆模型)"></a>Long Short Term Memory Networks(LSTMs 长短时期记忆模型)</h3><p>与RNNs相比在长间距依赖的问题上表现的更加出色<br>用了不同的函数去计算隐藏层的状态<br>隐藏层状态示意<br><img src="/assets/image/循环神经网络/1465286699322.png" alt="Alt text"><br><img src="/assets/image/循环神经网络/1465287983754.png" alt="Alt text"><br>图中的$\sigma$表示sigmod函数<br>sigmod函数以及一个乘法操作在LSTMs中充当阀门（gate）的作用<br><img src="/assets/image/循环神经网络/1465293400919.png" alt="Alt text"><br>图中的$tanh$表示<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E5%8F%8C%E6%9B%B2%E5%87%BD%E6%95%B0">双曲函数</a><br>阀门可以控制增加或移除某些信息的移除<br>如上图所示，LSTMs总共有3个阀门</p>
+<h4 id="步骤分解"><a href="#步骤分解" class="headerlink" title="步骤分解"></a>步骤分解</h4><p>细胞状态——cell state就是最上面的$C$变量，是LSTMs的关键变量</p>
+<h5 id="计算细胞状态中旧信息筛选因子"><a href="#计算细胞状态中旧信息筛选因子" class="headerlink" title="计算细胞状态中旧信息筛选因子"></a>计算细胞状态中旧信息筛选因子</h5><p><img src="/assets/image/循环神经网络/1465289834752.png" alt="Alt text"></p>
+<p>这一步主要是决定那些旧的信息需要被扔掉<br>通过这个操作给每个cell state中的每个数值对应的位置一个0~1的数字标识这个地方的旧数据是否需要保留</p>
+<h5 id="计算细胞状态中的新信息加和因子"><a href="#计算细胞状态中的新信息加和因子" class="headerlink" title="计算细胞状态中的新信息加和因子"></a>计算细胞状态中的新信息加和因子</h5><p><img src="/assets/image/循环神经网络/1465290120344.png" alt="Alt text"></p>
+<p>这一步主要是决定哪些新的信息要储存在cell state中<br>分两方面</p>
+<ol>
+<li>第一步通过$sigmod$筛选出哪些数值需要更新</li>
+<li>第二步通过$tanh$计算出另外一个乘法因子$\overset{-}{C_i}$</li>
+<li>把两个结果相乘得出结果</li>
+</ol>
+<h5 id="细胞状态传递"><a href="#细胞状态传递" class="headerlink" title="细胞状态传递"></a>细胞状态传递</h5><p><img src="/assets/image/循环神经网络/1465294614277.png" alt="Alt text"><br>细胞状态在整个计算过程中贯穿而过只有少量的线性运算，因此这个向量保持不变就相对容易<br>第一个乘法运算与第一步中的筛选因子进行，筛选出保留的信息。然后与第二步计算的加和因子进行加法运算得到新的细胞状态</p>
+<h5 id="计算最终输出结果"><a href="#计算最终输出结果" class="headerlink" title="计算最终输出结果"></a>计算最终输出结果</h5><p><img src="/assets/image/循环神经网络/1465295292794.png" alt="Alt text"></p>
+<p>最终的输出结果是一个经过过滤器过滤的细胞状态<br>首先采用$sigmod$函数来决定细胞状态中的那一部分需要输出<br>然后将细胞状态进行$tanh$处理，将处理的结果与筛选向量相乘得到最终的输出结果</p>
+<h4 id="LSTMs变体"><a href="#LSTMs变体" class="headerlink" title="LSTMs变体"></a>LSTMs变体</h4><p>LSTMs有茫茫多的变体，只列举了比较著名的一些变体</p>
+<h5 id="peephole-connection"><a href="#peephole-connection" class="headerlink" title="peephole connection"></a><a href="ftp://ftp.idsia.ch/pub/juergen/TimeCount-IJCNN2000.pdf">peephole connection</a></h5><p>由Gers &amp; Schmidhuber在2000年提出<br>这个变体是在所有的阀门上加了一个通道能够直接获取细胞状态<br><img src="/assets/image/循环神经网络/1465296032639.png" alt="Alt text"><br>在实际应用的时候一般只加其中某些通道不是所有都加</p>
+<h5 id="coupled-forget-and-input-gates"><a href="#coupled-forget-and-input-gates" class="headerlink" title="coupled forget and input gates"></a>coupled forget and input gates</h5><p>这个变体是不单独计算input gates，而是直接由forget gates对偶而来<br><img src="/assets/image/循环神经网络/1465296228401.png" alt="Alt text"></p>
+<h5 id="Gated-Recurrent-Unit-Recurrent-Neural-Networks-GRUs"><a href="#Gated-Recurrent-Unit-Recurrent-Neural-Networks-GRUs" class="headerlink" title="Gated Recurrent Unit Recurrent Neural Networks(GRUs)"></a><a target="_blank" rel="noopener" href="http://arxiv.org/pdf/1406.1078v3.pdf">Gated Recurrent Unit Recurrent Neural Networks(GRUs)</a></h5><p>由Cho在2014年提出<br>合并了input gate和forget gate，统一成update gate<br><img src="/assets/image/循环神经网络/1465297445098.png" alt="Alt text"><br>将隐藏状态和细胞状态统一为了隐藏状态</p>
+<h4 id="不同变体之间的比较"><a href="#不同变体之间的比较" class="headerlink" title="不同变体之间的比较"></a><a target="_blank" rel="noopener" href="http://arxiv.org/pdf/1503.04069.pdf">不同变体之间的比较</a></h4><p>详见论文<br>大多数的场景下LSTMs表现要更好</p>
+<h3 id="Clockwork-RNNs-CW-RNNs"><a href="#Clockwork-RNNs-CW-RNNs" class="headerlink" title="Clockwork RNNs(CW-RNNs)"></a>Clockwork RNNs(CW-RNNs)</h3><p>论文里说效果比SRN和LSTM都要好<br>隐藏层会被分为若干组，每个组有等量的神经元。<br>里面不同组拥有不同的时间周期<br>每个组中的神经元是全连接的<br>只能周期大的神经元链接周期小的神经元</p>
+<h2 id="引用"><a href="#引用" class="headerlink" title="引用"></a>引用</h2><ul>
+<li><a target="_blank" rel="noopener" href="http://blog.csdn.net/heyongluoyao8/article/details/48636251">http://blog.csdn.net/heyongluoyao8/article/details/48636251</a></li>
+<li><a target="_blank" rel="noopener" href="http://colah.github.io/posts/2015-08-Understanding-LSTMs/">http://colah.github.io/posts/2015-08-Understanding-LSTMs/</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/machine-learning/" rel="tag"># machine_learning</a>
+              <a href="/tags/summary/" rel="tag"># summary</a>
+              <a href="/tags/rnn/" rel="tag"># rnn</a>
+              <a href="/tags/lstm/" rel="tag"># lstm</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2016/04/29/%E6%97%B6%E9%97%B4%E5%BA%8F%E5%88%97/" rel="prev" title="时间序列总结">
+      <i class="fa fa-chevron-left"></i> 时间序列总结
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2016/12/09/Click-Through%20Rate%20Estimation%20for%20Rare%20Events%20in%20Online%20Advertising/" rel="next" title="Click-Through Rate Estimation for Rare Events in Online Advertising">
+      Click-Through Rate Estimation for Rare Events in Online Advertising <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A6%82%E8%BF%B0"><span class="nav-number">1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E4%B8%BE%E4%BE%8B"><span class="nav-number">2.</span> <span class="nav-text">模型举例</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Simple-RNNs-SRNs%E5%BE%AA%E7%8E%AF%E7%BD%91%E7%BB%9C"><span class="nav-number">2.1.</span> <span class="nav-text">Simple RNNs(SRNs循环网络)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Bidirectional-RNNs-%E5%8F%8C%E5%90%91%E5%BE%AA%E7%8E%AF%E7%BD%91%E7%BB%9C"><span class="nav-number">2.2.</span> <span class="nav-text">Bidirectional RNNs(双向循环网络)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Deep-Bidirectional-RNNs-%E6%B7%B1%E5%BA%A6%E5%8F%8C%E5%90%91%E5%BE%AA%E7%8E%AF%E7%BD%91%E7%BB%9C"><span class="nav-number">2.3.</span> <span class="nav-text">Deep (Bidirectional) RNNs(深度双向循环网络)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Echo-State-Networks"><span class="nav-number">2.4.</span> <span class="nav-text">Echo State Networks</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Long-Short-Term-Memory-Networks-LSTMs-%E9%95%BF%E7%9F%AD%E6%97%B6%E6%9C%9F%E8%AE%B0%E5%BF%86%E6%A8%A1%E5%9E%8B"><span class="nav-number">2.5.</span> <span class="nav-text">Long Short Term Memory Networks(LSTMs 长短时期记忆模型)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%AD%A5%E9%AA%A4%E5%88%86%E8%A7%A3"><span class="nav-number">2.5.1.</span> <span class="nav-text">步骤分解</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E8%AE%A1%E7%AE%97%E7%BB%86%E8%83%9E%E7%8A%B6%E6%80%81%E4%B8%AD%E6%97%A7%E4%BF%A1%E6%81%AF%E7%AD%9B%E9%80%89%E5%9B%A0%E5%AD%90"><span class="nav-number">2.5.1.1.</span> <span class="nav-text">计算细胞状态中旧信息筛选因子</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E8%AE%A1%E7%AE%97%E7%BB%86%E8%83%9E%E7%8A%B6%E6%80%81%E4%B8%AD%E7%9A%84%E6%96%B0%E4%BF%A1%E6%81%AF%E5%8A%A0%E5%92%8C%E5%9B%A0%E5%AD%90"><span class="nav-number">2.5.1.2.</span> <span class="nav-text">计算细胞状态中的新信息加和因子</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%BB%86%E8%83%9E%E7%8A%B6%E6%80%81%E4%BC%A0%E9%80%92"><span class="nav-number">2.5.1.3.</span> <span class="nav-text">细胞状态传递</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E8%AE%A1%E7%AE%97%E6%9C%80%E7%BB%88%E8%BE%93%E5%87%BA%E7%BB%93%E6%9E%9C"><span class="nav-number">2.5.1.4.</span> <span class="nav-text">计算最终输出结果</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#LSTMs%E5%8F%98%E4%BD%93"><span class="nav-number">2.5.2.</span> <span class="nav-text">LSTMs变体</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#peephole-connection"><span class="nav-number">2.5.2.1.</span> <span class="nav-text">peephole connection</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#coupled-forget-and-input-gates"><span class="nav-number">2.5.2.2.</span> <span class="nav-text">coupled forget and input gates</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Gated-Recurrent-Unit-Recurrent-Neural-Networks-GRUs"><span class="nav-number">2.5.2.3.</span> <span class="nav-text">Gated Recurrent Unit Recurrent Neural Networks(GRUs)</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%8D%E5%90%8C%E5%8F%98%E4%BD%93%E4%B9%8B%E9%97%B4%E7%9A%84%E6%AF%94%E8%BE%83"><span class="nav-number">2.5.3.</span> <span class="nav-text">不同变体之间的比较</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Clockwork-RNNs-CW-RNNs"><span class="nav-number">2.6.</span> <span class="nav-text">Clockwork RNNs(CW-RNNs)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%95%E7%94%A8"><span class="nav-number">3.</span> <span class="nav-text">引用</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Berwyn Zhang</p>
+  <div class="site-description" itemprop="description">Learn & output</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">29</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">26</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-address-card"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Berwyn Zhang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+</body>
+</html>

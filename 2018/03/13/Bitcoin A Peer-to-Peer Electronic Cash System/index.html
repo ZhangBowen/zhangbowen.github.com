@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"berwynzhang.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="中本聪比特币原始论文笔记 总结 本文提出了一个去中心的分布式交易系统 首先通过私钥公钥的验证方式来确保发出货币者的货币所有权 通过网络广播的方式来解决双重支付问题 然后我们通过工作证明（挖矿）加链式结构的方式使得作弊的成本大大增加   网络整体去中心，全体匿名 所有节点都可以自由离开并加入，在加入时只要同步最长区块链就可以了解整个交易历史 记录交易的权利按照算力随机 对挖矿奖励，以激励节点记录交易">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Bitcoin A Peer-to-Peer Electronic Cash System">
+<meta property="og:url" content="https://berwynzhang.com/2018/03/13/Bitcoin%20A%20Peer-to-Peer%20Electronic%20Cash%20System/index.html">
+<meta property="og:site_name" content="Berwyn&#39;s Blog">
+<meta property="og:description" content="中本聪比特币原始论文笔记 总结 本文提出了一个去中心的分布式交易系统 首先通过私钥公钥的验证方式来确保发出货币者的货币所有权 通过网络广播的方式来解决双重支付问题 然后我们通过工作证明（挖矿）加链式结构的方式使得作弊的成本大大增加   网络整体去中心，全体匿名 所有节点都可以自由离开并加入，在加入时只要同步最长区块链就可以了解整个交易历史 记录交易的权利按照算力随机 对挖矿奖励，以激励节点记录交易">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/Bitcoin%20A%20Peer-to-PeerElectronic%20CashSystem/1520925480374.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/Bitcoin%20A%20Peer-to-PeerElectronic%20CashSystem/1520931185896.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/Bitcoin%20A%20Peer-to-PeerElectronic%20CashSystem/1520934083003.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/Bitcoin%20A%20Peer-to-PeerElectronic%20CashSystem/1520939053990.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/Bitcoin%20A%20Peer-to-PeerElectronic%20CashSystem/1520941982120.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/Bitcoin%20A%20Peer-to-PeerElectronic%20CashSystem/1520942283571.png">
+<meta property="article:published_time" content="2018-03-12T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-01-09T15:22:07.547Z">
+<meta property="article:author" content="Berwyn Zhang">
+<meta property="article:tag" content="note">
+<meta property="article:tag" content="bitcoin">
+<meta property="article:tag" content="2008">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://berwynzhang.com/assets/image/Bitcoin%20A%20Peer-to-PeerElectronic%20CashSystem/1520925480374.png">
+
+<link rel="canonical" href="https://berwynzhang.com/2018/03/13/Bitcoin%20A%20Peer-to-Peer%20Electronic%20Cash%20System/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Bitcoin A Peer-to-Peer Electronic Cash System | Berwyn's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Berwyn's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2018/03/13/Bitcoin%20A%20Peer-to-Peer%20Electronic%20Cash%20System/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Bitcoin A Peer-to-Peer Electronic Cash System
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-03-13 00:00:00" itemprop="dateCreated datePublished" datetime="2018-03-13T00:00:00+08:00">2018-03-13</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-09 23:22:07" itemprop="dateModified" datetime="2021-01-09T23:22:07+08:00">2021-01-09</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%8C%BA%E5%9D%97%E9%93%BE/" itemprop="url" rel="index"><span itemprop="name">区块链</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>中本聪比特币原始论文笔记</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>本文提出了一个去中心的分布式交易系统<ul>
+<li>首先通过私钥公钥的验证方式来确保发出货币者的货币所有权</li>
+<li>通过网络广播的方式来解决双重支付问题</li>
+<li>然后我们通过工作证明（挖矿）加链式结构的方式使得作弊的成本大大增加</li>
+</ul>
+</li>
+<li>网络整体去中心，全体匿名</li>
+<li>所有节点都可以自由离开并加入，在加入时只要同步最长区块链就可以了解整个交易历史</li>
+<li>记录交易的权利按照算力随机</li>
+<li>对挖矿奖励，以激励节点记录交易</li>
+<li>网络用符合各方利益的机制，在去中心的情况下保证可以正常运行</li>
+</ul>
+<h2 id="综述"><a href="#综述" class="headerlink" title="综述"></a>综述</h2><p>目前的网上交易大多数是通过权威的第三方担保达成，但是由于要保证交易不被篡改、欺诈等问题，第三方机构需要花费额外的成本去维护整个系统</p>
+<p>事实上这些成本可以在双方使用传统货币进行交易的情况下得以避免，但是目前没有任何一个商人会放心地在一个去中心的网络里进行交易</p>
+<p>所以我们需要一个系统：</p>
+<ul>
+<li>用密码学来实现信任</li>
+<li>让双方可以在没有权威中心的担保下直接交易</li>
+</ul>
+<p>由于计算量非常大，篡改交易是不可行的，以此保护卖家利益；用第三方托管凭据机制来保护买方利益</p>
+<p>我们接下来会提出一个满足上述要求的端对端的分布式系统<br>系统的安全性由“诚实节点数目多余恶意节点数目”来保证</p>
+<h2 id="交易"><a href="#交易" class="headerlink" title="交易"></a>交易</h2><p>我们定义电子硬币为一堆数字签名所链接成的串</p>
+<p>交易流程是这样的：</p>
+<ul>
+<li>用收款人的公钥+上一笔交易用特定hash算法生成发款人的签名</li>
+<li>发款人用自己的私钥在生成的签名上签字（加密）</li>
+<li>收款人可以用发款人的公钥验证（解密）</li>
+<li>关于加密和解密的操作详见<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E5%85%AC%E5%BC%80%E5%AF%86%E9%92%A5%E5%8A%A0%E5%AF%86">这里</a></li>
+</ul>
+<p><img src="/assets/image/Bitcoin A Peer-to-PeerElectronic CashSystem/1520925480374.png" alt="Alt text"></p>
+<p>但是这里有个问题——收款人并不能防止发款人把同样的钱花两遍<br>传统方式是用一个权威中心通过“造币厂”方法对每笔交易做验证：</p>
+<ul>
+<li>每次交易后硬币被造币厂回收</li>
+<li>同时发放新的硬币给收款人</li>
+<li>只有造币厂生产的硬币可以直接用于流通</li>
+</ul>
+<p>问题得以解决，不过需要一个中心——整个货币系统的命运都掌握在造币厂手里</p>
+<p>如果要验证一笔钱是否之前用过，那把之前的所有交易都过过一遍是必须的<br>在造币厂模型里，造币厂就把这个事情办了<br>但是在去中心的设定下，必须要对每笔交易进行广播才能达到这个要求<sup><a href="#fn_1" id="reffn_1">1</a></sup><br>同时需要一个系统，让所有节点对每笔交易按序进行确认<br>收款人需要在交易时确认，这笔钱被大多数节点承认是第一次花</p>
+<h3 id="时间戳服务"><a href="#时间戳服务" class="headerlink" title="时间戳服务"></a>时间戳服务</h3><p>要实现上述解决方案，我们首先需要一个时间戳服务</p>
+<p>时间戳服务的工作流程：</p>
+<ul>
+<li>首先我们有定义区块：由多个Item打包而成</li>
+<li>把区块信息做hash</li>
+<li>将hash结果连同上一个时间戳一起打包成新的结果</li>
+<li>把这个结果广播出去</li>
+</ul>
+<p><img src="/assets/image/Bitcoin A Peer-to-PeerElectronic CashSystem/1520931185896.png" alt="Alt text"></p>
+<h3 id="工作证明"><a href="#工作证明" class="headerlink" title="工作证明"></a>工作证明</h3><p>为了在一个端到端的基础上实现一个分布式时间戳服务，我们采用了和Adam Back’s Hashcash<sup><a href="#fn_6" id="reffn_6">6</a></sup>一样的工作证明机制——要求用特定hash算法运算出的结果前面N位必须是0<br>这个工作证明的生成时间随着N的增长呈指数级增长并且易于验证是否合法</p>
+<p>具体的做法是在区块中额外增加一个随机数，让这个随机数和整个区块的hash结果符合工作证明<br>这样一来，如果要篡改区块里面的数据，就要重做工作证明<br>更要命的是由于后面的块包含前一块的hash结果，所以要把需要篡改的块及以后区块的工作证明一起重做了，计算量简直爆炸</p>
+<p><img src="/assets/image/Bitcoin A Peer-to-PeerElectronic CashSystem/1520934083003.png" alt="Alt text"></p>
+<p>图中的Nonce既是我们额外增加的随机数</p>
+<p>工作证明还解决了在意见表决时选出大多数的问题:</p>
+<ul>
+<li>把选择主流意见抽象为一个投票过程</li>
+<li>如果按照每个IP投一票的规则，那么这个系统会被那些可以申请大量IP的人所攻击（攻击成本低）</li>
+<li>那么换成工作证明这种方式的话实际上是按照每个CPU一票（或者按照算力分配票数，攻击成本高）</li>
+<li>假设多数的算力掌握在诚实的用户手里，那么最长链一定是真实的，整个系统是稳定的</li>
+<li>此外，工作证明可以调节难度——根据每个小时生成区块的数量采用滑动平均的方式调节N</li>
+</ul>
+<p>PS: 这个寻找工作证明的过程就是我们所说的挖矿</p>
+<h2 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h2><p>整个网络的运转流程如下：</p>
+<ul>
+<li>有一些新的交易要发起了了！广播至全网络！</li>
+<li>每个节点将新的交易收集到<strong>同一个</strong>区块中</li>
+<li>每个节点都针对这个新生成的区块做工作证明（hash运算），通常这是个艰难的过程</li>
+<li>如果一个节点做出了合法的工作证明，广播至全网络：“我找到了！”</li>
+<li>其余的节点对这个节点找到工作证明一事以及这个区块里面所有的交易都是合法的一事（没有双重支付）进行验证——两者都为真，验证通过<ul>
+<li>节点表达验证通过的方式比较有意思，这里单独说一下——是通过把当前区块的hash值当做下一个区块的hash生成材料之一表达对这个区块的认可</li>
+<li>细想一下这个设计确实巧妙，因为如果接受了一个错误的区块，那么下一个生成的区块也必将不合法，相当于被踢出主链——让每个节点都对自己的验证操作负责</li>
+</ul>
+</li>
+<li>多数节点表示通过则这个区块被接受，接到区块链的尾巴上</li>
+</ul>
+<p>所有节点都具有<code>最长链共识</code>——只认可最长的链，并在这个链上挖矿</p>
+<p>如果有两个工作证明同时被发现，那么有的节点会接受一个，有些节点会接收另外一个<br>这时，节点会承认第一个接收到并且会记录另外一个，以防另外的链变的更长（这实际上是分叉了），直到下一个工作证明被挖出来，大家都转到较长的那个链上去了（合并分叉）</p>
+<p>新交易的广播不一定要广播至所有节点，只要传播的足够广这个交易就会被加入到下一个区块中</p>
+<p>区块广播对于信息丢失也有一定容忍，当下一个区块到来时，那些没有接到上一个区块信息的节点会知道自己丢了信息并和整个网络同步</p>
+<h2 id="奖励"><a href="#奖励" class="headerlink" title="奖励"></a>奖励</h2><p>做工作证明这么费劲，没有奖励谁会挖？所以奖励机制是整个系统所不可或缺的</p>
+<h3 id="挖矿奖励"><a href="#挖矿奖励" class="headerlink" title="挖矿奖励"></a>挖矿奖励</h3><p>我们规定，一个区块中的第一笔交易是给这个区块的生成者（即工作证明的生成者）一个新的交易货币，作为奖励<br>同时，由于没有中心，也就没有初始的货币发行机构，所以我们也通过这种方式将初始货币投入系统流通<br>这种投入新币的方式和金矿工挖新的金子投入市场的速度差不多<br>在我们的场景中是对CPU时间和电力的投入</p>
+<h3 id="交易费奖励"><a href="#交易费奖励" class="headerlink" title="交易费奖励"></a>交易费奖励</h3><p>对于区块中的任意一笔交易：如果收款人接到的钱小于发款人转出的钱，其中的差值就是交易费，一起加入到区块的建立者的奖励中</p>
+<p>因为整个货币系统的挖矿奖励总额是固定的，后期的奖励主要来自于交易费奖励——整个比特币系统是永远不会通货膨胀的</p>
+<h3 id="保持诚实"><a href="#保持诚实" class="headerlink" title="保持诚实"></a>保持诚实</h3><p>这种奖励制度也可以促使节点保持诚实<br>否则如果出现了拥有了超过50%算力的攻击者，他的算力可以保证用挖矿的方式不断得到奖励，造成对于其他财富的掠夺，进而导致整个系统崩塌，货币失去价值<br>所以每个节点保持验证的客观性也是保护节点自身的利益</p>
+<h2 id="空间优化"><a href="#空间优化" class="headerlink" title="空间优化"></a>空间优化</h2><p>当一笔钱的最新一次交易后面已经接了很多区块后（保证篡改数据的计算量非常恐怖），这笔交易之前关于这笔钱的交易数据就不需要存储了，以释放磁盘空间<br>为了在释放空间的前提下保证hash链的完整性，我们使用<a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Merkle_tree">Merkle Tree</a>来存储区块链</p>
+<p>一旦一个区块的hash值加入新的区块，之前的交易的hash值就没必要存储了</p>
+<p><img src="/assets/image/Bitcoin A Peer-to-PeerElectronic CashSystem/1520939053990.png" alt="Alt text"></p>
+<p>应用这样的技术后，对于大部分历史交易我们可以只存储区块头（80B），按照比特币10分钟新出一个区块的速度来看，每年存储空间的增长应该是4.2MB每年，远比不上摩尔定律下内存空间的增长速度（至少1.2GB每年）</p>
+<h2 id="简化交易验证"><a href="#简化交易验证" class="headerlink" title="简化交易验证"></a>简化交易验证</h2><p>如果一个用户想要验证一笔交易的合法性：</p>
+<ul>
+<li>用户只需复制一份最长区块链的区块头部分</li>
+<li>通过询问网络中的其他节点的方式来保证手头的链最长</li>
+<li>将对应交易的Merkle分支连接到对应的区块中</li>
+<li>看看网络中的节点是否接受这笔交易</li>
+</ul>
+<p>事实上，验证一笔交易的合法性并不需要全网络的节点都参与，用户可以自行验证，但是这加大了被恶意节点攻击的危险<br>不过这种风险可以通过接受网络中关于不一致的警告来缓解</p>
+<h2 id="合并交易"><a href="#合并交易" class="headerlink" title="合并交易"></a>合并交易</h2><p>对于发钱放的多个输入会合并为两个输出：</p>
+<ul>
+<li>一个是总共花了多少钱</li>
+<li>一个是花的钱和收入的差值，如果不为0那么返回给发钱方</li>
+</ul>
+<p><img src="/assets/image/Bitcoin A Peer-to-PeerElectronic CashSystem/1520941982120.png" alt="Alt text"></p>
+<h2 id="私密性"><a href="#私密性" class="headerlink" title="私密性"></a>私密性</h2><p>传统银行保持私密性的方式是限制其余人对于交易的知情权<br>对于比特币而言，因为我们要进行广播，所以这招就不能用了<br>但是我们可以通过保证公钥的匿名性来保护交易双方的隐私</p>
+<p>换句话说，新的匿名方式是在所有者与公钥之间建立信息障碍</p>
+<p><img src="/assets/image/Bitcoin A Peer-to-PeerElectronic CashSystem/1520942283571.png" alt="Alt text"></p>
+<p>通过公钥，我们所能知道的只是某些交易是由同一个用户参与</p>
+<h2 id="关于安全性的数学验证"><a href="#关于安全性的数学验证" class="headerlink" title="关于安全性的数学验证"></a>关于安全性的数学验证</h2><p>即使攻击者伪造了一条比真实区块链更长的链让大家去接受，攻击者也不能任意的修改数据：</p>
+<ul>
+<li>不能无中生有的变出钱来</li>
+<li>不能持有曾经不属于自己的钱</li>
+</ul>
+<p>所能做的只是撤销自己的支出交易让自己的钱回来</p>
+<p>我们把攻击节点与诚实节点之前的竞赛抽象为一个二项随机游走问题：</p>
+<ul>
+<li>成功事件是诚实节点挖出一个区块，分数+1</li>
+<li>失败事件是攻击节点挖出一个区块，分数-1</li>
+</ul>
+<p>我们定义：</p>
+<ul>
+<li>p为成功事件发生概率</li>
+<li>q为失败事件发生概率</li>
+<li>$q_z$为攻击链在落后z个区块的时候能够追上真实链的概率</li>
+</ul>
+<p>则：</p>
+<script type="math/tex; mode=display">q_z = \begin{Bmatrix}
+1, if p \le q \\
+(q / p)^z, if p \gt q
+\end{Bmatrix}</script><p>假设一个攻击者要在一笔交易之后要伪造交易数据，私自造一条攻击链，这条链的长度可以超过真实链的概率服从一个参数为$\lambda = z \frac {q} {p}$的泊松分布，其概率非常之小</p>
+<h2 id="引用"><a href="#引用" class="headerlink" title="引用"></a>引用</h2><blockquote id="fn_1">
+<sup>1</sup>. <a target="_blank" rel="noopener" href="https://en.bitcoin.it/wiki/B-money">https://en.bitcoin.it/wiki/B-money</a><a href="#reffn_1" title="Jump back to footnote [1] in the text."> &#8617;</a>
+</blockquote>
+<blockquote id="fn_6">
+<sup>6</sup>. <a target="_blank" rel="noopener" href="http://www.hashcash.org/papers/hashcash.pdf">http://www.hashcash.org/papers/hashcash.pdf</a><a href="#reffn_6" title="Jump back to footnote [6] in the text."> &#8617;</a>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/note/" rel="tag"># note</a>
+              <a href="/tags/bitcoin/" rel="tag"># bitcoin</a>
+              <a href="/tags/2008/" rel="tag"># 2008</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/03/11/%E4%BB%A5%E5%A4%AA%E5%9D%8A%E4%B8%8E%E9%BB%91%E7%9B%92%E5%AD%90/" rel="prev" title="以太坊与黑盒子">
+      <i class="fa fa-chevron-left"></i> 以太坊与黑盒子
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">1.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%BC%E8%BF%B0"><span class="nav-number">2.</span> <span class="nav-text">综述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%A4%E6%98%93"><span class="nav-number">3.</span> <span class="nav-text">交易</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%97%B6%E9%97%B4%E6%88%B3%E6%9C%8D%E5%8A%A1"><span class="nav-number">3.1.</span> <span class="nav-text">时间戳服务</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B7%A5%E4%BD%9C%E8%AF%81%E6%98%8E"><span class="nav-number">3.2.</span> <span class="nav-text">工作证明</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C"><span class="nav-number">4.</span> <span class="nav-text">网络</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A5%96%E5%8A%B1"><span class="nav-number">5.</span> <span class="nav-text">奖励</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8C%96%E7%9F%BF%E5%A5%96%E5%8A%B1"><span class="nav-number">5.1.</span> <span class="nav-text">挖矿奖励</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%A4%E6%98%93%E8%B4%B9%E5%A5%96%E5%8A%B1"><span class="nav-number">5.2.</span> <span class="nav-text">交易费奖励</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BF%9D%E6%8C%81%E8%AF%9A%E5%AE%9E"><span class="nav-number">5.3.</span> <span class="nav-text">保持诚实</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A9%BA%E9%97%B4%E4%BC%98%E5%8C%96"><span class="nav-number">6.</span> <span class="nav-text">空间优化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AE%80%E5%8C%96%E4%BA%A4%E6%98%93%E9%AA%8C%E8%AF%81"><span class="nav-number">7.</span> <span class="nav-text">简化交易验证</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%90%88%E5%B9%B6%E4%BA%A4%E6%98%93"><span class="nav-number">8.</span> <span class="nav-text">合并交易</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A7%81%E5%AF%86%E6%80%A7"><span class="nav-number">9.</span> <span class="nav-text">私密性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B3%E4%BA%8E%E5%AE%89%E5%85%A8%E6%80%A7%E7%9A%84%E6%95%B0%E5%AD%A6%E9%AA%8C%E8%AF%81"><span class="nav-number">10.</span> <span class="nav-text">关于安全性的数学验证</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%95%E7%94%A8"><span class="nav-number">11.</span> <span class="nav-text">引用</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Berwyn Zhang</p>
+  <div class="site-description" itemprop="description">Learn & output</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">29</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">26</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-address-card"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Berwyn Zhang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+</body>
+</html>

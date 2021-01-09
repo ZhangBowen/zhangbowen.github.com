@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"berwynzhang.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="总结 CNN中的卷积层的filter个数可以增加网络的表达能力 但是过多的数量会让计算开销增加的太大 传统方法用maxout函数来达到增加表达能力又不增加太多计算开销的目的 当没有对于隐藏层分布先验信息的情况来说，用一个能拟合所有函数的结构要更适合一些（maxout只能拟合所有凸函数） 比较常见的能拟合所有函数的结构有两个 radial basis network multilayer perce">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Network In Network">
+<meta property="og:url" content="https://berwynzhang.com/2017/05/19/Network%20In%20Network/index.html">
+<meta property="og:site_name" content="Berwyn&#39;s Blog">
+<meta property="og:description" content="总结 CNN中的卷积层的filter个数可以增加网络的表达能力 但是过多的数量会让计算开销增加的太大 传统方法用maxout函数来达到增加表达能力又不增加太多计算开销的目的 当没有对于隐藏层分布先验信息的情况来说，用一个能拟合所有函数的结构要更适合一些（maxout只能拟合所有凸函数） 比较常见的能拟合所有函数的结构有两个 radial basis network multilayer perce">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/NetworkInNetwork/1508151242857.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/NetworkInNetwork/1508154562639.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/NetworkInNetwork/1508154758910.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/NetworkInNetwork/1508154892957.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/NetworkInNetwork/1508154921066.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/NetworkInNetwork/1508154947339.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/NetworkInNetwork/1508154966590.png">
+<meta property="article:published_time" content="2017-05-18T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-01-04T15:54:42.458Z">
+<meta property="article:author" content="Berwyn Zhang">
+<meta property="article:tag" content="machine_learning">
+<meta property="article:tag" content="note">
+<meta property="article:tag" content="Inception">
+<meta property="article:tag" content="CNN">
+<meta property="article:tag" content="2014">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://berwynzhang.com/assets/image/NetworkInNetwork/1508151242857.png">
+
+<link rel="canonical" href="https://berwynzhang.com/2017/05/19/Network%20In%20Network/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Network In Network | Berwyn's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Berwyn's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2017/05/19/Network%20In%20Network/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Network In Network
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2017-05-19 00:00:00" itemprop="dateCreated datePublished" datetime="2017-05-19T00:00:00+08:00">2017-05-19</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-04 23:54:42" itemprop="dateModified" datetime="2021-01-04T23:54:42+08:00">2021-01-04</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>CNN中的卷积层的filter个数可以增加网络的表达能力</li>
+<li>但是过多的数量会让计算开销增加的太大</li>
+<li>传统方法用maxout函数来达到增加表达能力又不增加太多计算开销的目的</li>
+<li>当没有对于隐藏层分布先验信息的情况来说，用一个能拟合所有函数的结构要更适合一些（maxout只能拟合所有凸函数）</li>
+<li>比较常见的能拟合所有函数的结构有两个<ul>
+<li>radial basis network</li>
+<li>multilayer perceptron</li>
+</ul>
+</li>
+<li>本文选择了multilayer perceptron 有如下两个原因<ul>
+<li>multilayer perceptron可以使用反向传播训练与CNN结合的比较好</li>
+<li>可以扩展，自己当做一个深层网络</li>
+</ul>
+</li>
+<li>新的结构就叫做mlpconv，其实就是后面接了两层1X1卷积</li>
+<li>此外还提出了一种新的结构全局平均池（Global Average Pooling）代替传统最后一层的FC层<ul>
+<li>先为每个分类结果项生成一个feature map（最后一层卷积的filter数量等于类别数量即可）</li>
+<li>然后对每个feature map取平均得到一个向量</li>
+<li>直接用改向量做softmax</li>
+</ul>
+</li>
+<li>这么做的好处有两个<ul>
+<li>让最终feature map的结果更加直观</li>
+<li>这种结构没有参数，避免过拟合</li>
+</ul>
+</li>
+<li>CIFAR-100实验结果<ul>
+<li>top1 35.68%</li>
+</ul>
+</li>
+</ul>
+<h2 id="Abstract"><a href="#Abstract" class="headerlink" title="Abstract"></a>Abstract</h2><p>We propose a novel deep network structure called “Network In Network”(NIN) to enhance model discriminability.<br>We build micro neural networks with more complex structures to abstract the data within the receptive field.</p>
+<h2 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h2><p>The convolution filter in CNN is a generalized linear model(GLM)<br>Replacing the GLM with a more potent nonlinear function approximator can enhance the abstraction ability of the local model<br>In this work we choose multilayer perceptron as the instantiation of the micro network</p>
+<p>Instead of adopting the traditional fully connected layers for classification in CNN, we directly output the spatial average of the feature maps from the last mlpconv layer as the confidence of categories via a global average pooling layer</p>
+<h2 id="Convolutional-Neural-Networks"><a href="#Convolutional-Neural-Networks" class="headerlink" title="Convolutional Neural Networks"></a>Convolutional Neural Networks</h2><ul>
+<li>classic convolutional neuron networks, use liner rectifier unit as example, the feature map can be calculated as follow:</li>
+</ul>
+<script type="math/tex; mode=display">f_{i,j,k} = max(W_k^Tx_{i,j}, 0)</script><ul>
+<li>individual linear filters can be learned to detect different variations of a same concept. </li>
+<li>However, having too many filters for a single concept imposes extra burden on the next layer</li>
+<li>in the recent maxout network, the number of feature maps is reduced by maximum pooling over affine feature maps——which is capable of approximating any convex functions</li>
+<li>NIN is proposed from a more general perspective</li>
+</ul>
+<h2 id="Network-In-Network"><a href="#Network-In-Network" class="headerlink" title="Network In Network"></a>Network In Network</h2><h3 id="MLP-Convolution-Layers"><a href="#MLP-Convolution-Layers" class="headerlink" title="MLP Convolution Layers"></a>MLP Convolution Layers</h3><p>it is desirable to use a universal function approximator for feature extraction of the local patches</p>
+<p>we choose multilayer perceptron instead of radial basis network in this work for two reasons</p>
+<ul>
+<li>MLP is trained using back-propagation</li>
+<li>multilayer perceptron can be a deep model itself</li>
+</ul>
+<p>this new type of layer is called mlpconv in this paper<br><img src="/assets/image/NetworkInNetwork/1508151242857.png" alt="Alt text"></p>
+<script type="math/tex; mode=display">f_{i, j, k}^1 = max({w_{k_1}^1}^Tx_{i,j} + b_{k_1}, 0)</script><script type="math/tex; mode=display">\vdots</script><script type="math/tex; mode=display">f_{i, j, k}^n = max({w_{k_n}^n}^Tf_{i,j}^{n-1} + b_{k_n}, 0)</script><p>The cross channel parametric pooling layer is also equivalent to a convolution layer with 1x1 con- volution kernel</p>
+<h4 id="compare-to-maxout"><a href="#compare-to-maxout" class="headerlink" title="compare to maxout"></a>compare to maxout</h4><p>mlpconv layer differs from maxout layer in that the convex func- tion approximator is replaced by a universal function approximator</p>
+<h3 id="Global-Average-Pooling"><a href="#Global-Average-Pooling" class="headerlink" title="Global Average Pooling"></a>Global Average Pooling</h3><p>the fully connected layers are prone to overfitting</p>
+<p>we propose another strategy:</p>
+<ul>
+<li>generate one feature map for each corresponding category of the classification task in the last mlpconv layer</li>
+<li>take the average of each feature map</li>
+<li>the resulting vector is fed directly into the softmax layer</li>
+</ul>
+<p><strong>advatage:</strong></p>
+<ul>
+<li>more native to the convolution structure by enforcing correspondences between feature maps and categories</li>
+<li>no parameter to optimize in the global average pooling thus overfitting is avoided at this layer</li>
+</ul>
+<h3 id="Network-In-network-structure"><a href="#Network-In-network-structure" class="headerlink" title="Network In network structure"></a>Network In network structure</h3><p><img src="/assets/image/NetworkInNetwork/1508154562639.png" alt="Alt text"></p>
+<h2 id="Experiments"><a href="#Experiments" class="headerlink" title="Experiments"></a>Experiments</h2><ul>
+<li>batch_size: 128</li>
+<li>learning rate is lowered by a scale of 10</li>
+</ul>
+<h3 id="CIFAR-10"><a href="#CIFAR-10" class="headerlink" title="CIFAR-10"></a>CIFAR-10</h3><p>composed of 10 classes of natural images with 50,000 training images in total, and 10,000 testing images</p>
+<p><img src="/assets/image/NetworkInNetwork/1508154758910.png" alt="Alt text"></p>
+<h3 id="CIFAR-100"><a href="#CIFAR-100" class="headerlink" title="CIFAR-100"></a>CIFAR-100</h3><p>but it contains 100 classes</p>
+<p><img src="/assets/image/NetworkInNetwork/1508154892957.png" alt="Alt text"></p>
+<h3 id="Street-View-House-Numbers"><a href="#Street-View-House-Numbers" class="headerlink" title="Street View House Numbers"></a>Street View House Numbers</h3><p>composed of 630,420 32x32 color images</p>
+<p><img src="/assets/image/NetworkInNetwork/1508154921066.png" alt="Alt text"></p>
+<h3 id="MNIST"><a href="#MNIST" class="headerlink" title="MNIST"></a>MNIST</h3><p>consists of hand written digits 0-9 which are 28x28 in size. There are 60,000 training images and 10,000 testing images in total</p>
+<p><img src="/assets/image/NetworkInNetwork/1508154947339.png" alt="Alt text"></p>
+<h3 id="Global-Average-Pooling-as-a-Regularizer"><a href="#Global-Average-Pooling-as-a-Regularizer" class="headerlink" title="Global Average Pooling as a Regularizer"></a>Global Average Pooling as a Regularizer</h3><p><img src="/assets/image/NetworkInNetwork/1508154966590.png" alt="Alt text"></p>
+<h2 id="Conclusions"><a href="#Conclusions" class="headerlink" title="Conclusions"></a>Conclusions</h2><ul>
+<li>use multilayer perceptrons to convolve the input</li>
+<li>a global average pooling layer as a replacement for the fully connected layers in conventional CNN</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/machine-learning/" rel="tag"># machine_learning</a>
+              <a href="/tags/note/" rel="tag"># note</a>
+              <a href="/tags/Inception/" rel="tag"># Inception</a>
+              <a href="/tags/CNN/" rel="tag"># CNN</a>
+              <a href="/tags/2014/" rel="tag"># 2014</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/02/15/A%20Gradient%20Boosting%20Machine/" rel="prev" title="A Gradient Boosting Machine">
+      <i class="fa fa-chevron-left"></i> A Gradient Boosting Machine
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/05/26/Going%20deeper%20with%20convolutions/" rel="next" title="Going deeper with convolutions">
+      Going deeper with convolutions <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">1.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Abstract"><span class="nav-number">2.</span> <span class="nav-text">Abstract</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Introduction"><span class="nav-number">3.</span> <span class="nav-text">Introduction</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Convolutional-Neural-Networks"><span class="nav-number">4.</span> <span class="nav-text">Convolutional Neural Networks</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Network-In-Network"><span class="nav-number">5.</span> <span class="nav-text">Network In Network</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#MLP-Convolution-Layers"><span class="nav-number">5.1.</span> <span class="nav-text">MLP Convolution Layers</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#compare-to-maxout"><span class="nav-number">5.1.1.</span> <span class="nav-text">compare to maxout</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Global-Average-Pooling"><span class="nav-number">5.2.</span> <span class="nav-text">Global Average Pooling</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Network-In-network-structure"><span class="nav-number">5.3.</span> <span class="nav-text">Network In network structure</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Experiments"><span class="nav-number">6.</span> <span class="nav-text">Experiments</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#CIFAR-10"><span class="nav-number">6.1.</span> <span class="nav-text">CIFAR-10</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CIFAR-100"><span class="nav-number">6.2.</span> <span class="nav-text">CIFAR-100</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Street-View-House-Numbers"><span class="nav-number">6.3.</span> <span class="nav-text">Street View House Numbers</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MNIST"><span class="nav-number">6.4.</span> <span class="nav-text">MNIST</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Global-Average-Pooling-as-a-Regularizer"><span class="nav-number">6.5.</span> <span class="nav-text">Global Average Pooling as a Regularizer</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Conclusions"><span class="nav-number">7.</span> <span class="nav-text">Conclusions</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Berwyn Zhang</p>
+  <div class="site-description" itemprop="description">Learn & output</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">29</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">26</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-address-card"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Berwyn Zhang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+</body>
+</html>

@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"berwynzhang.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="介绍单变量的线性回归线性回归损失函数 Cost(x, y) &#x3D; \sum_{i &#x3D; 1}^{m}(f(x_i) - y_i)^2&#x3D; \sum_{i &#x3D; 1}^m(y_i - wx_i - b)^2梯度下降求使得损失函数最小的参数$w, b$梯度下降需要同时更新所有参数">
+<meta property="og:type" content="article">
+<meta property="og:title" content="吴恩达机器学习课程笔记">
+<meta property="og:url" content="https://berwynzhang.com/2017/01/04/%E5%90%B4%E6%81%A9%E8%BE%BE%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/index.html">
+<meta property="og:site_name" content="Berwyn&#39;s Blog">
+<meta property="og:description" content="介绍单变量的线性回归线性回归损失函数 Cost(x, y) &#x3D; \sum_{i &#x3D; 1}^{m}(f(x_i) - y_i)^2&#x3D; \sum_{i &#x3D; 1}^m(y_i - wx_i - b)^2梯度下降求使得损失函数最小的参数$w, b$梯度下降需要同时更新所有参数">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1474533172538.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1474619447592.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1474624892770.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1474858597721.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1475115935226.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1475132576787.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1476709250952.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1476709432931.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1476710540483.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1477359102734.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1477968204109.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1477968356600.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1477968817537.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1478512626642.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1478513079664.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1478569273231.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1478569290933.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1478569307381.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1478569425251.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1478569998638.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1478570131184.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1478570766429.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1478570825922.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1478572446359.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1478576090499.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1478576407133.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1479090286711.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1479090961072.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1479092045478.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1479094688807.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1479105058447.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1479984711264.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1480509567981.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1480509851376.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1481534580283.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1481598739277.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1481598751838.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1481599077644.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1481609176752.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1481620231071.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1481685548086.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1481686089727.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1481687158641.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1481704427003.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1481704718763.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1481706549462.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1481708646069.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1482115472911.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1482115509034.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1482116575908.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1482141537632.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1482142001010.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1482389178897.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1482389225684.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1482409276093.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1482410023608.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1482410032881.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1482410613315.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1482723802560.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1482748216851.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1482803167971.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1482803772413.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1482806086093.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1482820042163.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1482820522257.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1482824743619.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1482825510988.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1482829652940.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1482832201550.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1482832242357.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1482834649174.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1482834667314.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1483437437416.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1483495899243.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1483495911516.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1483498646947.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1483498747095.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1483514105742.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1483517972934.png">
+<meta property="article:published_time" content="2017-01-03T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-01-04T15:43:55.215Z">
+<meta property="article:author" content="Berwyn Zhang">
+<meta property="article:tag" content="machine_learning">
+<meta property="article:tag" content="note">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://berwynzhang.com/assets/image/吴恩达机器学习课程笔记/1474533172538.png">
+
+<link rel="canonical" href="https://berwynzhang.com/2017/01/04/%E5%90%B4%E6%81%A9%E8%BE%BE%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>吴恩达机器学习课程笔记 | Berwyn's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Berwyn's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2017/01/04/%E5%90%B4%E6%81%A9%E8%BE%BE%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          吴恩达机器学习课程笔记
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2017-01-04 00:00:00" itemprop="dateCreated datePublished" datetime="2017-01-04T00:00:00+08:00">2017-01-04</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-04 23:43:55" itemprop="dateModified" datetime="2021-01-04T23:43:55+08:00">2021-01-04</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><h2 id="单变量的线性回归"><a href="#单变量的线性回归" class="headerlink" title="单变量的线性回归"></a>单变量的线性回归</h2><p>线性回归损失函数</p>
+<script type="math/tex; mode=display">Cost(x, y) = \sum_{i = 1}^{m}(f(x_i) - y_i)^2</script><script type="math/tex; mode=display">= \sum_{i = 1}^m(y_i - wx_i - b)^2</script><h3 id="梯度下降"><a href="#梯度下降" class="headerlink" title="梯度下降"></a>梯度下降</h3><p>求使得损失函数最小的参数$w, b$<br>梯度下降需要同时更新所有参数</p>
+<p><img src="/assets/image/吴恩达机器学习课程笔记/1474533172538.png" alt="Alt text"></p>
+<p>每个参数挨个更新的方法被称作<a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Gauss%E2%80%93Seidel_method">Gauss-Seidel迭代</a></p>
+<h4 id="下降方向"><a href="#下降方向" class="headerlink" title="下降方向"></a>下降方向</h4><p>下降方向由偏导数决定<br>偏导数的值只是提供了下降的方向，对下降多少没有准确指导意义（导数大，更新量大，反之亦然）</p>
+<h2 id="线性代数复习"><a href="#线性代数复习" class="headerlink" title="线性代数复习"></a>线性代数复习</h2><h3 id="矩阵乘法性质"><a href="#矩阵乘法性质" class="headerlink" title="矩阵乘法性质"></a>矩阵乘法性质</h3><ul>
+<li>不满足交换律</li>
+<li>满足结合律</li>
+<li>单位矩阵就是对角矩阵，在不同的上下文中有不同的维度<br><img src="/assets/image/吴恩达机器学习课程笔记/1474619447592.png" alt="Alt text"></li>
+</ul>
+<h3 id="矩阵求逆"><a href="#矩阵求逆" class="headerlink" title="矩阵求逆"></a>矩阵求逆</h3><ul>
+<li>只有行列数相同的矩阵(方阵 square)才有逆矩阵</li>
+<li>$AA^{-1}=A^{-1}A=I$</li>
+<li>求逆的方式是先求伴随矩阵(由<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E5%AD%90%E5%BC%8F%E5%92%8C%E4%BD%99%E5%AD%90%E5%BC%8F">代数余子式</a>组成)然后除以矩阵行列式的值</li>
+<li>不存在逆矩阵的矩阵称为奇异矩阵(singular)或者叫退化矩阵(degenerate)</li>
+<li>不可逆条件——行列式为0</li>
+</ul>
+<h2 id="多变量相性回归"><a href="#多变量相性回归" class="headerlink" title="多变量相性回归"></a>多变量相性回归</h2><h3 id="特征归一化"><a href="#特征归一化" class="headerlink" title="特征归一化"></a>特征归一化</h3><p>不做归一化会是收敛速度放缓<br><img src="/assets/image/吴恩达机器学习课程笔记/1474624892770.png" alt="Alt text"><br>归一化方式<br>$X_i = \frac  {X_i - {mean}_i} {max_i - min_i}$</p>
+<h3 id="梯度下降的一些细节"><a href="#梯度下降的一些细节" class="headerlink" title="梯度下降的一些细节"></a>梯度下降的一些细节</h3><h4 id="学习速率-alpha"><a href="#学习速率-alpha" class="headerlink" title="学习速率$\alpha$"></a>学习速率$\alpha$</h4><ul>
+<li>当代价函数值随着迭代轮数慢慢下降时可以尝试更大的$\alpha$取得更快的收敛速度</li>
+<li>当代价函数值随着迭代轮数指数上升（飞了）需要减小$\alpha$让梯度下降正常运行</li>
+<li>如果代价函数一会上升一会下降，一直反复，那么还是要减小$\alpha$<br><img src="/assets/image/吴恩达机器学习课程笔记/1474858597721.png" alt="Alt text"></li>
+</ul>
+<h3 id="多项式回归"><a href="#多项式回归" class="headerlink" title="多项式回归"></a>多项式回归</h3><p>当直线并不能很好的拟合数据的时候，需要加一些0.5次项、2次项等等</p>
+<script type="math/tex; mode=display">h_\theta(x) = \theta_0 + \theta_1(x_1) + \theta_2(\sqrt {x_1})</script><p>用新的变量代替原来的多次变量形成新的多元线性回归式即可</p>
+<script type="math/tex; mode=display">x_2 = \sqrt {x_1}</script><script type="math/tex; mode=display">h_\theta(x) = \theta_0 + \theta_1(x_1) + \theta_2(x_2)</script><h3 id="正规方程"><a href="#正规方程" class="headerlink" title="正规方程"></a>正规方程</h3><p>直接解出最优的$\theta$</p>
+<p>在原特征前面加上1，用于方便的求解常数项<br>形成一个新的X</p>
+<p>\begin{bmatrix}<br> 1 &amp; x_1^1 &amp; x_1^2 &amp; \dots &amp; x_1^n \\<br> 1 &amp; x_2^1 &amp; x_2^2 &amp; \dots &amp; x_2^n \\<br> &amp; &amp; \vdots \\<br> 1 &amp; x_m^1 &amp; x_m^2 &amp; \dots &amp; x_m^n \\<br>\end{bmatrix}</p>
+<p>可直接求解$\theta$</p>
+<script type="math/tex; mode=display">\theta = (X^TX)^{-1}X^Ty</script><ul>
+<li>不需要做归一化了</li>
+<li>不需要学习率</li>
+<li>不需要迭代</li>
+<li>在特征较多时速度慢($O(n^3)$时间复杂度 通常在n&lt;1e4的时候选用)</li>
+</ul>
+<h4 id="X-TX-不可逆"><a href="#X-TX-不可逆" class="headerlink" title="$X^TX$不可逆"></a>$X^TX$不可逆</h4><p>不可逆的直观原因</p>
+<ul>
+<li>有多余的特征，两个特征之间满足一定的线性关系<ul>
+<li>删除相关性较高的特征</li>
+</ul>
+</li>
+<li>样本的数量少于特征的数量<ul>
+<li>减少特征数量</li>
+<li>正规化</li>
+</ul>
+</li>
+</ul>
+<p>出现不可逆的情况是比较少见的，不用特别关注</p>
+<h2 id="Octave介绍"><a href="#Octave介绍" class="headerlink" title="Octave介绍"></a>Octave介绍</h2><h3 id="基本操作"><a href="#基本操作" class="headerlink" title="基本操作"></a>基本操作</h3><ul>
+<li>注释: %</li>
+<li>不等于: ~=</li>
+<li>逻辑运算: &amp;&amp; ||</li>
+<li>改变控制台格式: PS1(‘&gt;&gt; ‘)</li>
+<li>赋值语句后加分号，抑制输出</li>
+<li>disp只打印变量的值</li>
+<li>sprintf格式化输出</li>
+<li>format long/short 控制打印在屏幕上的数据的长短</li>
+<li>矩阵声明<br><img src="/assets/image/吴恩达机器学习课程笔记/1475115935226.png" alt="Alt text"></li>
+<li>序列 start:step:end 返回一个行向量 默认step为1</li>
+<li>ones(row, col) 生成row行col列全是1的矩阵<ul>
+<li>zero 全是0</li>
+<li>rand值为0~1的随机值</li>
+<li>randn符合正态分布的随机值</li>
+<li>eye(n) n*n 单位矩阵</li>
+</ul>
+</li>
+<li>hist(矩阵，直方数)绘制直方图</li>
+<li>size(矩阵)返回矩阵的行和列</li>
+<li>length(矩阵)返回矩阵的最大维度</li>
+<li>help command 调取’command’的帮助信息</li>
+<li>who 显示所有变量，whos展示变量的更详尽信息</li>
+<li>clear 删除某个变量</li>
+<li>var(start:end)将[start,end]的变量从原数组中切片返回，下标从1开始</li>
+<li>var(row, col)返回var第row行col列元素<ul>
+<li>‘:’返回所有元素</li>
+<li>[]表示数组，可以选取多行多列</li>
+</ul>
+</li>
+<li>直接在矩阵添加新的列(可把‘，’换为空格)<br><img src="/assets/image/吴恩达机器学习课程笔记/1475132576787.png" alt="Alt text"></li>
+<li>添加新的行的话把逗号换为分号</li>
+<li><p>var(:) 将var中所有的变量当做列向量输出</p>
+</li>
+<li><p>可以直接使用一些bash指令</p>
+<ul>
+<li>pwd</li>
+<li>ls</li>
+</ul>
+</li>
+<li><p>exit,quit</p>
+<h3 id="数据导入导出"><a href="#数据导入导出" class="headerlink" title="数据导入导出"></a>数据导入导出</h3></li>
+<li><p>load file 将file的数据加载入Octave，赋值给一个新的变量，变量名为文件名去除扩展名</p>
+</li>
+<li>save ‘file’ var 将var变量以’file’为名存储在硬盘上<ul>
+<li>加参数-ascii 将文件存为文本形式</li>
+</ul>
+</li>
+</ul>
+<h3 id="数据运算"><a href="#数据运算" class="headerlink" title="数据运算"></a>数据运算</h3><h4 id="运算符"><a href="#运算符" class="headerlink" title="运算符"></a>运算符</h4><ul>
+<li>A * B 矩阵乘法</li>
+<li>A .* B 矩阵对应元素相乘</li>
+<li>A .^ 2 矩阵每个元素平方</li>
+<li>1 ./ A 矩阵每个元素的倒数</li>
+<li>A’ A的转置</li>
+<li>A &lt; 3 对A做逻辑运算，返回bool矩阵</li>
+</ul>
+<h4 id="函数"><a href="#函数" class="headerlink" title="函数"></a>函数</h4><ul>
+<li>log(A)对于运算</li>
+<li>exp(A)指数运算</li>
+<li>abs(A)绝对值</li>
+<li>max(A)返回矩阵A中最大值，如果是接收返回值的是两个变量，那么返回最大值及其索引(从上往下，从左往右)</li>
+<li>find(A &lt; 3) 将符合条件的bool矩阵变化为索引(从上往下，从左往右)。如果是接收返回值的是两个向量，那么返回索引被拆分为行向量和列向量</li>
+<li>magic(N) 生成N * N 的幻方</li>
+<li>sum(A) 将A的所有数字加和</li>
+<li>prod(A)将A的所有数字乘在一起</li>
+<li>floor(A)向下取整</li>
+<li>ceil(A)向上取整</li>
+<li>filpud 上下翻转</li>
+<li>pin 求逆</li>
+<li>pinv 伪求逆，适用于矩阵不可逆的情形</li>
+</ul>
+<h3 id="数据可视化"><a href="#数据可视化" class="headerlink" title="数据可视化"></a>数据可视化</h3><ul>
+<li>plot(x, y): 横轴为X,纵轴为Y画图像<ul>
+<li>第三个参数可用’r’,’g’,’b’等表示画图的颜色</li>
+</ul>
+</li>
+<li>hold on: 保留原图像，将旧图像画在新图像上面</li>
+<li>xlabel/ylabel: 为横轴纵轴加上文字说明</li>
+<li>lengend:加图例</li>
+<li>title:加图像标题</li>
+<li>print -dpng ‘pic.png’以png格式，pic为名保存图像</li>
+<li>close:关闭图像</li>
+<li>figure:指定当前绘图窗口</li>
+<li>subplot:<ul>
+<li>参数一，格子组列数</li>
+<li>参数二，格子组行数</li>
+<li>参数三，当前操作的格子</li>
+</ul>
+</li>
+<li>axis(): 传入数组指定x轴最小值，x轴最大值，y轴最小值，y轴最大值</li>
+<li>clf: 清除图像</li>
+<li>imagesc(): 绘制矩阵彩色图</li>
+<li>colorbar: 展示颜色对应的数值</li>
+<li>colormap: 指定色彩空间</li>
+</ul>
+<h3 id="流程控制"><a href="#流程控制" class="headerlink" title="流程控制"></a>流程控制</h3><ul>
+<li>for<ul>
+<li><img src="/assets/image/吴恩达机器学习课程笔记/1476709250952.png" alt="Alt text"></li>
+<li>将for语句后面的变量变为数组效果一致</li>
+</ul>
+</li>
+<li>while<ul>
+<li><img src="/assets/image/吴恩达机器学习课程笔记/1476709432931.png" alt="Alt text"></li>
+</ul>
+</li>
+<li>break<ul>
+<li>跳出循环</li>
+</ul>
+</li>
+<li>if, elseif, else, end条件判断</li>
+<li>函数<ul>
+<li>要以”函数名.m”为名创建文件</li>
+<li>文件中的函数名最好与文件名一致</li>
+<li>addpath命令增加函数的搜索路径</li>
+<li><img src="/assets/image/吴恩达机器学习课程笔记/1476710540483.png" alt="Alt text"></li>
+</ul>
+</li>
+</ul>
+<h3 id="向量化"><a href="#向量化" class="headerlink" title="向量化"></a>向量化</h3><p>利用矩阵运算原理更高效的解决问题</p>
+<h2 id="逻辑回归"><a href="#逻辑回归" class="headerlink" title="逻辑回归"></a>逻辑回归</h2><h3 id="分类问题"><a href="#分类问题" class="headerlink" title="分类问题"></a>分类问题</h3><p>额外的样本引起算法偏差<br><img src="/assets/image/吴恩达机器学习课程笔记/1477359102734.png" alt="Alt text"></p>
+<p>逻辑回归是分类算法</p>
+<h3 id="假设空间表达式"><a href="#假设空间表达式" class="headerlink" title="假设空间表达式"></a>假设空间表达式</h3><ul>
+<li>sigmod函数<script type="math/tex; mode=display">h_\theta(x) = \frac {1} {1 + e^{-\theta^Tx}}</script></li>
+</ul>
+<p>该函数的函数值得含义是<script type="math/tex">P(y = 1 | x;\theta)</script></p>
+<h3 id="决策边界"><a href="#决策边界" class="headerlink" title="决策边界"></a>决策边界</h3><p>决策边界是假设函数的一个属性<br>在决策边界内外的样本被划分为正/负样本</p>
+<h3 id="损失函数"><a href="#损失函数" class="headerlink" title="损失函数"></a>损失函数</h3><p>直接将sidmod函数用作逻辑回归损失函数将导致损失函数非凸，用对数损失函数替代</p>
+<script type="math/tex; mode=display">Cost(h(\theta), y) = \begin{Bmatrix} -log(h(\theta)), if y = 1\\
+-log(1 - h(\theta)), if y = 0
+\end{Bmatrix}</script><p>该函数是关于$\theta$的凸函数</p>
+<h3 id="简化损失函数和梯度下降"><a href="#简化损失函数和梯度下降" class="headerlink" title="简化损失函数和梯度下降"></a>简化损失函数和梯度下降</h3><p>统计学的最大似然估计法得到的损失函数<br>将上面的两部分合起来</p>
+<script type="math/tex; mode=display">Cost(h(\theta), y) = -ylog(h(\theta)) - (1 - y)log(1 - h(\theta))</script><p>全样本的损失函数</p>
+<script type="math/tex; mode=display">J(\theta) = -\frac {1} {m} \sum_{i =1}^{m}Cost(h_\theta(x^{(i)}), y^{(i)})</script><p>求偏导得到逻辑回归参数更新公式</p>
+<script type="math/tex; mode=display">\theta_j := \theta_j - \alpha\sum_{i = 1}^m(h_\theta(x^{(i)}) - y^{(i)})x_j^{(i)}</script><p>此公式与现行回归的更新公式一模一样</p>
+<p>区别在于逻辑回归中<script type="math/tex">h_\theta(x) =  \frac {1} {1 + e^{-\theta^Tx}}</script></p>
+<p>线性回归中</p>
+<script type="math/tex; mode=display">h_\theta(x) = \theta^Tx</script><h3 id="进阶优化方法"><a href="#进阶优化方法" class="headerlink" title="进阶优化方法"></a>进阶优化方法</h3><ul>
+<li>共轭梯度法</li>
+<li>BFGS</li>
+<li>L-BFGS</li>
+</ul>
+<p>高阶算法不需要手动指定学习速率$\alpha$<br>收敛速度更快</p>
+<p>Octave提供了最小化函数值的模板</p>
+<h3 id="多分类问题"><a href="#多分类问题" class="headerlink" title="多分类问题"></a>多分类问题</h3><ul>
+<li>one vs all(one vs rest)：训练类别数目个分类器，分别代表属于其类别的先验概率，预测时取概率较大的当做分类结果</li>
+</ul>
+<h2 id="正则化"><a href="#正则化" class="headerlink" title="正则化"></a>正则化</h2><h3 id="过拟合问题"><a href="#过拟合问题" class="headerlink" title="过拟合问题"></a>过拟合问题</h3><p>过度拟合训练数据导致在真实数据的预测误差增大<br>模型从欠拟合到过拟合的过程中，模型偏差（bias）逐渐缩小，方差（variance）逐渐增大</p>
+<p>处理过拟合的方式</p>
+<ul>
+<li>减少特征数量<ul>
+<li>人工特征选择</li>
+<li>自带特征选择的算法</li>
+</ul>
+</li>
+<li>正则化</li>
+</ul>
+<h3 id="惩罚项"><a href="#惩罚项" class="headerlink" title="惩罚项"></a>惩罚项</h3><p>在原始的损失函数后面加上<script type="math/tex">\lambda\sum_{i = 1}^n\theta_i^2</script></p>
+<ul>
+<li>不惩罚常数项$\theta_0$（即使惩罚，差异也比较小）</li>
+<li>$\lambda$是正则化系数，平衡偏差与方差</li>
+</ul>
+<p>惩罚项通常是L1，L2范数，均为闵可夫斯基距离的特例</p>
+<script type="math/tex; mode=display">dist_{mk}(x_i, x_j) = (\sum_{u = 1}^n|x_{iu} - x_{ju}|^p)^{\frac 1 p}</script><ul>
+<li>当p = 1的时候又称为曼哈顿距离</li>
+<li>当p = 2的时候又称为欧氏距离</li>
+<li>当$x_j$为0向量时距离公式即为范数公式</li>
+</ul>
+<h3 id="线性回归正则化"><a href="#线性回归正则化" class="headerlink" title="线性回归正则化"></a>线性回归正则化</h3><ul>
+<li>将$\theta_0$与其他$\theta$参数分开更新</li>
+<li>参数更新的表达式加上L2正则化项的偏导<br><img src="/assets/image/吴恩达机器学习课程笔记/1477968204109.png" alt="Alt text"></li>
+<li>每次更新都会把$\theta_j$变的更“小”一点<br><img src="/assets/image/吴恩达机器学习课程笔记/1477968356600.png" alt="Alt text"></li>
+<li>闭式解加正则化项是在X矩阵相乘之后加特征数+1维对角矩阵<br><img src="/assets/image/吴恩达机器学习课程笔记/1477968817537.png" alt="Alt text"></li>
+<li>加入正则化项还可以解决矩阵不可逆的问题</li>
+</ul>
+<h3 id="逻辑回归正则化"><a href="#逻辑回归正则化" class="headerlink" title="逻辑回归正则化"></a>逻辑回归正则化</h3><p>所加的正则项与线性回归的一致</p>
+<h2 id="神经网络展示"><a href="#神经网络展示" class="headerlink" title="神经网络展示"></a>神经网络展示</h2><h3 id="非线性假设"><a href="#非线性假设" class="headerlink" title="非线性假设"></a>非线性假设</h3><p>解决特征爆炸问题<br>自动特征交叉</p>
+<h3 id="神经和大脑"><a href="#神经和大脑" class="headerlink" title="神经和大脑"></a>神经和大脑</h3><p>大脑的学习算法是泛化的，接各种传感器到任意皮层大脑都可以学着去使用它</p>
+<h3 id="神经网络表示"><a href="#神经网络表示" class="headerlink" title="神经网络表示"></a>神经网络表示</h3><p><img src="/assets/image/吴恩达机器学习课程笔记/1478512626642.png" alt="Alt text"></p>
+<ul>
+<li>first layer: input layer</li>
+<li>final layer: output layer</li>
+<li>other layer: hidden layer</li>
+</ul>
+<p>1989年Robert Hecht-Nielsen证明了对于任何闭区间内的一个连续函数都可以用一个隐含层的BP网络来逼近，这就是万能逼近定理</p>
+<p>隐藏层节点数目$h = \sqrt {m + n} + a$m为输入层节点数目，n为输出层节点数目，a为1~10之间的调节常数<br><img src="/assets/image/吴恩达机器学习课程笔记/1478513079664.png" alt="Alt text"></p>
+<h3 id="神经网络表示第二弹"><a href="#神经网络表示第二弹" class="headerlink" title="神经网络表示第二弹"></a>神经网络表示第二弹</h3><p>只有两层的神经网络其实就是逻辑回归<br>神经网络通过不同层之间的特征组合可以产生高阶特征</p>
+<h3 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h3><p>与运算<br><img src="/assets/image/吴恩达机器学习课程笔记/1478569273231.png" alt="Alt text"><br><img src="/assets/image/吴恩达机器学习课程笔记/1478569290933.png" alt="Alt text"></p>
+<p>或运算<br><img src="/assets/image/吴恩达机器学习课程笔记/1478569307381.png" alt="Alt text"></p>
+<p>非运算</p>
+<p><img src="/assets/image/吴恩达机器学习课程笔记/1478569425251.png" alt="Alt text"></p>
+<p>异或非运算</p>
+<p>第二层由一个与运算，一个非与运算组成<br>非与运算：<br><img src="/assets/image/吴恩达机器学习课程笔记/1478569998638.png" alt="Alt text"></p>
+<p>最终：<br><img src="/assets/image/吴恩达机器学习课程笔记/1478570131184.png" alt="Alt text"></p>
+<h3 id="多分类"><a href="#多分类" class="headerlink" title="多分类"></a>多分类</h3><p>样本标记使用one-hot表示法<br>不能表示为<br><img src="/assets/image/吴恩达机器学习课程笔记/1478570766429.png" alt="Alt text"><br>表示为<br><img src="/assets/image/吴恩达机器学习课程笔记/1478570825922.png" alt="Alt text"></p>
+<h2 id="神经网络训练"><a href="#神经网络训练" class="headerlink" title="神经网络训练"></a>神经网络训练</h2><h3 id="损失函数-1"><a href="#损失函数-1" class="headerlink" title="损失函数"></a>损失函数</h3><p><img src="/assets/image/吴恩达机器学习课程笔记/1478572446359.png" alt="Alt text"><br>梯度项要考虑多分类的情况，将所有分类的误差累计<br>正则化项，将所有层的链接权重累计</p>
+<h3 id="反向传播算法"><a href="#反向传播算法" class="headerlink" title="反向传播算法"></a>反向传播算法</h3><p>需要计算的方程式</p>
+<ul>
+<li>$J(\theta)$</li>
+<li>$\frac {\partial} {\partial\theta^{(j)}_{ij}}J(\theta)$</li>
+</ul>
+<p>第一项求解通过正向传播算法逐步求解即可，<br>考虑如下结构网络<br><img src="/assets/image/吴恩达机器学习课程笔记/1478576090499.png" alt="Alt text"><br>只有一个样本(x, y)的情形，正向传播的过程如下：<br><img src="/assets/image/吴恩达机器学习课程笔记/1478576407133.png" alt="Alt text"><br>设定: $\delta^{(l)}_{j}$ =  ‘error’ of node j in layer l</p>
+<p>最后一层（L = 4）的误差为<br>$\delta^{(4)}_j = a^{(4)}_j - y_j$<br>用最后一层的误差反推之前的误差（不知道怎么来的，其实就是在计算偏导？）<br><img src="/assets/image/吴恩达机器学习课程笔记/1479090286711.png" alt="Alt text"><br>结论：</p>
+<script type="math/tex; mode=display">\delta_{ij}^{(l)} = a_J^{(l)}\delta_i^{(l + 1)}</script><p>多样本时累计误差然后一次更新<br>对于偏差项的链接权重更新不加正则化项<br><img src="/assets/image/吴恩达机器学习课程笔记/1479090961072.png" alt="Alt text"></p>
+<p><img src="/assets/image/吴恩达机器学习课程笔记/1479092045478.png" alt="Alt text"><br>实际上$\delta$就是在求损失函数关于$z$的偏导</p>
+<h3 id="参数向量化"><a href="#参数向量化" class="headerlink" title="参数向量化"></a>参数向量化</h3><p><img src="/assets/image/吴恩达机器学习课程笔记/1479094688807.png" alt="Alt text"><br>将多维的参数向量平铺为一个一维数组，然后再reshape生成需要的维数</p>
+<h3 id="梯度检验"><a href="#梯度检验" class="headerlink" title="梯度检验"></a>梯度检验</h3><h4 id="梯度估计"><a href="#梯度估计" class="headerlink" title="梯度估计"></a>梯度估计</h4><ul>
+<li>当$\theta$是一个实数时<script type="math/tex; mode=display">\frac {d} {d\theta}J(\theta) \approx \frac {J(\theta + \epsilon) + J (\theta - \epsilon)}{2\epsilon}</script>又叫双侧拆分<br>通常$\epsilon = 10^{-4}$</li>
+<li>当$\theta$是一个向量时<br>用类似的方法可得<br><img src="/assets/image/吴恩达机器学习课程笔记/1479105058447.png" alt="Alt text"></li>
+</ul>
+<h4 id="检验流程"><a href="#检验流程" class="headerlink" title="检验流程"></a>检验流程</h4><ul>
+<li>实现反向传播算法计算DVec</li>
+<li>实现数值梯度检验计算gradApprox</li>
+<li>确认两者之间相差不多（差几位小数）</li>
+<li>去除第二步，直接使用反向传播训练神经网络</li>
+<li><strong>一定要在训练之前关闭检验流程，否则迭代将会变的非常缓慢</strong></li>
+</ul>
+<h3 id="随机初始化"><a href="#随机初始化" class="headerlink" title="随机初始化"></a>随机初始化</h3><p>不能将所有权重都初始化为0。否则在训练过程中所有的隐藏层神经元计算的结果都是一致的，神经网络只能学到一个特征</p>
+<p>一般是将权重随机初始化为$[-\epsilon, \epsilon]$之间的一个数字</p>
+<h3 id="整体架构"><a href="#整体架构" class="headerlink" title="整体架构"></a>整体架构</h3><ul>
+<li>选择一种神经网络结构<ul>
+<li>确定输入层神经元数目（特征数）</li>
+<li>确定输出层神经元数目（分类数量）</li>
+<li>隐藏层数目默认为1，通常来说隐藏层越多越好</li>
+<li>如果隐藏层数目多于1个，那么所有隐藏层的神经元数目应该相同</li>
+</ul>
+</li>
+<li>训练神经网络<ul>
+<li>随机初始化权重</li>
+<li>实现正向传播代码</li>
+<li>实现损失函数计算代码</li>
+<li>实现反向传播代码</li>
+<li>遍历所有样本进行训练</li>
+<li>使用梯度检验流程验证反向传播算法所计算的梯度的正确性；验证通过后关闭检验流程</li>
+<li>使用梯度下降或者更高级的方法配合反向传播来减小损失函数$J(\theta)$的值;由于$J(\theta)$是非凸函数，所以有可能停留在局部最优（但其实无所谓？）</li>
+</ul>
+</li>
+</ul>
+<h3 id="无人驾驶应用"><a href="#无人驾驶应用" class="headerlink" title="无人驾驶应用"></a>无人驾驶应用</h3><p>一段视频……</p>
+<h2 id="对于应用机器学习的一些建议"><a href="#对于应用机器学习的一些建议" class="headerlink" title="对于应用机器学习的一些建议"></a>对于应用机器学习的一些建议</h2><h3 id="如何选择系统的改进方向"><a href="#如何选择系统的改进方向" class="headerlink" title="如何选择系统的改进方向"></a>如何选择系统的改进方向</h3><p>当你发现训练出的模型在新的数据集上表现的很糟糕，几种选择如下：</p>
+<ul>
+<li>收集更多的训练数据</li>
+<li>减特征，防止过拟合</li>
+<li>加特征</li>
+<li>加高阶特征，例如$x_1^2, x_1x_2$</li>
+<li>调整正则化项系数</li>
+</ul>
+<p>如何在他们之中做出选择是解决问题的关键<br>围绕这些问题所产生的一系列方法称为机器学习诊断法</p>
+<h3 id="评估假设函数"><a href="#评估假设函数" class="headerlink" title="评估假设函数"></a>评估假设函数</h3><p>单纯用训练集loss不能表征模型的好坏<br>需要将训练集分成两部分(通常来说训练数据占7，测试数据占3)<br>如果数据是有序的，那么在生成数据集的时候需要随机抽取</p>
+<h3 id="模型选择"><a href="#模型选择" class="headerlink" title="模型选择"></a>模型选择</h3><p>通过测试集的表现来选择模型的超参的之后，就不能使用测试集去评估模型的泛化能力了（因为选出来的就是测试集的误差最小者）<br>为解决这种问题将数据集合多分出来一份——交叉验证集（训练：交叉：测试 = 3 : 1 : 1）<br>使用交叉验证集选择模型的超参，再通测试集验证泛化性能</p>
+<h3 id="偏差和方差"><a href="#偏差和方差" class="headerlink" title="偏差和方差"></a>偏差和方差</h3><p><img src="/assets/image/吴恩达机器学习课程笔记/1479984711264.png" alt="Alt text"></p>
+<p>高偏差时训练集误差很大，测试误差也很大<br>高方差时训练集误差很小，测试误差很大</p>
+<h4 id="正则化项"><a href="#正则化项" class="headerlink" title="正则化项"></a>正则化项</h4><p>通过引入正则化项可以有效缓解过拟合的情况，从而降低偏差<br>随着正则化项的增大，方差增大，交叉验证集loss增大，通过交叉验证集确定合适的$\lambda$取值，然后通过测试集验证模型的泛化性能</p>
+<h4 id="学习曲线"><a href="#学习曲线" class="headerlink" title="学习曲线"></a>学习曲线</h4><p>用于判断算法是否处于偏差、方差或者两者都有</p>
+<h5 id="高偏差情形"><a href="#高偏差情形" class="headerlink" title="高偏差情形"></a>高偏差情形</h5><p><img src="/assets/image/吴恩达机器学习课程笔记/1480509567981.png" alt="Alt text"></p>
+<p>当模型处于高偏差状态下时，增加训练样本对于增加模型的拟合程度无益（例如用直线去拟合曲线）</p>
+<h5 id="高方差情形"><a href="#高方差情形" class="headerlink" title="高方差情形"></a>高方差情形</h5><p><img src="/assets/image/吴恩达机器学习课程笔记/1480509851376.png" alt="Alt text"><br>当训练误差与交叉验证集误差中间有较大距离时模型处于高方差情形<br>当模型处于高方差状态下时增加训练样本应该会有帮助</p>
+<h4 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h4><h5 id="高偏差时"><a href="#高偏差时" class="headerlink" title="高偏差时"></a>高偏差时</h5><ul>
+<li>增加特征个数</li>
+<li>增加高阶特征</li>
+<li>减小正则化系数</li>
+<li>（使用神经网络时）增加神经元个数，增加神经元层数</li>
+</ul>
+<h5 id="高方差时"><a href="#高方差时" class="headerlink" title="高方差时"></a>高方差时</h5><ul>
+<li>增加训练样本</li>
+<li>减少特征个数</li>
+<li>增加正则化系数</li>
+<li>（使用神经网络时）减少神经元个数，减少神经元层数</li>
+</ul>
+<h2 id="机器学习系统设计"><a href="#机器学习系统设计" class="headerlink" title="机器学习系统设计"></a>机器学习系统设计</h2><h3 id="确立优先级"><a href="#确立优先级" class="headerlink" title="确立优先级"></a>确立优先级</h3><p>以反垃圾邮件的例子<br>首先确立特征——特定单词是否出现</p>
+<ul>
+<li>收集大量的数据<ul>
+<li>honeypot 项目</li>
+</ul>
+</li>
+<li>特征工程，构建复杂特征</li>
+<li>构建算法检测拼写错误</li>
+</ul>
+<p>头脑风暴，找点子</p>
+<h3 id="误差分析"><a href="#误差分析" class="headerlink" title="误差分析"></a>误差分析</h3><p>推荐方案</p>
+<ul>
+<li>快速制作一个base line方法，用交叉验证检验</li>
+<li>绘制学习曲线，判断是否需要增加数据/特征</li>
+<li>人肉检查bad case，总结bad case的分类错误缘由——指导增加新特征or修正系统漏洞</li>
+</ul>
+<p>用数据说话，通过量化指标指导决策</p>
+<p>快速尝试，快速迭代</p>
+<h3 id="数据倾斜的误差度量"><a href="#数据倾斜的误差度量" class="headerlink" title="数据倾斜的误差度量"></a>数据倾斜的误差度量</h3><p>数据中一类数据比另一类数据多很多，造成单纯的预估成某一类就可以获得很低的错误率。<br>为解决此类问题提出新的度量方式</p>
+<h4 id="准确率-召回率"><a href="#准确率-召回率" class="headerlink" title="准确率/召回率"></a>准确率/召回率</h4><p>准确率为 True Pos / (True Pos + False Pos)<br>召回率为 True Pos / (True Pos + False Neg)</p>
+<h3 id="平衡准确率-amp-召回率"><a href="#平衡准确率-amp-召回率" class="headerlink" title="平衡准确率&amp;召回率"></a>平衡准确率&amp;召回率</h3><p>调整sigmod函数阈值<br><img src="/assets/image/吴恩达机器学习课程笔记/1481534580283.png" alt="Alt text"><br>将预测为正例的阈值调高会增加准确率，降低召回率反之亦然</p>
+<h4 id="F1度量"><a href="#F1度量" class="headerlink" title="F1度量"></a>F1度量</h4><script type="math/tex; mode=display">F_1 = \frac {2PR} {P + R}</script><p>和简单的算术平均相比，这个分数更侧重P和R的均衡，两者的值不能相差过大才能计算得出较高的结果</p>
+<h3 id="机器学习之中的训练数据"><a href="#机器学习之中的训练数据" class="headerlink" title="机器学习之中的训练数据"></a>机器学习之中的训练数据</h3><p>在使用低偏差模型的时候，用大量的数据有助于减小测试集误差</p>
+<h2 id="支持向量机"><a href="#支持向量机" class="headerlink" title="支持向量机"></a>支持向量机</h2><h3 id="最优化目标"><a href="#最优化目标" class="headerlink" title="最优化目标"></a>最优化目标</h3><p>对于逻辑回归中的损失函数，用直线逼近<br><img src="/assets/image/吴恩达机器学习课程笔记/1481598739277.png" alt="Alt text"><br><img src="/assets/image/吴恩达机器学习课程笔记/1481598751838.png" alt="Alt text"><br>如两图中紫红色的线</p>
+<p>SVM中用两个近似损失函数值代替逻辑回归中的损失项，得到新的损失函数</p>
+<p><img src="/assets/image/吴恩达机器学习课程笔记/1481599077644.png" alt="Alt text"></p>
+<p>变化常数项<br><img src="/assets/image/吴恩达机器学习课程笔记/1481609176752.png" alt="Alt text"></p>
+<p>变化为hinge 损失函数:</p>
+<script type="math/tex; mode=display">max(0, 1 - y * y^')</script><h3 id="最大间距"><a href="#最大间距" class="headerlink" title="最大间距"></a>最大间距</h3><p>SVM会将决策边界设立在里两类样本点尽量远的地方</p>
+<p>由于损失函数的定义</p>
+<ul>
+<li>当$y = 1, \theta^TX &gt;= 1$（不仅仅&gt;=0）时损失函数为0（比逻辑回归的损失函数值小）</li>
+<li>反之当$y = 0, \theta^TX &lt;= -1$（不仅仅&lt;0）时损失函数也为0</li>
+<li>这样人为划出一块损失函数为0的区间，这个区间就是SVM决策边间出现的主要原因</li>
+</ul>
+<h4 id="离群点处理"><a href="#离群点处理" class="headerlink" title="离群点处理"></a>离群点处理</h4><p>损失函数中的系数C就是调节训练样本正确性和正则化项之间平衡的系数<br>当系数C比较大时，模型倾向于拟合所有训练样本，当C较小时，模型倾向于系数向量的简介，后者对于利群点的鲁棒性有较大的优势<br><img src="/assets/image/吴恩达机器学习课程笔记/1481620231071.png" alt="Alt text"></p>
+<h3 id="最大间距背后的数学解释"><a href="#最大间距背后的数学解释" class="headerlink" title="最大间距背后的数学解释"></a>最大间距背后的数学解释</h3><p>根据向量长度的定义，SVM的正则化项（二阶范数）可以表示为参数向量模的平方</p>
+<p>当要求把全部样本正确分类的时候，目标方程可简写为<br><img src="/assets/image/吴恩达机器学习课程笔记/1481685548086.png" alt="Alt text"></p>
+<p>将$\theta^Tx^{(i)}$看做$\theta$和$x^{(i)}$两个向量的內积，由于对于內积的大小有要求，不仅仅是以0为分界，所以决策边界会相对于两侧的样本留出一定的空隙</p>
+<p>$\theta$向量与决策边界总是正交的，由图可见阈值对于决策边界的影响<br><img src="/assets/image/吴恩达机器学习课程笔记/1481686089727.png" alt="Alt text"><br>图中红线标示出来的就是虽然內积为正，但是內积的大小并不满足要求的情况</p>
+<p><img src="/assets/image/吴恩达机器学习课程笔记/1481687158641.png" alt="Alt text"><br>决策边界改为下图的形式的话即可满足要求</p>
+<h3 id="核函数"><a href="#核函数" class="headerlink" title="核函数"></a>核函数</h3><p>面对线性不可分的问题，需要使用高阶特征</p>
+<p>高阶特征可由原始特征映射过去，这种映射的过程被称为核函数</p>
+<p>核函数的种类很多，例如<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E5%BE%84%E5%90%91%E5%9F%BA%E5%87%BD%E6%95%B0%E6%A0%B8">高斯核函数</a><br><img src="/assets/image/吴恩达机器学习课程笔记/1481704427003.png" alt="Alt text"><br>刻画两个向量的相似度，越相似值越接近1，反之接近0<br>$\sigma$参数控制从1下降到0的速度<br><img src="/assets/image/吴恩达机器学习课程笔记/1481704718763.png" alt="Alt text"><br>越大下降越缓慢</p>
+<p>利用这种相似性，可以配合标记点构造比较复杂的决策边界<br><img src="/assets/image/吴恩达机器学习课程笔记/1481706549462.png" alt="Alt text"></p>
+<h4 id="标记点的选择"><a href="#标记点的选择" class="headerlink" title="标记点的选择"></a>标记点的选择</h4><p>首先将标记点标在于训练样本完全重合的地方<br>然后通过高斯核函数得到新的特征向量（m+1维，m为样本数量）<br>改写损失函数，用新特征代入<br><img src="/assets/image/吴恩达机器学习课程笔记/1481708646069.png" alt="Alt text"><br>然后训练求解即可</p>
+<h4 id="SVM中的超参"><a href="#SVM中的超参" class="headerlink" title="SVM中的超参"></a>SVM中的超参</h4><ul>
+<li>C:<br>较大的C：低偏差，高方差<br>较小的C：高偏差，低方差</li>
+<li>$\sigma$<br>大：特征向量的值会较为平滑，高偏差，低方差<br>小：低偏差，高方差</li>
+</ul>
+<h4 id="SVM应用"><a href="#SVM应用" class="headerlink" title="SVM应用"></a>SVM应用</h4><p>准备工作</p>
+<ul>
+<li>依照偏差、方差去选择超参C</li>
+<li>选择核函数or不使用核函数（线性核函数）；当特征维度较大，数据量较小的时候最好使用线性核函数</li>
+<li>如果选择了高斯核函数，那么需要确定参数$\sigma$还是参照方差、偏差选择</li>
+<li>使用核函数之前做特征归一化</li>
+<li>如果选择其他的核函数或者自定义核函数，那么该核函数需要满足莫塞尔定理<ul>
+<li>多项式核函数：$k(x, l) = (x^Tl + m)^n$</li>
+<li>字符串核函数：输入的文本是字符串</li>
+<li>卡方核函数</li>
+<li>直方图交叉核函数</li>
+</ul>
+</li>
+</ul>
+<p>多分类问题，使用one vs all方法训练k个分类器，选取预测结果最高的类别作为预测结果</p>
+<h4 id="LR-对比-SVM"><a href="#LR-对比-SVM" class="headerlink" title="LR 对比 SVM"></a>LR 对比 SVM</h4><p>n是特征数量，m是样本数量</p>
+<ul>
+<li>当n相对于m很大时使用LR或者线性核</li>
+<li>当n很小，m适中（n = 1~1000，m = 10~10000）时用高斯核SVM</li>
+<li>当n很小，m很大时，尝试增加特征数量，使用LR或者线性核</li>
+</ul>
+<p>调试模型的方法比选用某个模型更加重要</p>
+<h2 id="聚类"><a href="#聚类" class="headerlink" title="聚类"></a>聚类</h2><h3 id="无监督学习"><a href="#无监督学习" class="headerlink" title="无监督学习"></a>无监督学习</h3><p>只有x值没有标签</p>
+<p>应用之一——聚类</p>
+<h3 id="k-means"><a href="#k-means" class="headerlink" title="k-means"></a>k-means</h3><p>K-均值算法<br>将一组没有加标签的样本分为m类</p>
+<ul>
+<li>随机选择m个点作为类中心</li>
+<li>遍历每一个样本点，将样本点分给离他最近的类中心</li>
+<li>将每个类的类中心改为该类中所有点的坐标的均值然后回到第2步直到样本归属无更改</li>
+<li>如果在簇中心移动的过程中有某一类没有任何样本点，那么直接将这一类删除，视情况是否新随机出一个簇</li>
+</ul>
+<h3 id="优化目标"><a href="#优化目标" class="headerlink" title="优化目标"></a>优化目标</h3><p>变量定义<br><img src="/assets/image/吴恩达机器学习课程笔记/1482115472911.png" alt="Alt text"></p>
+<p>优化目标<br><img src="/assets/image/吴恩达机器学习课程笔记/1482115509034.png" alt="Alt text"></p>
+<p>即每个样本点距他所属的类别的质心距离最短</p>
+<h3 id="初始化质心"><a href="#初始化质心" class="headerlink" title="初始化质心"></a>初始化质心</h3><h4 id="随机选择"><a href="#随机选择" class="headerlink" title="随机选择"></a>随机选择</h4><ul>
+<li>首先质心的数量要小于样本数量</li>
+<li>随机选择k个样本作为质心</li>
+</ul>
+<p>随机初始化容易陷入局部最优<br><img src="/assets/image/吴恩达机器学习课程笔记/1482116575908.png" alt="Alt text"><br>一般通过多次随机取得最小值，次数一般在50~1000之间<br>随机选择方法适用于k的类数不大的情形2-10</p>
+<h3 id="选择聚类数目"><a href="#选择聚类数目" class="headerlink" title="选择聚类数目"></a>选择聚类数目</h3><p>手动选择<br>肘部法则<br><img src="/assets/image/吴恩达机器学习课程笔记/1482141537632.png" alt="Alt text"><br>根据递增的K画出代价函数曲线<br>会发现一个明显的拐点，越过这个拐点之后损失函数的值会下降的越来越缓慢，这个拐点就是最佳的聚类数目选择值</p>
+<p>但是情况有时候不那么理想<br><img src="/assets/image/吴恩达机器学习课程笔记/1482142001010.png" alt="Alt text"></p>
+<p>按照业务逻辑手动选择k</p>
+<h2 id="降维"><a href="#降维" class="headerlink" title="降维"></a>降维</h2><h3 id="数据压缩"><a href="#数据压缩" class="headerlink" title="数据压缩"></a>数据压缩</h3><p>通过去除相关性很强的特征，节省空间，算法提速</p>
+<h3 id="数据可视化-1"><a href="#数据可视化-1" class="headerlink" title="数据可视化"></a>数据可视化</h3><p>N维降到2维</p>
+<h3 id="PCA"><a href="#PCA" class="headerlink" title="PCA"></a>PCA</h3><p>Principal Componet Analysis —— 主成分分析法<br>主要做的是寻找一个低维空间，将现有数据投影到上面所需的距离最短<br>低维空间用向量表示，正负无关</p>
+<p>与线性回归比较，线性回归的损失函数是预测值与真实值得比较：<br><img src="/assets/image/吴恩达机器学习课程笔记/1482389178897.png" alt="Alt text"></p>
+<p>PCA是真实数据与投射空间的距离：<br><img src="/assets/image/吴恩达机器学习课程笔记/1482389225684.png" alt="Alt text"></p>
+<h4 id="训练过程"><a href="#训练过程" class="headerlink" title="训练过程"></a>训练过程</h4><ul>
+<li>数据归一化</li>
+<li>假定将数据从N维降维到K维，需计算协方差矩阵:<script type="math/tex; mode=display">\Sigma = \frac {1} {m} 
+\sum^m_{i = 1}(x^{(i)})(x^{(i)})^T</script></li>
+<li>通过SVD计算特征向量<script type="math/tex; mode=display">[U, S, V] = svd(\Sigma)</script></li>
+<li>取其中N<em>N的矩阵U的前K列生成N</em>K的矩阵$U_{reduce}$</li>
+<li>映射过后的值为$z = U_{reduce}^T * x$</li>
+</ul>
+<h4 id="主成分数量选择"><a href="#主成分数量选择" class="headerlink" title="主成分数量选择"></a>主成分数量选择</h4><p>主要原则：<br><img src="/assets/image/吴恩达机器学习课程笔记/1482409276093.png" alt="Alt text"><br>让数据的变化尽可能小</p>
+<p>这个数字可以通过SVD产生的S矩阵进行简便计算：<br><img src="/assets/image/吴恩达机器学习课程笔记/1482410023608.png" alt="Alt text"><br><img src="/assets/image/吴恩达机器学习课程笔记/1482410032881.png" alt="Alt text"></p>
+<h3 id="压缩还原"><a href="#压缩还原" class="headerlink" title="压缩还原"></a>压缩还原</h3><script type="math/tex; mode=display">X = U_{reduce} * Z</script><p>还原出来的数据还是在高维空间的低维空间中：<br><img src="/assets/image/吴恩达机器学习课程笔记/1482410613315.png" alt="Alt text"></p>
+<h3 id="应用"><a href="#应用" class="headerlink" title="应用"></a>应用</h3><p>对于高维特征可用PCA降维之后计算<br>对训练集和测试集做同样的处理</p>
+<p>数据压缩：</p>
+<ul>
+<li>节省内存和磁盘空间占用</li>
+<li>加速学习速率</li>
+</ul>
+<p>可视化：</p>
+<ul>
+<li>降到2维或者3维绘图</li>
+</ul>
+<p>不要用PCA来防止过拟合，效果不如正则化好，另外PCA降维没有用到标签信息，更加容易舍弃有价值的信息</p>
+<p>默认不要使用PCA，只有当确定除了某种问题的时候再使用它去解决特征的问题</p>
+<h2 id="异态检测"><a href="#异态检测" class="headerlink" title="异态检测"></a>异态检测</h2><h3 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h3><p>通过收集关键特征的值，检测是否存在离群点<br>或者给定一个点是否是离群点</p>
+<h3 id="高斯分布"><a href="#高斯分布" class="headerlink" title="高斯分布"></a>高斯分布</h3><p>x服从均值为$\mu$方差为$\sigma^2$的高斯分布记作：</p>
+<script type="math/tex; mode=display">x \sim N(\mu, \sigma^2)</script><p>概率密度函数为</p>
+<script type="math/tex; mode=display">p(x;\mu, \sigma^2) = \frac {1} {\sqrt {2\pi}\sigma}e^{-\frac {(x - \mu) ^ 2} {2\sigma^2}}</script><p>分布的参数估计</p>
+<script type="math/tex; mode=display">\mu = \frac {1} {m}\sum^m_{i = 1}x^{(i)}</script><script type="math/tex; mode=display">\sigma^2 = \frac {1} {m - 1}\sum^m_{i = 1}(x^{(i)} - \mu)^2</script><h3 id="算法部分"><a href="#算法部分" class="headerlink" title="算法部分"></a>算法部分</h3><p>计算事件发生概率：<br>$P(x) = \prod^n_{j = 1}P(x_i;\mu_j,\sigma^2_j)$</p>
+<p>步骤：</p>
+<ul>
+<li>选择特征</li>
+<li>通过训练数据训练特征的高斯分布超参<br><img src="/assets/image/吴恩达机器学习课程笔记/1482723802560.png" alt="Alt text"></li>
+<li>对于新的预测样本给出其发生的概率，如果概率小于阈值那么认定为异常样本</li>
+</ul>
+<h3 id="特征选择"><a href="#特征选择" class="headerlink" title="特征选择"></a>特征选择</h3><p>将样本上的特征画图，看是否符合高斯分布的曲线形状，如果符合那么可以加入异态检测特征集合</p>
+<p>如果特征的分布不服从高斯分布，那么通过变换（log、幂运算）转换</p>
+<h3 id="多元高斯分布"><a href="#多元高斯分布" class="headerlink" title="多元高斯分布"></a>多元高斯分布</h3><p>用于检测在单个特征上看起来都非常正常，实际将特征组合起来已经离群的异常点</p>
+<p>不将特征独立考虑，一次性将概率密度函数建模，将原来的方差换为协方差矩阵，写作</p>
+<script type="math/tex; mode=display">p(x;\mu, \Sigma) = \frac {e^{-\frac {1} {2}(x - \mu)^T\Sigma^{-1} (x - \mu)}} {(2\pi)^{\frac {n} {2} }\sqrt {|\Sigma|}}</script><p>其中$\Sigma$是n*n的协方差矩阵</p>
+<h4 id="参数估计"><a href="#参数估计" class="headerlink" title="参数估计"></a>参数估计</h4><p>协方差矩阵：<br><img src="/assets/image/吴恩达机器学习课程笔记/1482748216851.png" alt="Alt text"><br>当协方差矩阵不可逆时，检查冗余特征<br>其余预测与高斯分布一致</p>
+<p>高斯分布的等高线是沿着轴线方向，协方差矩阵是对角矩阵，需要自己创造特征表示多个特征之间的联系</p>
+<p>与高斯分布相比，多元高斯分布：</p>
+<ul>
+<li>能够表示特征之间的线性关系</li>
+<li>当m数量小于特征数量的时候不能正常工作，通常样本数量大于10倍的特征数量</li>
+<li>计算复杂</li>
+</ul>
+<h2 id="推荐系统"><a href="#推荐系统" class="headerlink" title="推荐系统"></a>推荐系统</h2><p>机器学习最重要的应用之一<br>特征作为机器学习的一个重要参数，有一些算法可以自动学习特征量，推荐系统就是这种算法的一种应用</p>
+<h3 id="问题建模"><a href="#问题建模" class="headerlink" title="问题建模"></a>问题建模</h3><p>对于一个用户对电影打分的场景<br>变量定义：<br><img src="/assets/image/吴恩达机器学习课程笔记/1482803167971.png" alt="Alt text"><br>用户给一些电影打了分，有些没打，预测用户没打分的电影会打多少分</p>
+<h3 id="基于内容的推荐"><a href="#基于内容的推荐" class="headerlink" title="基于内容的推荐"></a>基于内容的推荐</h3><p>将电影本身按照内容分类<br><img src="/assets/image/吴恩达机器学习课程笔记/1482803772413.png" alt="Alt text"><br>提取n个特征为电影打分</p>
+<p>预测的流程为，为每个用户训练一个n+1维特征向量，每个电影在前面拼上一个常数1，也形成一个n+1维向量，两个向量的点积就是用户对于新电影的评分</p>
+<p>拓展问题的定义：<br><img src="/assets/image/吴恩达机器学习课程笔记/1482806086093.png" alt="Alt text"></p>
+<p>训练向量的过程使用最小二乘回归，加正则项：<br><img src="/assets/image/吴恩达机器学习课程笔记/1482820042163.png" alt="Alt text"></p>
+<p>梯度下降进行学习：<br><img src="/assets/image/吴恩达机器学习课程笔记/1482820522257.png" alt="Alt text"></p>
+<h3 id="协同过滤"><a href="#协同过滤" class="headerlink" title="协同过滤"></a>协同过滤</h3><p>人工打标签的难度较大，难以完成</p>
+<p>将问题的场景进行转换，先给定用户的偏好，然后去学习电影的特征向量</p>
+<p>优化目标：<br><img src="/assets/image/吴恩达机器学习课程笔记/1482824743619.png" alt="Alt text"></p>
+<p>以此来计算电影的特征向量</p>
+<p>用户与电影之间的向量可以相互推导：<br><img src="/assets/image/吴恩达机器学习课程笔记/1482825510988.png" alt="Alt text"><br>可以先给定一个随机$\theta$然后训练直到收敛<br>这就是基本的协同过滤算法(思想类似EM)</p>
+<h4 id="改进版"><a href="#改进版" class="headerlink" title="改进版"></a>改进版</h4><p>将用户特征向量优化目标与电影特征向量的损失函数相加，得到新的损失函数，直接求解<br><img src="/assets/image/吴恩达机器学习课程笔记/1482829652940.png" alt="Alt text"><br><strong>注意</strong> 此特征向量的长度为n，不再有偏置项</p>
+<p>算法步骤：</p>
+<ul>
+<li>初始化用户特征参数和电影特征参数</li>
+<li>使用梯度下降或者其他优化算法对参数进行求解（用户特征和电影特征用不同的偏导求解）</li>
+<li>预测使用用户特征向量和电影特征向量做点积</li>
+</ul>
+<h4 id="向量化实现"><a href="#向量化实现" class="headerlink" title="向量化实现"></a>向量化实现</h4><p>将电影特征组成矩阵X：<br><img src="/assets/image/吴恩达机器学习课程笔记/1482832201550.png" alt="Alt text"></p>
+<p>将用户特征组成矩阵$\theta$:<br><img src="/assets/image/吴恩达机器学习课程笔记/1482832242357.png" alt="Alt text"></p>
+<p>将矩阵相乘得到每个用户对于每个电影打分的结果矩阵</p>
+<p>因为得到的矩阵是低秩矩阵，所以改算法又被称为<strong>低秩矩阵分解</strong></p>
+<h4 id="挖掘相似产品"><a href="#挖掘相似产品" class="headerlink" title="挖掘相似产品"></a>挖掘相似产品</h4><p>通过计算产品特征向量之间的距离</p>
+<h3 id="运行细节——均值归一化"><a href="#运行细节——均值归一化" class="headerlink" title="运行细节——均值归一化"></a>运行细节——均值归一化</h3><p>假设存在一个用户，他对所有的商品均没有评分，那么依据正则化项的约束，他将所有的向量值都置为0，为避免这种为题，一般需要将矩阵进行均值归一化操作</p>
+<p>原矩阵：<br><img src="/assets/image/吴恩达机器学习课程笔记/1482834649174.png" alt="Alt text"></p>
+<p>减去均值，得到归一化矩阵：<br><img src="/assets/image/吴恩达机器学习课程笔记/1482834667314.png" alt="Alt text"></p>
+<p>在训练得到预测矩阵之后将均值加回，就使得未预测用户的评分都是均值</p>
+<h2 id="大规模数据挖掘"><a href="#大规模数据挖掘" class="headerlink" title="大规模数据挖掘"></a>大规模数据挖掘</h2><h3 id="大数据学习"><a href="#大数据学习" class="headerlink" title="大数据学习"></a>大数据学习</h3><p>在使用大数据集进行训练的时候会产生诸如计算量大等问题，这个时候需要考虑是否真的需要考虑真的需要使用这么大的数据量，如果测试集和训练集的误差存在较大gap那么增加数据量的做法应该有用，否则考虑减小数据量（就目前的经验来说都是无脑加数据就好，没有计算时间上的瓶颈）</p>
+<h3 id="随机梯度下降"><a href="#随机梯度下降" class="headerlink" title="随机梯度下降"></a>随机梯度下降</h3><ul>
+<li>对样本集进行随机重排序</li>
+<li>然后对每个样本计算梯度，立刻更新参数</li>
+<li>遍历所有样本一遍，学习完成</li>
+<li>重复上述过程1~10次</li>
+</ul>
+<p>随机梯度下降一般不会收敛在全局最小值上，会在其很近的地方波动，可以通过动态学习率的方式缓解:</p>
+<script type="math/tex; mode=display">\alpha = \frac {const_1} {iter + const_2}</script><p>学习率随着迭代次数的增加而减小</p>
+<h3 id="小批量梯度下降"><a href="#小批量梯度下降" class="headerlink" title="小批量梯度下降"></a>小批量梯度下降</h3><p>每次使用b个样本计算梯度更新参数<br>对比随机梯度下降，这种计算方式可以向量化、并行化计算<br>有个缺点是多了一个额外的参数b</p>
+<h4 id="收敛性检测"><a href="#收敛性检测" class="headerlink" title="收敛性检测"></a>收敛性检测</h4><p>在使用特定样本进行学习之前，先计算该样本的误差，然后每1000个样本画出误差曲线观察</p>
+<p>如果误差曲线抖动比较剧烈，那么加大平均样本数量会减小这种波动，</p>
+<p><img src="/assets/image/吴恩达机器学习课程笔记/1483437437416.png" alt="Alt text"></p>
+<h3 id="在线学习"><a href="#在线学习" class="headerlink" title="在线学习"></a>在线学习</h3><p>对于持续高频产生新数据的行为都可以应用在线学习进行建模</p>
+<h3 id="MR和并行化"><a href="#MR和并行化" class="headerlink" title="MR和并行化"></a>MR和并行化</h3><h4 id="Map-Reduce"><a href="#Map-Reduce" class="headerlink" title="Map-Reduce"></a>Map-Reduce</h4><p>分治思想，将数据分为多份，分别处理，然后将结果汇总，进行计算输出</p>
+<h4 id="并行化"><a href="#并行化" class="headerlink" title="并行化"></a>并行化</h4><p>单机多核，同理MR</p>
+<h2 id="OCR应用"><a href="#OCR应用" class="headerlink" title="OCR应用"></a>OCR应用</h2><p>光学字符识别，从照片中抠出文字</p>
+<h3 id="主要步骤"><a href="#主要步骤" class="headerlink" title="主要步骤"></a>主要步骤</h3><p>算法步骤</p>
+<ul>
+<li>从图像中检测文字</li>
+<li>字符切分</li>
+<li>字符识别</li>
+</ul>
+<p>上述步骤构成了整个系统的算法流水线</p>
+<h3 id="滑动窗"><a href="#滑动窗" class="headerlink" title="滑动窗"></a>滑动窗</h3><p>滑动窗（sliding window）是检测图像中物体的常用算法，文字的检测长宽比不固定，相比较而言，行人检测简单一些，先以行人检测为例</p>
+<p>先通过网络获取固定长宽（86 * 32）的正负样本<br>负样本：<br><img src="/assets/image/吴恩达机器学习课程笔记/1483495899243.png" alt="Alt text"></p>
+<p>正样本：<br><img src="/assets/image/吴恩达机器学习课程笔记/1483495911516.png" alt="Alt text"></p>
+<ul>
+<li>以86 * 32 为窗口，滑动截取图片成若干个小方块，通过模型预测这些窗口的图片是否含有行人</li>
+<li>每次窗口滑动的大小称为step size（步长）</li>
+<li>将窗口放大，再将图片分割为若干块，将图片resize成原始分类器大小（86 * 32）后再传入分类器</li>
+<li>再放大重复以上步骤</li>
+</ul>
+<p>回到文字检测的问题上来</p>
+<ul>
+<li>我们同样使用固定长宽的方块去检测<strong>单个</strong>字符</li>
+<li>用字符训练数据训练模型</li>
+<li>用模型检测图片上是包含字符，生成二值图<br><img src="/assets/image/吴恩达机器学习课程笔记/1483498646947.png" alt="Alt text"></li>
+<li>使用拓展算法将孤立的白色方块连成一片<br><img src="/assets/image/吴恩达机器学习课程笔记/1483498747095.png" alt="Alt text"></li>
+<li>加策略进行数据清洗，将瘦高的连通域丢弃</li>
+<li>训练字符分割点模型，检测在哪里应该将两个字符分开，然后一维滑动窗口遍历整个连通域，将字符图片切割</li>
+<li>训练字符识别模型，将所有单体字符识别出来</li>
+</ul>
+<h3 id="人工合成数据"><a href="#人工合成数据" class="headerlink" title="人工合成数据"></a>人工合成数据</h3><ul>
+<li>通过不同的字体类型 + 不同背景直接创造数据集</li>
+<li>通过真实数据 + 扭曲变形/干扰制造额外数据<br><img src="/assets/image/吴恩达机器学习课程笔记/1483514105742.png" alt="Alt text"></li>
+<li>加干扰数据的时候应该注意，所做变换信息应该是现实（测试集）中可能出现的情景，不要直接加纯随机和噪声</li>
+<li>在造数据之前最好先确定已经有一个低偏差模型</li>
+<li>如何通过人工的方式获取大量数据是一个提升算法性能比较关键的点</li>
+<li>自己收集&amp;标记数据也是一个扩展数据的方法，评估人工收集数据的成本</li>
+<li>众包收集数据</li>
+</ul>
+<h3 id="上限分析"><a href="#上限分析" class="headerlink" title="上限分析"></a>上限分析</h3><p>分析整个系统中的瓶颈是在哪里</p>
+<p>依次让各个模块输出标准答案，测试系统的准确率是多少<br><img src="/assets/image/吴恩达机器学习课程笔记/1483517972934.png" alt="Alt text"></p>
+<p>根据数据得出改进某些模块的增益</p>
+<h2 id="引用"><a href="#引用" class="headerlink" title="引用"></a>引用</h2><p><a target="_blank" rel="noopener" href="http://blog.csdn.net/acdreamers/article/details/44657439">BP神经网络</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/machine-learning/" rel="tag"># machine_learning</a>
+              <a href="/tags/note/" rel="tag"># note</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2016/12/09/Click-Through%20Rate%20Estimation%20for%20Rare%20Events%20in%20Online%20Advertising/" rel="prev" title="Click-Through Rate Estimation for Rare Events in Online Advertising">
+      <i class="fa fa-chevron-left"></i> Click-Through Rate Estimation for Rare Events in Online Advertising
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/01/22/Factorization%20Machines/" rel="next" title="Factorization Machines">
+      Factorization Machines <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%8B%E7%BB%8D"><span class="nav-number">1.</span> <span class="nav-text">介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8D%95%E5%8F%98%E9%87%8F%E7%9A%84%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92"><span class="nav-number">2.</span> <span class="nav-text">单变量的线性回归</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A2%AF%E5%BA%A6%E4%B8%8B%E9%99%8D"><span class="nav-number">2.1.</span> <span class="nav-text">梯度下降</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%8B%E9%99%8D%E6%96%B9%E5%90%91"><span class="nav-number">2.1.1.</span> <span class="nav-text">下降方向</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E5%A4%8D%E4%B9%A0"><span class="nav-number">3.</span> <span class="nav-text">线性代数复习</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%9F%A9%E9%98%B5%E4%B9%98%E6%B3%95%E6%80%A7%E8%B4%A8"><span class="nav-number">3.1.</span> <span class="nav-text">矩阵乘法性质</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%9F%A9%E9%98%B5%E6%B1%82%E9%80%86"><span class="nav-number">3.2.</span> <span class="nav-text">矩阵求逆</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%9A%E5%8F%98%E9%87%8F%E7%9B%B8%E6%80%A7%E5%9B%9E%E5%BD%92"><span class="nav-number">4.</span> <span class="nav-text">多变量相性回归</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%89%B9%E5%BE%81%E5%BD%92%E4%B8%80%E5%8C%96"><span class="nav-number">4.1.</span> <span class="nav-text">特征归一化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A2%AF%E5%BA%A6%E4%B8%8B%E9%99%8D%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82"><span class="nav-number">4.2.</span> <span class="nav-text">梯度下降的一些细节</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AD%A6%E4%B9%A0%E9%80%9F%E7%8E%87-alpha"><span class="nav-number">4.2.1.</span> <span class="nav-text">学习速率$\alpha$</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%9A%E9%A1%B9%E5%BC%8F%E5%9B%9E%E5%BD%92"><span class="nav-number">4.3.</span> <span class="nav-text">多项式回归</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%AD%A3%E8%A7%84%E6%96%B9%E7%A8%8B"><span class="nav-number">4.4.</span> <span class="nav-text">正规方程</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#X-TX-%E4%B8%8D%E5%8F%AF%E9%80%86"><span class="nav-number">4.4.1.</span> <span class="nav-text">$X^TX$不可逆</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Octave%E4%BB%8B%E7%BB%8D"><span class="nav-number">5.</span> <span class="nav-text">Octave介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E6%93%8D%E4%BD%9C"><span class="nav-number">5.1.</span> <span class="nav-text">基本操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%AF%BC%E5%85%A5%E5%AF%BC%E5%87%BA"><span class="nav-number">5.2.</span> <span class="nav-text">数据导入导出</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E8%BF%90%E7%AE%97"><span class="nav-number">5.3.</span> <span class="nav-text">数据运算</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%BF%90%E7%AE%97%E7%AC%A6"><span class="nav-number">5.3.1.</span> <span class="nav-text">运算符</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%87%BD%E6%95%B0"><span class="nav-number">5.3.2.</span> <span class="nav-text">函数</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%8F%AF%E8%A7%86%E5%8C%96"><span class="nav-number">5.4.</span> <span class="nav-text">数据可视化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B5%81%E7%A8%8B%E6%8E%A7%E5%88%B6"><span class="nav-number">5.5.</span> <span class="nav-text">流程控制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%90%91%E9%87%8F%E5%8C%96"><span class="nav-number">5.6.</span> <span class="nav-text">向量化</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%80%BB%E8%BE%91%E5%9B%9E%E5%BD%92"><span class="nav-number">6.</span> <span class="nav-text">逻辑回归</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%86%E7%B1%BB%E9%97%AE%E9%A2%98"><span class="nav-number">6.1.</span> <span class="nav-text">分类问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%81%87%E8%AE%BE%E7%A9%BA%E9%97%B4%E8%A1%A8%E8%BE%BE%E5%BC%8F"><span class="nav-number">6.2.</span> <span class="nav-text">假设空间表达式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%B3%E7%AD%96%E8%BE%B9%E7%95%8C"><span class="nav-number">6.3.</span> <span class="nav-text">决策边界</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0"><span class="nav-number">6.4.</span> <span class="nav-text">损失函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%80%E5%8C%96%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0%E5%92%8C%E6%A2%AF%E5%BA%A6%E4%B8%8B%E9%99%8D"><span class="nav-number">6.5.</span> <span class="nav-text">简化损失函数和梯度下降</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%9B%E9%98%B6%E4%BC%98%E5%8C%96%E6%96%B9%E6%B3%95"><span class="nav-number">6.6.</span> <span class="nav-text">进阶优化方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%9A%E5%88%86%E7%B1%BB%E9%97%AE%E9%A2%98"><span class="nav-number">6.7.</span> <span class="nav-text">多分类问题</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%AD%A3%E5%88%99%E5%8C%96"><span class="nav-number">7.</span> <span class="nav-text">正则化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%87%E6%8B%9F%E5%90%88%E9%97%AE%E9%A2%98"><span class="nav-number">7.1.</span> <span class="nav-text">过拟合问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%83%A9%E7%BD%9A%E9%A1%B9"><span class="nav-number">7.2.</span> <span class="nav-text">惩罚项</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92%E6%AD%A3%E5%88%99%E5%8C%96"><span class="nav-number">7.3.</span> <span class="nav-text">线性回归正则化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%80%BB%E8%BE%91%E5%9B%9E%E5%BD%92%E6%AD%A3%E5%88%99%E5%8C%96"><span class="nav-number">7.4.</span> <span class="nav-text">逻辑回归正则化</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E5%B1%95%E7%A4%BA"><span class="nav-number">8.</span> <span class="nav-text">神经网络展示</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9D%9E%E7%BA%BF%E6%80%A7%E5%81%87%E8%AE%BE"><span class="nav-number">8.1.</span> <span class="nav-text">非线性假设</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A5%9E%E7%BB%8F%E5%92%8C%E5%A4%A7%E8%84%91"><span class="nav-number">8.2.</span> <span class="nav-text">神经和大脑</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E8%A1%A8%E7%A4%BA"><span class="nav-number">8.3.</span> <span class="nav-text">神经网络表示</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E8%A1%A8%E7%A4%BA%E7%AC%AC%E4%BA%8C%E5%BC%B9"><span class="nav-number">8.4.</span> <span class="nav-text">神经网络表示第二弹</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A4%BA%E4%BE%8B"><span class="nav-number">8.5.</span> <span class="nav-text">示例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%9A%E5%88%86%E7%B1%BB"><span class="nav-number">8.6.</span> <span class="nav-text">多分类</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E8%AE%AD%E7%BB%83"><span class="nav-number">9.</span> <span class="nav-text">神经网络训练</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0-1"><span class="nav-number">9.1.</span> <span class="nav-text">损失函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%8D%E5%90%91%E4%BC%A0%E6%92%AD%E7%AE%97%E6%B3%95"><span class="nav-number">9.2.</span> <span class="nav-text">反向传播算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%82%E6%95%B0%E5%90%91%E9%87%8F%E5%8C%96"><span class="nav-number">9.3.</span> <span class="nav-text">参数向量化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A2%AF%E5%BA%A6%E6%A3%80%E9%AA%8C"><span class="nav-number">9.4.</span> <span class="nav-text">梯度检验</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%A2%AF%E5%BA%A6%E4%BC%B0%E8%AE%A1"><span class="nav-number">9.4.1.</span> <span class="nav-text">梯度估计</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%A3%80%E9%AA%8C%E6%B5%81%E7%A8%8B"><span class="nav-number">9.4.2.</span> <span class="nav-text">检验流程</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9A%8F%E6%9C%BA%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="nav-number">9.5.</span> <span class="nav-text">随机初始化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84"><span class="nav-number">9.6.</span> <span class="nav-text">整体架构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%97%A0%E4%BA%BA%E9%A9%BE%E9%A9%B6%E5%BA%94%E7%94%A8"><span class="nav-number">9.7.</span> <span class="nav-text">无人驾驶应用</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AF%B9%E4%BA%8E%E5%BA%94%E7%94%A8%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%9A%84%E4%B8%80%E4%BA%9B%E5%BB%BA%E8%AE%AE"><span class="nav-number">10.</span> <span class="nav-text">对于应用机器学习的一些建议</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E9%80%89%E6%8B%A9%E7%B3%BB%E7%BB%9F%E7%9A%84%E6%94%B9%E8%BF%9B%E6%96%B9%E5%90%91"><span class="nav-number">10.1.</span> <span class="nav-text">如何选择系统的改进方向</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AF%84%E4%BC%B0%E5%81%87%E8%AE%BE%E5%87%BD%E6%95%B0"><span class="nav-number">10.2.</span> <span class="nav-text">评估假设函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E9%80%89%E6%8B%A9"><span class="nav-number">10.3.</span> <span class="nav-text">模型选择</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%81%8F%E5%B7%AE%E5%92%8C%E6%96%B9%E5%B7%AE"><span class="nav-number">10.4.</span> <span class="nav-text">偏差和方差</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%AD%A3%E5%88%99%E5%8C%96%E9%A1%B9"><span class="nav-number">10.4.1.</span> <span class="nav-text">正则化项</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AD%A6%E4%B9%A0%E6%9B%B2%E7%BA%BF"><span class="nav-number">10.4.2.</span> <span class="nav-text">学习曲线</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E9%AB%98%E5%81%8F%E5%B7%AE%E6%83%85%E5%BD%A2"><span class="nav-number">10.4.2.1.</span> <span class="nav-text">高偏差情形</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E9%AB%98%E6%96%B9%E5%B7%AE%E6%83%85%E5%BD%A2"><span class="nav-number">10.4.2.2.</span> <span class="nav-text">高方差情形</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="nav-number">10.4.3.</span> <span class="nav-text">解决方案</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E9%AB%98%E5%81%8F%E5%B7%AE%E6%97%B6"><span class="nav-number">10.4.3.1.</span> <span class="nav-text">高偏差时</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E9%AB%98%E6%96%B9%E5%B7%AE%E6%97%B6"><span class="nav-number">10.4.3.2.</span> <span class="nav-text">高方差时</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1"><span class="nav-number">11.</span> <span class="nav-text">机器学习系统设计</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A1%AE%E7%AB%8B%E4%BC%98%E5%85%88%E7%BA%A7"><span class="nav-number">11.1.</span> <span class="nav-text">确立优先级</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AF%AF%E5%B7%AE%E5%88%86%E6%9E%90"><span class="nav-number">11.2.</span> <span class="nav-text">误差分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%80%BE%E6%96%9C%E7%9A%84%E8%AF%AF%E5%B7%AE%E5%BA%A6%E9%87%8F"><span class="nav-number">11.3.</span> <span class="nav-text">数据倾斜的误差度量</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%87%86%E7%A1%AE%E7%8E%87-%E5%8F%AC%E5%9B%9E%E7%8E%87"><span class="nav-number">11.3.1.</span> <span class="nav-text">准确率&#x2F;召回率</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B9%B3%E8%A1%A1%E5%87%86%E7%A1%AE%E7%8E%87-amp-%E5%8F%AC%E5%9B%9E%E7%8E%87"><span class="nav-number">11.4.</span> <span class="nav-text">平衡准确率&amp;召回率</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#F1%E5%BA%A6%E9%87%8F"><span class="nav-number">11.4.1.</span> <span class="nav-text">F1度量</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E4%B9%8B%E4%B8%AD%E7%9A%84%E8%AE%AD%E7%BB%83%E6%95%B0%E6%8D%AE"><span class="nav-number">11.5.</span> <span class="nav-text">机器学习之中的训练数据</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%94%AF%E6%8C%81%E5%90%91%E9%87%8F%E6%9C%BA"><span class="nav-number">12.</span> <span class="nav-text">支持向量机</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%80%E4%BC%98%E5%8C%96%E7%9B%AE%E6%A0%87"><span class="nav-number">12.1.</span> <span class="nav-text">最优化目标</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%80%E5%A4%A7%E9%97%B4%E8%B7%9D"><span class="nav-number">12.2.</span> <span class="nav-text">最大间距</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%A6%BB%E7%BE%A4%E7%82%B9%E5%A4%84%E7%90%86"><span class="nav-number">12.2.1.</span> <span class="nav-text">离群点处理</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%80%E5%A4%A7%E9%97%B4%E8%B7%9D%E8%83%8C%E5%90%8E%E7%9A%84%E6%95%B0%E5%AD%A6%E8%A7%A3%E9%87%8A"><span class="nav-number">12.3.</span> <span class="nav-text">最大间距背后的数学解释</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%B8%E5%87%BD%E6%95%B0"><span class="nav-number">12.4.</span> <span class="nav-text">核函数</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%A0%87%E8%AE%B0%E7%82%B9%E7%9A%84%E9%80%89%E6%8B%A9"><span class="nav-number">12.4.1.</span> <span class="nav-text">标记点的选择</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#SVM%E4%B8%AD%E7%9A%84%E8%B6%85%E5%8F%82"><span class="nav-number">12.4.2.</span> <span class="nav-text">SVM中的超参</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#SVM%E5%BA%94%E7%94%A8"><span class="nav-number">12.4.3.</span> <span class="nav-text">SVM应用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#LR-%E5%AF%B9%E6%AF%94-SVM"><span class="nav-number">12.4.4.</span> <span class="nav-text">LR 对比 SVM</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%81%9A%E7%B1%BB"><span class="nav-number">13.</span> <span class="nav-text">聚类</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%97%A0%E7%9B%91%E7%9D%A3%E5%AD%A6%E4%B9%A0"><span class="nav-number">13.1.</span> <span class="nav-text">无监督学习</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#k-means"><span class="nav-number">13.2.</span> <span class="nav-text">k-means</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BC%98%E5%8C%96%E7%9B%AE%E6%A0%87"><span class="nav-number">13.3.</span> <span class="nav-text">优化目标</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96%E8%B4%A8%E5%BF%83"><span class="nav-number">13.4.</span> <span class="nav-text">初始化质心</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%9A%8F%E6%9C%BA%E9%80%89%E6%8B%A9"><span class="nav-number">13.4.1.</span> <span class="nav-text">随机选择</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%80%89%E6%8B%A9%E8%81%9A%E7%B1%BB%E6%95%B0%E7%9B%AE"><span class="nav-number">13.5.</span> <span class="nav-text">选择聚类数目</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%99%8D%E7%BB%B4"><span class="nav-number">14.</span> <span class="nav-text">降维</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%8E%8B%E7%BC%A9"><span class="nav-number">14.1.</span> <span class="nav-text">数据压缩</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%8F%AF%E8%A7%86%E5%8C%96-1"><span class="nav-number">14.2.</span> <span class="nav-text">数据可视化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PCA"><span class="nav-number">14.3.</span> <span class="nav-text">PCA</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%AE%AD%E7%BB%83%E8%BF%87%E7%A8%8B"><span class="nav-number">14.3.1.</span> <span class="nav-text">训练过程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%BB%E6%88%90%E5%88%86%E6%95%B0%E9%87%8F%E9%80%89%E6%8B%A9"><span class="nav-number">14.3.2.</span> <span class="nav-text">主成分数量选择</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8E%8B%E7%BC%A9%E8%BF%98%E5%8E%9F"><span class="nav-number">14.4.</span> <span class="nav-text">压缩还原</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BA%94%E7%94%A8"><span class="nav-number">14.5.</span> <span class="nav-text">应用</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%82%E6%80%81%E6%A3%80%E6%B5%8B"><span class="nav-number">15.</span> <span class="nav-text">异态检测</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A6%82%E8%BF%B0"><span class="nav-number">15.1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%AB%98%E6%96%AF%E5%88%86%E5%B8%83"><span class="nav-number">15.2.</span> <span class="nav-text">高斯分布</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%97%E6%B3%95%E9%83%A8%E5%88%86"><span class="nav-number">15.3.</span> <span class="nav-text">算法部分</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%89%B9%E5%BE%81%E9%80%89%E6%8B%A9"><span class="nav-number">15.4.</span> <span class="nav-text">特征选择</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%9A%E5%85%83%E9%AB%98%E6%96%AF%E5%88%86%E5%B8%83"><span class="nav-number">15.5.</span> <span class="nav-text">多元高斯分布</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8F%82%E6%95%B0%E4%BC%B0%E8%AE%A1"><span class="nav-number">15.5.1.</span> <span class="nav-text">参数估计</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F"><span class="nav-number">16.</span> <span class="nav-text">推荐系统</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E5%BB%BA%E6%A8%A1"><span class="nav-number">16.1.</span> <span class="nav-text">问题建模</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8E%E5%86%85%E5%AE%B9%E7%9A%84%E6%8E%A8%E8%8D%90"><span class="nav-number">16.2.</span> <span class="nav-text">基于内容的推荐</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8D%8F%E5%90%8C%E8%BF%87%E6%BB%A4"><span class="nav-number">16.3.</span> <span class="nav-text">协同过滤</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%94%B9%E8%BF%9B%E7%89%88"><span class="nav-number">16.3.1.</span> <span class="nav-text">改进版</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%90%91%E9%87%8F%E5%8C%96%E5%AE%9E%E7%8E%B0"><span class="nav-number">16.3.2.</span> <span class="nav-text">向量化实现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%8C%96%E6%8E%98%E7%9B%B8%E4%BC%BC%E4%BA%A7%E5%93%81"><span class="nav-number">16.3.3.</span> <span class="nav-text">挖掘相似产品</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%90%E8%A1%8C%E7%BB%86%E8%8A%82%E2%80%94%E2%80%94%E5%9D%87%E5%80%BC%E5%BD%92%E4%B8%80%E5%8C%96"><span class="nav-number">16.4.</span> <span class="nav-text">运行细节——均值归一化</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%A7%E8%A7%84%E6%A8%A1%E6%95%B0%E6%8D%AE%E6%8C%96%E6%8E%98"><span class="nav-number">17.</span> <span class="nav-text">大规模数据挖掘</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0"><span class="nav-number">17.1.</span> <span class="nav-text">大数据学习</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9A%8F%E6%9C%BA%E6%A2%AF%E5%BA%A6%E4%B8%8B%E9%99%8D"><span class="nav-number">17.2.</span> <span class="nav-text">随机梯度下降</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B0%8F%E6%89%B9%E9%87%8F%E6%A2%AF%E5%BA%A6%E4%B8%8B%E9%99%8D"><span class="nav-number">17.3.</span> <span class="nav-text">小批量梯度下降</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%94%B6%E6%95%9B%E6%80%A7%E6%A3%80%E6%B5%8B"><span class="nav-number">17.3.1.</span> <span class="nav-text">收敛性检测</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9C%A8%E7%BA%BF%E5%AD%A6%E4%B9%A0"><span class="nav-number">17.4.</span> <span class="nav-text">在线学习</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MR%E5%92%8C%E5%B9%B6%E8%A1%8C%E5%8C%96"><span class="nav-number">17.5.</span> <span class="nav-text">MR和并行化</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Map-Reduce"><span class="nav-number">17.5.1.</span> <span class="nav-text">Map-Reduce</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B9%B6%E8%A1%8C%E5%8C%96"><span class="nav-number">17.5.2.</span> <span class="nav-text">并行化</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#OCR%E5%BA%94%E7%94%A8"><span class="nav-number">18.</span> <span class="nav-text">OCR应用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BB%E8%A6%81%E6%AD%A5%E9%AA%A4"><span class="nav-number">18.1.</span> <span class="nav-text">主要步骤</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BB%91%E5%8A%A8%E7%AA%97"><span class="nav-number">18.2.</span> <span class="nav-text">滑动窗</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%BA%E5%B7%A5%E5%90%88%E6%88%90%E6%95%B0%E6%8D%AE"><span class="nav-number">18.3.</span> <span class="nav-text">人工合成数据</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%8A%E9%99%90%E5%88%86%E6%9E%90"><span class="nav-number">18.4.</span> <span class="nav-text">上限分析</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%95%E7%94%A8"><span class="nav-number">19.</span> <span class="nav-text">引用</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Berwyn Zhang</p>
+  <div class="site-description" itemprop="description">Learn & output</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">29</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">26</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-address-card"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Berwyn Zhang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+</body>
+</html>

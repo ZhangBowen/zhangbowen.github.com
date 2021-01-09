@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"berwynzhang.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="自回归模型（AR）概述 自回归模型一种时间序列预测模型，是若干随机数的集合。描述的是当前值与历史值得关系，是一种随机过程 对于指定值的预测是对于以往值的线性预测加上随机扰动项，所以这个模型的形式是一个随机差分方程 是ARMA（Autoregressive–moving-average model）和VAR（Vector Autoregressive model）一种特殊形式 p阶自回归模型记作AR">
+<meta property="og:type" content="article">
+<meta property="og:title" content="时间序列总结">
+<meta property="og:url" content="https://berwynzhang.com/2016/04/29/%E6%97%B6%E9%97%B4%E5%BA%8F%E5%88%97/index.html">
+<meta property="og:site_name" content="Berwyn&#39;s Blog">
+<meta property="og:description" content="自回归模型（AR）概述 自回归模型一种时间序列预测模型，是若干随机数的集合。描述的是当前值与历史值得关系，是一种随机过程 对于指定值的预测是对于以往值的线性预测加上随机扰动项，所以这个模型的形式是一个随机差分方程 是ARMA（Autoregressive–moving-average model）和VAR（Vector Autoregressive model）一种特殊形式 p阶自回归模型记作AR">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/时间序列/1461740522041.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/时间序列/1461740561989.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/时间序列/1461668053367.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/时间序列/1461668419997.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/时间序列/1461669556850.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/时间序列/1461669651819.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/时间序列/1461670085740.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/时间序列/1461670096569.png">
+<meta property="article:published_time" content="2016-04-28T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-01-04T16:33:54.571Z">
+<meta property="article:author" content="Berwyn Zhang">
+<meta property="article:tag" content="machine_learning">
+<meta property="article:tag" content="summary">
+<meta property="article:tag" content="time series">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://berwynzhang.com/assets/image/时间序列/1461740522041.png">
+
+<link rel="canonical" href="https://berwynzhang.com/2016/04/29/%E6%97%B6%E9%97%B4%E5%BA%8F%E5%88%97/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>时间序列总结 | Berwyn's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Berwyn's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2016/04/29/%E6%97%B6%E9%97%B4%E5%BA%8F%E5%88%97/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          时间序列总结
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2016-04-29 00:00:00" itemprop="dateCreated datePublished" datetime="2016-04-29T00:00:00+08:00">2016-04-29</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-05 00:33:54" itemprop="dateModified" datetime="2021-01-05T00:33:54+08:00">2021-01-05</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="自回归模型（AR）"><a href="#自回归模型（AR）" class="headerlink" title="自回归模型（AR）"></a>自回归模型（AR）</h2><h3 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h3><ul>
+<li>自回归模型一种时间序列预测模型，是若干随机数的集合。描述的是当前值与历史值得关系，是一种<a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Stochastic_process">随机过程</a></li>
+<li>对于指定值的预测是对于以往值的线性预测加上随机扰动项，所以这个模型的形式是一个随机差分方程</li>
+<li>是ARMA（Autoregressive–moving-average model）和VAR（Vector Autoregressive model）一种特殊形式</li>
+<li>p阶自回归模型记作AR(p)</li>
+</ul>
+<a id="more"></a>
+<h3 id="定义"><a href="#定义" class="headerlink" title="定义"></a>定义</h3><p>AR(p)模型的定义如下</p>
+<script type="math/tex; mode=display">X_t = c + \sum_{i = 1}^{p} \varphi_i X_{t-i} + \varepsilon_t</script><p>其中$ \varphi_i … \varphi_p $是模型的参数，c是常数，$\varepsilon_t$是白噪声随机数<br>其中$\varepsilon_t$ 服从平均值为0 方差为$\sigma^2$ 的的正态分布，即$\varepsilon_t \sim N(0, \sigma)$<br>引入<a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Lag_operator">滞后算子</a>B将公式变形如下</p>
+<script type="math/tex; mode=display">X_t = c + \sum_{i = 1}^{p} \varphi_iB^iX_t + \varepsilon_t</script><p>将求和公式部分移到左边</p>
+<script type="math/tex; mode=display">(1 - \sum_{i = 1}^{p} \varphi_iB^i)X_t = c + \varepsilon_t</script><p>左侧$X_t$的系数是一个多项式，简化表示为</p>
+<script type="math/tex; mode=display">\phi(B)X_t = c + \varepsilon_t</script><p>至此AR(p)模型可以看做为一个输入为白噪声的滤波器</p>
+<h3 id="序列平稳"><a href="#序列平稳" class="headerlink" title="序列平稳"></a>序列平稳</h3><p>由于我们建立模型的目的主要是预测未来走势，然后才是更好的理解数据，这就要求随机变量的基本特性具有可延续性</p>
+<p>平稳的时间序列：<br><img src="/assets/image/时间序列/1461740522041.png" alt="Alt text"></p>
+<p>非平稳的时间序列：<br><img src="/assets/image/时间序列/1461740561989.png" alt="Alt text"></p>
+<p>是否平稳的考量范围：</p>
+<ul>
+<li>均值与统计时间无关</li>
+<li>方差与统计时间无关</li>
+<li>协方差与统计时间无关，只与统计间隔有关</li>
+</ul>
+<p>满足上述<strong>所有</strong>条件的话序列称为<a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Stationary_process">广义平稳</a></p>
+<p>AR(p)模型平稳的充要条件是回归系数多项式$\phi(B)$的根都在单位圆外</p>
+<h3 id="适用范围"><a href="#适用范围" class="headerlink" title="适用范围"></a>适用范围</h3><p>仅通过时间序列变量的自身历史观测值来反映有关因素对预测目标的影响和作用，不受模型变量相互独立的假设条件约束，所构成的模型可以消除普通回归预测方法中由<strong>自变量选择、多重共线性</strong>等造成的困难</p>
+<h3 id="模型判定"><a href="#模型判定" class="headerlink" title="模型判定"></a>模型判定</h3><p>判断一组数据属于哪个时间序列模型，主要取决于数据的自相关函数和偏自相关函数    ，下面介绍一下这几个概念    </p>
+<h4 id="自相关系数-协方差"><a href="#自相关系数-协方差" class="headerlink" title="自相关系数/协方差"></a>自相关系数/协方差</h4><p>用于衡量两个变量的总体误差<br>期望值分别为$E(X) = \mu$和$E(Y) = \nu$的协方差定义为</p>
+<script type="math/tex; mode=display">cov(X, Y) = E((X- \mu)(Y - \nu))</script><script type="math/tex; mode=display">cov(X, Y) = E(X \cdot Y) - \mu\nu</script><p>时间序列中的协方差简写为$\gamma_i$代表$cov(X_t, X_{t-i})$<br>其中$\gamma_0$就代表了变量的方差$var(X_t)$</p>
+<h4 id="自相关函数"><a href="#自相关函数" class="headerlink" title="自相关函数"></a>自相关函数</h4><p>又名序列相关函数，表明距离为$i$的两个数据点的相关性<br>定义为：</p>
+<script type="math/tex; mode=display">\rho_i = \frac {\gamma_i} {var(Xt)} 即 \rho_i = \frac {\gamma_i} {\gamma_0}</script><h4 id="偏自相关函数"><a href="#偏自相关函数" class="headerlink" title="偏自相关函数"></a>偏自相关函数</h4><p>就是在原自相关函数的基础上，给定中间的变量的情况下$X_t$与$X_{t - i}$的相关度度量，定义为</p>
+<script type="math/tex; mode=display">\phi_i = \rho_{X_t, X_{t - i} | X_{t-1}, \cdots , X_{t - i + 1}}</script><p>根据定义可知，其实AR模型中的$\phi_i$的值就是模型的第i个参数的值</p>
+<h4 id="模型特点"><a href="#模型特点" class="headerlink" title="模型特点"></a>模型特点</h4><p>首先求解(序列均值为0的)$AR(p)$的自相关系数，原式两边同乘以$X_{t - k}$</p>
+<script type="math/tex; mode=display">X_{t - k}X_t = \phi_1X_{t - k}X_{t - 1} + \phi_2X_{t - k}X_{t - 2} + \dots + \phi_pX_{t - k}X_{t - p}</script><p>两边同时取期望</p>
+<script type="math/tex; mode=display">E[X_{t - k}X_t] =  \phi_1E[X_{t - k}X_{t - 1}] + \phi_2E[X_{t - k}X_{t - 2}] + \dots + \phi_pE[X_{t - k}X_{t - p}]</script><p>由于序列均值为0所以</p>
+<script type="math/tex; mode=display">cov(X_t, X_{t - k} ) = E[(X_t - 0)(X_{t - k} - 0)] \\ = E[X_t \cdot X_{t - k}]</script><p>即序列中不同时刻的两个变量的协方差就是他们乘积的期望<br>所以$AR(p)$自相关系数为：</p>
+<script type="math/tex; mode=display">\gamma_k = \phi_1\gamma_{k - 1} + \phi_2\gamma_{k - 2} + \dots + \phi_p\gamma_{k - p}</script><p>以$X_t = 0.8X_{t - 1} + \varepsilon_t$为例</p>
+<ol>
+<li><em>自相关函数拖尾</em>——指数级递减，衰减至0<br><img src="/assets/image/时间序列/1461668053367.png" alt="Alt text"></li>
+<li><em>偏自相关函数P阶截尾</em><br><img src="/assets/image/时间序列/1461668419997.png" alt="Alt text"></li>
+</ol>
+<h3 id="模型参数求解"><a href="#模型参数求解" class="headerlink" title="模型参数求解"></a>模型参数求解</h3><p>模型参数的求解方式有多种，例如<a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Ordinary_least_squares">最小二乘法</a>、<a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Method_of_moments_(statistics)">矩估计</a>、Yule-Walker估计、最大似然估计</p>
+<h4 id="最小二乘法"><a href="#最小二乘法" class="headerlink" title="最小二乘法"></a>最小二乘法</h4><p>计算简单，不需要计算偏自相关函数</p>
+<h4 id="Yule-Walker估计"><a href="#Yule-Walker估计" class="headerlink" title="Yule-Walker估计"></a>Yule-Walker估计</h4><p>在AR模型中，参数和模型的协方差函数存在着某种联系，而两者存在的关系也可以从自相关函数中直接求解模型参数。Yule-Walker 方程清晰的展现了两者的关系。对于一个p阶AR模型AR(p)，方程形式如下</p>
+<script type="math/tex; mode=display">\gamma_m = \sum_{k = 1}^p\varphi_k\gamma_{m-k} + \sigma_{\varepsilon}^2\delta_{m,0}</script><p>其中$\gamma_m$是$X_t$的的自协方差，$\sigma_{\varepsilon}^2$是白噪声的方差，$\delta_{m,0}$是<a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Kronecker_delta">克罗内克符号</a><br>穷举$m = 0,\ldots,p$可以得到p + 1 个方程，由于第一个方程有些特殊（多了一个常数项），我们把他单独拿出来处理，剩下的方程整理为如下形式</p>
+<p>\begin{equation}<br>\begin{bmatrix}<br>\gamma_1 \\<br>\gamma_2 \\<br>\vdots \\<br>\gamma_p<br>\end{bmatrix}<br>=<br>\begin{bmatrix}<br>\gamma_0 &amp; \gamma_{-1} &amp; \gamma_{-2} &amp; \cdots \\<br>\gamma_1 &amp; \gamma_{0} &amp; \gamma_{-2} &amp; \cdots \\<br>\vdots &amp; \vdots &amp; \vdots  &amp; \ddots \\<br>\gamma_{p-1} &amp; \gamma_{p-2} &amp; \gamma_{p-3} &amp; \cdots \\<br>\end{bmatrix}<br>\begin{bmatrix}<br>\varphi_1 \\<br>\varphi_2 \\<br>\vdots \\<br>\varphi_p<br>\end{bmatrix}<br>\nonumber<br>\end{equation}</p>
+<p>根据上面的等式，当模型的自协方差已知时可以根据上面p个方程求解全部模型参数<br>然后根据第一个方程<script type="math/tex">\gamma_0 = \sum_{k=1}^{p}\varphi_k\gamma_{-k} + \sigma_{\varepsilon}^2</script>计算出$\sigma_{\varepsilon}^2$整个模型的参数就确定下来了</p>
+<p><strong>计算相对简单，在小样本情况下表现比最小二乘好，大样本两个方法差不多</strong></p>
+<h4 id="最大似然估计"><a href="#最大似然估计" class="headerlink" title="最大似然估计"></a>最大似然估计</h4><p>计算复杂，精度高</p>
+<h2 id="滑动平均模型（MA）"><a href="#滑动平均模型（MA）" class="headerlink" title="滑动平均模型（MA）"></a>滑动平均模型（MA）</h2><h3 id="概述-1"><a href="#概述-1" class="headerlink" title="概述"></a>概述</h3><ul>
+<li>滑动平均模型描述的是自回归过程的误差累计</li>
+<li>q阶滑动平均模型记作MA(q)</li>
+</ul>
+<h3 id="定义-1"><a href="#定义-1" class="headerlink" title="定义"></a>定义</h3><p>MA(q)模型的定义如下</p>
+<script type="math/tex; mode=display">X_t = \mu + \varepsilon_t - \theta_1\varepsilon_{t-1} - \dots - \theta_q\varepsilon_{t-q}</script><p>其中$\mu$代表的是序列均值，$\theta_1 \dots \theta_q$ 是模型的参数值，$\varepsilon_t \dots \varepsilon_{t-q}$是噪音项，他们都服从标准正态分布并且相互独立<br>引入滞后因子</p>
+<script type="math/tex; mode=display">X_{t} = \mu + (1 - \theta_1B - \dots - \theta_qB^q )\varepsilon_t</script><p>多项式简化表示</p>
+<script type="math/tex; mode=display">X_{t} = \mu + \theta(B)\varepsilon_t</script><h3 id="与自回归模型的白噪声对比"><a href="#与自回归模型的白噪声对比" class="headerlink" title="与自回归模型的白噪声对比"></a>与自回归模型的白噪声对比</h3><ol>
+<li><strong>影响方式不同。</strong>前几项白噪声直接影响后面的值，而AR模型中前几项的白噪声并没有直接出现在等式右边，只是通过影响前几项的值，然后前几项的值再去间接影响后面的值。</li>
+<li><strong>影响范围不同。</strong>MA模型的噪声值只能影响当时时刻的值和之后的q个时刻的值，而AR模型的每一项噪声都能对无穷远项产生影响。</li>
+</ol>
+<h3 id="转化为AR模型"><a href="#转化为AR模型" class="headerlink" title="转化为AR模型"></a>转化为AR模型</h3><p>方程也可写成</p>
+<script type="math/tex; mode=display">\theta(B)^{-1}X_t = \varepsilon_t \\ \frac {X_t} {1 - \sum_{i = 1}^q\theta_iB^i} = \varepsilon_t</script><p>左式泰勒展开的条件是</p>
+<script type="math/tex; mode=display">\sum_{i = 1}^q\theta_iB^i < 1 \\ 1 -  \sum_{i = 1}^q\theta_iB^i > 0 \\ \phi(B) > 0</script><p>泰勒展开后</p>
+<script type="math/tex; mode=display">(1 + \sum_{i = 1}^q\theta_iB^i + (\sum_{i = 1}^q\theta_iB^i)^2 + \dots)X_t = \varepsilon_t</script><p>变为无穷多阶AR模型</p>
+<h3 id="模型判定-1"><a href="#模型判定-1" class="headerlink" title="模型判定"></a>模型判定</h3><p>$MA(q)$的自相关系数为</p>
+<script type="math/tex; mode=display">\gamma_k = E[(\varepsilon_t - \theta_1\varepsilon_{t - 1} - \dots - \theta_q\varepsilon_{t - q})(\varepsilon_{t - k} - \theta_1\varepsilon_{t - k - 1} - \dots - \theta_q\varepsilon_{t - k - q})] =</script><p>\begin{cases}<br>(-\theta_k + \theta_1\theta_{k + 1} + \theta_2\theta_{k + 2} + \dots + \theta_{q - k}\theta_{q})\sigma^2 &amp; k = 1, 2, \dots, q \\<br>0 &amp; k &gt; q<br>\end{cases}<br>以$X_t = \varepsilon_t - 2\varepsilon_{t - 1}$为例</p>
+<ol>
+<li><em>自相关函数q阶截尾</em><br><img src="/assets/image/时间序列/1461669556850.png" alt="Alt text"></li>
+<li><em>偏自相关函数拖尾</em><br><img src="/assets/image/时间序列/1461669651819.png" alt="Alt text"></li>
+</ol>
+<h3 id="模型参数求解-1"><a href="#模型参数求解-1" class="headerlink" title="模型参数求解"></a>模型参数求解</h3><p>因为噪声项不可测量的性质，MA模型的求解比AR模型的求解复杂一些，使用<a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Curve_fitting">曲线拟合</a>或矩估计。</p>
+<h2 id="自回归滑动平均模型（ARMA）"><a href="#自回归滑动平均模型（ARMA）" class="headerlink" title="自回归滑动平均模型（ARMA）"></a>自回归滑动平均模型（ARMA）</h2><h3 id="概述-2"><a href="#概述-2" class="headerlink" title="概述"></a>概述</h3><ul>
+<li>由自回归模型和滑动平均模型两部分组合而成</li>
+<li>用于理解甚至预测一组时间序列数据</li>
+<li>p阶自回归模型和q阶滑动回归模型所组合起来的自回归滑动平均模型记作ARMA(p,q)</li>
+</ul>
+<h3 id="定义-2"><a href="#定义-2" class="headerlink" title="定义"></a>定义</h3><p>ARMA(p, q)的定义如下</p>
+<script type="math/tex; mode=display">X_t = c + \varepsilon_t + \sum_{i = 1}^p\varphi_tX_{t-i} + \sum_{i = 1}^q\theta_i\varepsilon_{t-i}</script><p>由自回归模型和滑动平均模型组合而成<br>引入滞后因子</p>
+<script type="math/tex; mode=display">(1 - \sum_{i = 1}^{p} \varphi_iB^i)X_t = (1 - \sum_{i=1}^q\theta B^i )\varepsilon_t</script><p>化简</p>
+<script type="math/tex; mode=display">\varphi(B)X_t = \theta(B)\varepsilon_t</script><p>或者写成</p>
+<script type="math/tex; mode=display">\frac {\varphi(B)} {\theta(B)} X_t = \varepsilon_t</script><h3 id="模型参数求解-2"><a href="#模型参数求解-2" class="headerlink" title="模型参数求解"></a>模型参数求解</h3><p>ARMA(p, q)模型无法通过最小二乘法直接解出，通常的做法是先通过数据选择出最小的p和q<br>一般情况下使用<a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Akaike_information_criterion">赤池信息量准则</a>去求解p和q</p>
+<script type="math/tex; mode=display">AIC(p, q) = ln(\sigma_r^2(p, q)) + \frac {2(p + q)} {N}</script><p>其中$N$是样本数，$\sigma_r^2$是残差项的方差<br>选取合适的$p, q$使得AIC最小<br>得到p和q之后，用高阶AR模型去近似ARMA模型，再通过Yule-Walker方程求解各个参数</p>
+<h3 id="模型判定-2"><a href="#模型判定-2" class="headerlink" title="模型判定"></a>模型判定</h3><p>以$X_t - 0.5X_{t - 1} = \varepsilon_t - 0.8 \varepsilon_{t -1}$为例</p>
+<ol>
+<li><p><em>自相关函数拖尾</em><br><img src="/assets/image/时间序列/1461670085740.png" alt="Alt text"></p>
+</li>
+<li><p><em>偏自相关函数拖尾</em><br><img src="/assets/image/时间序列/1461670096569.png" alt="Alt text"></p>
+</li>
+</ol>
+<h2 id="自回归求和滑动平均模型（ARIMA）"><a href="#自回归求和滑动平均模型（ARIMA）" class="headerlink" title="自回归求和滑动平均模型（ARIMA）"></a>自回归求和滑动平均模型（ARIMA）</h2><h3 id="概述-3"><a href="#概述-3" class="headerlink" title="概述"></a>概述</h3><ul>
+<li>ARIMA全称Autoregressive Integrated Moving Average</li>
+<li>是ARMA模型的泛化形式</li>
+<li>适用于数据不平稳的情形</li>
+<li>通过差分的方式降低数据的不平稳特性然后转化为ARMA模型</li>
+<li>又称Box-Jenkins法</li>
+</ul>
+<h3 id="定义-3"><a href="#定义-3" class="headerlink" title="定义"></a>定义</h3><p>ARIMA(p, d, q)的定义如下</p>
+<script type="math/tex; mode=display">(1- \sum_{i = 1}^p{\varphi_iB^i})(1 - B)^dX_t = (1 - \sum_{i = 1}^q{\theta_iL^i})\varepsilon_t</script><p>其中$p$是$AR(p)$模型的阶数，$d$是序列成为平稳序列所做的差分次数（阶数），$q$是$MA(q)$模型的阶数</p>
+<p>使用平稳序列$W_t = \Delta^d X_t$代替之前的非平稳序列那么$X_t = \Delta^{-d}W_t$<br>其中$\Delta^{-1}$是无穷级数因为<script type="math/tex">\Delta^{-1} = (1 -B)^{-1} \\ = 1 + B + B ^ 2 + \dots</script><br>所以$X_t = \Delta^{-d}W_t$可以看做非平稳的序列是由平稳的ARMA序列累加(积分)d次构成，因此成为自回归<strong>求和</strong>滑动平均模型</p>
+<h3 id="模型参数求解-3"><a href="#模型参数求解-3" class="headerlink" title="模型参数求解"></a>模型参数求解</h3><p>p, d, q中最先确定d，即使序列平稳的差分次数，通常情况下d&lt;3<br>确定好d之后模型转化为ARMA(p, q)求解</p>
+<h2 id="各模型比较"><a href="#各模型比较" class="headerlink" title="各模型比较"></a>各模型比较</h2><div class="table-container">
+<table>
+<thead>
+<tr>
+<th style="text-align:center">模型</th>
+<th style="text-align:center">自相关函数</th>
+<th style="text-align:center">偏相关函数</th>
+<th style="text-align:center">数据平稳</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">AR</td>
+<td style="text-align:center">拖尾</td>
+<td style="text-align:center">截尾</td>
+<td style="text-align:center">平稳</td>
+</tr>
+<tr>
+<td style="text-align:center">MA</td>
+<td style="text-align:center">截尾</td>
+<td style="text-align:center">拖尾</td>
+<td style="text-align:center">平稳</td>
+</tr>
+<tr>
+<td style="text-align:center">ARMA</td>
+<td style="text-align:center">拖尾</td>
+<td style="text-align:center">拖尾</td>
+<td style="text-align:center">平稳</td>
+</tr>
+<tr>
+<td style="text-align:center">ARIMA</td>
+<td style="text-align:center">拖尾</td>
+<td style="text-align:center">拖尾</td>
+<td style="text-align:center">不平稳</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h2 id="应用步骤"><a href="#应用步骤" class="headerlink" title="应用步骤"></a>应用步骤</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">st&#x3D;&gt;start</span><br><span class="line">e&#x3D;&gt;end</span><br><span class="line"></span><br><span class="line">cond1&#x3D;&gt;condition: 时间序列是否平稳</span><br><span class="line">cond2&#x3D;&gt;condition: 参数显著性检验</span><br><span class="line">cond3&#x3D;&gt;condition: 模型残差白噪声检验</span><br><span class="line">op1&#x3D;&gt;operation: 计算样本的自相关函数，偏相关函数</span><br><span class="line">op2&#x3D;&gt;operation: 通过差分方式平稳序列</span><br><span class="line">op3&#x3D;&gt;operation: 模型识别</span><br><span class="line">op4&#x3D;&gt;operation: 模型定阶&amp;参数估计</span><br><span class="line">op6&#x3D;&gt;operation: 序列预测</span><br><span class="line"></span><br><span class="line">st-&gt;cond1</span><br><span class="line">cond1(yes)-&gt;cond3</span><br><span class="line">cond3(yes)-&gt;op6</span><br><span class="line">cond3(no)-&gt;op3</span><br><span class="line">cond1(no)-&gt;op2</span><br><span class="line">op2-&gt;cond3</span><br><span class="line">op1-&gt;op3-&gt;op4(left)-&gt;cond3</span><br><span class="line">op6-&gt;e</span><br></pre></td></tr></table></figure>
+<h3 id="模型平稳化处理"><a href="#模型平稳化处理" class="headerlink" title="模型平稳化处理"></a>模型平稳化处理</h3><p>可通过散点图直观判断——如果序列有明显趋势，那么不平稳<br>也可通过自相关函数判断——如果自相关函数衰减缓慢，那么不平稳<br>方差检验——<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/F%E6%A3%80%E9%AA%8C">Fisher检验法</a></p>
+<p>如果数据不平稳，那么通过差分的方式将其转化为平稳序列</p>
+<h3 id="白噪声检验"><a href="#白噪声检验" class="headerlink" title="白噪声检验"></a>白噪声检验</h3><p>如果$X_t$满足:</p>
+<ol>
+<li>任取$t \in T$有$EX_t = \mu$</li>
+<li>任取$t , s \in T$有</li>
+</ol>
+<p>\begin{equation<em>}<br>cov(t, s) =<br>\begin{cases}<br>\sigma^2 &amp; t = s \\<br>0 &amp; t \neq s<br>\end{cases}<br>\end{equation</em>}</p>
+<p>那么就称$X_t$为白噪声序列<br>如果模型的残差是一个白噪声序列，那么说明所有的依赖关系都已经被模型提取，达到了建模的目的</p>
+<h3 id="模型识别"><a href="#模型识别" class="headerlink" title="模型识别"></a>模型识别</h3><p>计算序列的自相关函数和偏自相关函数，根绝两者的拖尾和截断情况来判断适应的模型<br><strong>实际</strong>：因为由于样本的随机性，样本的相关系数不会呈现出理论截尾的完美情况，本应截尾的或仍会呈现出小值振荡的情况<br><strong>95%置信区间</strong>：如果样本(偏)自相关系数在最初的d阶明显大于两倍标准差范围，而后几乎95％的自相关系数都落在2倍标准差的范围以内，而且通常由非零自相关系数衰减为小值波动的过程非常突然。这时，通常视为(偏)自相关系数截尾。截尾阶数为d</p>
+<h3 id="模型定阶"><a href="#模型定阶" class="headerlink" title="模型定阶"></a>模型定阶</h3><ul>
+<li>对于简单的ARMA模型通过观察自相关函数和偏相关函数可以进行初步定阶</li>
+<li>复杂的ARMA模型通过<a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Akaike_information_criterion">赤池信息量准则</a>定阶</li>
+</ul>
+<h3 id="模型参数估计"><a href="#模型参数估计" class="headerlink" title="模型参数估计"></a>模型参数估计</h3><p>差分之后用ARMA那一套<br>计算出参数后对于对于不显著为0的项将其去掉，降阶，重新建模</p>
+<h3 id="模型预测"><a href="#模型预测" class="headerlink" title="模型预测"></a>模型预测</h3><p>得到模型依次求解即可</p>
+<h1 id="引用"><a href="#引用" class="headerlink" title="引用"></a>引用</h1><ol>
+<li><a target="_blank" rel="noopener" href="https://www.wikipedia.org/">https://www.wikipedia.org/</a></li>
+<li>《时间序列分析简明教程》——张树京，齐立心</li>
+<li><a target="_blank" rel="noopener" href="http://www3.resset.cn:8080/fincm/sas/show.action;jsessionid=4CAC176D4EFABFB5420504B14C86426C?sid=5317bb064b77f967014c314ccb5a000a">http://www3.resset.cn:8080/fincm/sas/show.action;jsessionid=4CAC176D4EFABFB5420504B14C86426C?sid=5317bb064b77f967014c314ccb5a000a</a></li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/machine-learning/" rel="tag"># machine_learning</a>
+              <a href="/tags/summary/" rel="tag"># summary</a>
+              <a href="/tags/time-series/" rel="tag"># time series</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2016/04/26/treenewbee/" rel="prev" title="如何正确的吹牛逼">
+      <i class="fa fa-chevron-left"></i> 如何正确的吹牛逼
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2016/07/19/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" rel="next" title="循环神经网络总结">
+      循环神经网络总结 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%87%AA%E5%9B%9E%E5%BD%92%E6%A8%A1%E5%9E%8B%EF%BC%88AR%EF%BC%89"><span class="nav-number">1.</span> <span class="nav-text">自回归模型（AR）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A6%82%E8%BF%B0"><span class="nav-number">1.1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9A%E4%B9%89"><span class="nav-number">1.2.</span> <span class="nav-text">定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BA%8F%E5%88%97%E5%B9%B3%E7%A8%B3"><span class="nav-number">1.3.</span> <span class="nav-text">序列平稳</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%80%82%E7%94%A8%E8%8C%83%E5%9B%B4"><span class="nav-number">1.4.</span> <span class="nav-text">适用范围</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E5%88%A4%E5%AE%9A"><span class="nav-number">1.5.</span> <span class="nav-text">模型判定</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%87%AA%E7%9B%B8%E5%85%B3%E7%B3%BB%E6%95%B0-%E5%8D%8F%E6%96%B9%E5%B7%AE"><span class="nav-number">1.5.1.</span> <span class="nav-text">自相关系数&#x2F;协方差</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%87%AA%E7%9B%B8%E5%85%B3%E5%87%BD%E6%95%B0"><span class="nav-number">1.5.2.</span> <span class="nav-text">自相关函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%81%8F%E8%87%AA%E7%9B%B8%E5%85%B3%E5%87%BD%E6%95%B0"><span class="nav-number">1.5.3.</span> <span class="nav-text">偏自相关函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E7%89%B9%E7%82%B9"><span class="nav-number">1.5.4.</span> <span class="nav-text">模型特点</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E5%8F%82%E6%95%B0%E6%B1%82%E8%A7%A3"><span class="nav-number">1.6.</span> <span class="nav-text">模型参数求解</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E4%BA%8C%E4%B9%98%E6%B3%95"><span class="nav-number">1.6.1.</span> <span class="nav-text">最小二乘法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Yule-Walker%E4%BC%B0%E8%AE%A1"><span class="nav-number">1.6.2.</span> <span class="nav-text">Yule-Walker估计</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9C%80%E5%A4%A7%E4%BC%BC%E7%84%B6%E4%BC%B0%E8%AE%A1"><span class="nav-number">1.6.3.</span> <span class="nav-text">最大似然估计</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%BB%91%E5%8A%A8%E5%B9%B3%E5%9D%87%E6%A8%A1%E5%9E%8B%EF%BC%88MA%EF%BC%89"><span class="nav-number">2.</span> <span class="nav-text">滑动平均模型（MA）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A6%82%E8%BF%B0-1"><span class="nav-number">2.1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9A%E4%B9%89-1"><span class="nav-number">2.2.</span> <span class="nav-text">定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%8E%E8%87%AA%E5%9B%9E%E5%BD%92%E6%A8%A1%E5%9E%8B%E7%9A%84%E7%99%BD%E5%99%AA%E5%A3%B0%E5%AF%B9%E6%AF%94"><span class="nav-number">2.3.</span> <span class="nav-text">与自回归模型的白噪声对比</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BD%AC%E5%8C%96%E4%B8%BAAR%E6%A8%A1%E5%9E%8B"><span class="nav-number">2.4.</span> <span class="nav-text">转化为AR模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E5%88%A4%E5%AE%9A-1"><span class="nav-number">2.5.</span> <span class="nav-text">模型判定</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E5%8F%82%E6%95%B0%E6%B1%82%E8%A7%A3-1"><span class="nav-number">2.6.</span> <span class="nav-text">模型参数求解</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%87%AA%E5%9B%9E%E5%BD%92%E6%BB%91%E5%8A%A8%E5%B9%B3%E5%9D%87%E6%A8%A1%E5%9E%8B%EF%BC%88ARMA%EF%BC%89"><span class="nav-number">3.</span> <span class="nav-text">自回归滑动平均模型（ARMA）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A6%82%E8%BF%B0-2"><span class="nav-number">3.1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9A%E4%B9%89-2"><span class="nav-number">3.2.</span> <span class="nav-text">定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E5%8F%82%E6%95%B0%E6%B1%82%E8%A7%A3-2"><span class="nav-number">3.3.</span> <span class="nav-text">模型参数求解</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E5%88%A4%E5%AE%9A-2"><span class="nav-number">3.4.</span> <span class="nav-text">模型判定</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%87%AA%E5%9B%9E%E5%BD%92%E6%B1%82%E5%92%8C%E6%BB%91%E5%8A%A8%E5%B9%B3%E5%9D%87%E6%A8%A1%E5%9E%8B%EF%BC%88ARIMA%EF%BC%89"><span class="nav-number">4.</span> <span class="nav-text">自回归求和滑动平均模型（ARIMA）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A6%82%E8%BF%B0-3"><span class="nav-number">4.1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9A%E4%B9%89-3"><span class="nav-number">4.2.</span> <span class="nav-text">定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E5%8F%82%E6%95%B0%E6%B1%82%E8%A7%A3-3"><span class="nav-number">4.3.</span> <span class="nav-text">模型参数求解</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%90%84%E6%A8%A1%E5%9E%8B%E6%AF%94%E8%BE%83"><span class="nav-number">5.</span> <span class="nav-text">各模型比较</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BA%94%E7%94%A8%E6%AD%A5%E9%AA%A4"><span class="nav-number">6.</span> <span class="nav-text">应用步骤</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E5%B9%B3%E7%A8%B3%E5%8C%96%E5%A4%84%E7%90%86"><span class="nav-number">6.1.</span> <span class="nav-text">模型平稳化处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%99%BD%E5%99%AA%E5%A3%B0%E6%A3%80%E9%AA%8C"><span class="nav-number">6.2.</span> <span class="nav-text">白噪声检验</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E8%AF%86%E5%88%AB"><span class="nav-number">6.3.</span> <span class="nav-text">模型识别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E5%AE%9A%E9%98%B6"><span class="nav-number">6.4.</span> <span class="nav-text">模型定阶</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E5%8F%82%E6%95%B0%E4%BC%B0%E8%AE%A1"><span class="nav-number">6.5.</span> <span class="nav-text">模型参数估计</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E9%A2%84%E6%B5%8B"><span class="nav-number">6.6.</span> <span class="nav-text">模型预测</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%BC%95%E7%94%A8"><span class="nav-number"></span> <span class="nav-text">引用</span></a></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Berwyn Zhang</p>
+  <div class="site-description" itemprop="description">Learn & output</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">29</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">26</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-address-card"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Berwyn Zhang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+</body>
+</html>

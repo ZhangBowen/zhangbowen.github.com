@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"berwynzhang.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="总结 生成对抗网络由生成器G和分类器D组成，生成器G接受噪音生成样本，D负责区分这些样本是否是由D生成出来的 D和G共同优化目标函数$\underset {G} {min} \underset {D} {max} V(D,G) &#x3D; E_{x \sim p_{data}(x)}[log(D(x))] + E_{x \sim P_{g_z(z)}}[log(1 - D(g(z)))]$ 一个是让值尽量">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Generative Adversarial Nets">
+<meta property="og:url" content="https://berwynzhang.com/2017/09/21/Generative%20Adversarial%20Nets/index.html">
+<meta property="og:site_name" content="Berwyn&#39;s Blog">
+<meta property="og:description" content="总结 生成对抗网络由生成器G和分类器D组成，生成器G接受噪音生成样本，D负责区分这些样本是否是由D生成出来的 D和G共同优化目标函数$\underset {G} {min} \underset {D} {max} V(D,G) &#x3D; E_{x \sim p_{data}(x)}[log(D(x))] + E_{x \sim P_{g_z(z)}}[log(1 - D(g(z)))]$ 一个是让值尽量">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/GenerativeAdversarialNets/1505878243587.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/GenerativeAdversarialNets/1505896441402.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/GenerativeAdversarialNets/1505902834126.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/GenerativeAdversarialNets/1505904219705.png">
+<meta property="article:published_time" content="2017-09-20T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-01-04T16:35:13.688Z">
+<meta property="article:author" content="Berwyn Zhang">
+<meta property="article:tag" content="machine_learning">
+<meta property="article:tag" content="note">
+<meta property="article:tag" content="GAN">
+<meta property="article:tag" content="2014">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://berwynzhang.com/assets/image/GenerativeAdversarialNets/1505878243587.png">
+
+<link rel="canonical" href="https://berwynzhang.com/2017/09/21/Generative%20Adversarial%20Nets/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Generative Adversarial Nets | Berwyn's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Berwyn's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2017/09/21/Generative%20Adversarial%20Nets/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Generative Adversarial Nets
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2017-09-21 00:00:00" itemprop="dateCreated datePublished" datetime="2017-09-21T00:00:00+08:00">2017-09-21</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-05 00:35:13" itemprop="dateModified" datetime="2021-01-05T00:35:13+08:00">2021-01-05</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>生成对抗网络由生成器G和分类器D组成，生成器G接受噪音生成样本，D负责区分这些样本是否是由D生成出来的</li>
+<li>D和G共同优化目标函数$\underset {G} {min} \underset {D} {max} V(D,G) = E_{x \sim p_{data}(x)}[log(D(x))] + E_{x \sim P_{g_z(z)}}[log(1 - D(g(z)))]$ 一个是让值尽量大，一个是让值尽量小，即所谓“对抗”</li>
+<li>该目标函数会在$p_g = p_{data}$处收敛到最优，即生成分布与训练数据分布完全一致函数值为$-log4$</li>
+<li>关于收敛性的证明：一个凸函数集合的上界的次梯度（可导的时候等于梯度）完全包含最后函数的梯度，所以在求导做梯度下降的时候整体仍然按照凸函数的性质收敛</li>
+<li>使用<a target="_blank" rel="noopener" href="http://blog.sina.com.cn/s/blog_679e13290101cpr1.html">Gaussian Parzen window</a>(<a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=UPXIdi_aTEg">youtube视频</a>)方法对模型进行评估, Parzen Window 其实是用已有数据到待测数据点的“距离”平均值来表示待测点出现在已有数据表示的分布上的概率（或者说在已有数据拟合出的概率密度函数上的值）<ul>
+<li>通用概率密度函数$P(x) = \frac {1} {n}\sum_{i = 1}^{n}\frac {1} {h^d}K(\frac {x - x_i} {h})$</li>
+<li>Parzen window中的核函数可以有多种，使用Gaussian核的就叫做Gaussian Parzen window$P(x) = \frac {1} {n} \sum^n_{i = 1}\frac {1} {h\sqrt {2\pi}^d}exp(-\frac  1 2(\frac {x - x_i} {h})^2 )$</li>
+<li>算出概率之后再过一遍$score = -log(1 - P(x))$(猜测)</li>
+</ul>
+</li>
+<li>优点<ul>
+<li>不使用马尔科夫链</li>
+<li>训练模型的时候不需要inference</li>
+<li>可拟合sharp的分布</li>
+<li>训练样本并不直接作用于G的训练，保证参数独立</li>
+<li>可使用多种模型拟合G和D</li>
+</ul>
+</li>
+<li>缺点<ul>
+<li>G和D需要同步训练（两次D一次G）</li>
+<li>没有$p_g(z)$分布的显示表示</li>
+</ul>
+</li>
+</ul>
+<h2 id="Abstract"><a href="#Abstract" class="headerlink" title="Abstract"></a>Abstract</h2><p>propose a new framework for estimating generative models via adversarial process</p>
+<p>simultaneously train two models:</p>
+<ul>
+<li>a generative model G</li>
+<li>a discriminative model D</li>
+</ul>
+<p>a unique solution exists, with G recovering the train data distribution and D equal to $\frac 1  2$ everywhere</p>
+<h2 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h2><p>a discriminative model that learns to determine whether a sample is from the model distribution or the data distribution. The generative model can be thought of as analogous to a team of counterfeiters</p>
+<h2 id="Relate-Work"><a href="#Relate-Work" class="headerlink" title="Relate Work"></a>Relate Work</h2><ul>
+<li>restricted Boltzmann machines(RBM)</li>
+<li>deep Boltzmann machines(DBMs)</li>
+<li>deep belief networks(DBNs)</li>
+<li>score matching</li>
+<li>noise-contrastive estimation</li>
+<li>generative stochastic network</li>
+</ul>
+<h2 id="Adversarial-nets"><a href="#Adversarial-nets" class="headerlink" title="Adversarial nets"></a>Adversarial nets</h2><p>G is a differentiable function to output a generate data by $G(z;\theta_g)$</p>
+<p>D is a multilayer perce    ptron $D(x;\theta_d)$ to output a single scalar that represent whether a data is fabricated by G</p>
+<p>D and G play the following two-player minimax game with value function $V(G, D)$</p>
+<script type="math/tex; mode=display">\underset {G} {min} \underset {D} {max}V(D,G) = E_{x\sim p_{data}(x)}[logD(x)] + E_{x \sim p_z(z)}[log(1 - D(G(z)))]</script><p>we alternate between k steps of optimizing D and one step of optimizing G</p>
+<p>Early in learning, when G is poor $log(1 - D(G(z)))$ saturates. we use $\underset {G} {max} logD(G(z))$ instead. It’s provides much stronger gradients early in learning</p>
+<h2 id="Theoretical-Results"><a href="#Theoretical-Results" class="headerlink" title="Theoretical Results"></a>Theoretical Results</h2><p><img src="/assets/image/GenerativeAdversarialNets/1505878243587.png" alt="Alt text"></p>
+<h3 id="Global-Optimality-of-p-g-p-data"><a href="#Global-Optimality-of-p-g-p-data" class="headerlink" title="Global Optimality of $p_g = p_{data}$"></a>Global Optimality of $p_g = p_{data}$</h3><p><img src="/assets/image/GenerativeAdversarialNets/1505896441402.png" alt="Alt text"></p>
+<p>the global minimum of the virtual training criterion $C(G)$ is achieved if and only if $p_g = p_{data}$. At that point, $C(G)$ achieves the value - $log4$</p>
+<script type="math/tex; mode=display">C(G) = -log(4) + 2 * JSD(p_{data}||p_g)</script><p>Since the Jensen–Shannon divergence between two distributions is always non-negative and zero only when they are equal</p>
+<h3 id="Convergence-of-Algorithm-1"><a href="#Convergence-of-Algorithm-1" class="headerlink" title="Convergence of Algorithm 1"></a>Convergence of Algorithm 1</h3><p>If G and D have enough capacity, and at each step of Algorithm 1, the discriminator<br>is allowed to reach its optimum given G, and $p_g$ is updated so as to improve the criterion</p>
+<p>proof:<br>The subderivatives of a supremum of convex functions include the derivative of the function at the point where the maximum is attained</p>
+<p>一个凸函数集合的上界的次导数包含达到最大值的函数的导数</p>
+<p>看不懂……</p>
+<h2 id="Experiments"><a href="#Experiments" class="headerlink" title="Experiments"></a>Experiments</h2><p>database:</p>
+<ul>
+<li>MNIST</li>
+<li>TFD</li>
+<li>CIFAR-10</li>
+</ul>
+<p>activation:<br>generator use mixture of rectifier linear and sidmod as activations; discriminator use maxout activation</p>
+<p>We estimate probability of the test set data under $p_g$ by fitting a Gaussian Parzen window to the samples generated with G and reporting the log-likelihood under this distribution</p>
+<p><img src="/assets/image/GenerativeAdversarialNets/1505902834126.png" alt="Alt text"></p>
+<h2 id="Advantages-and-disadvantages"><a href="#Advantages-and-disadvantages" class="headerlink" title="Advantages and disadvantages"></a>Advantages and disadvantages</h2><p>disadvantages:</p>
+<ul>
+<li>there is no explicit representation of $p_g(x)$</li>
+<li>and that D must be synchronized well with G during training (in particular, G must not be trained too much without updating D, in order to avoid “the Helvetica scenario” in which G collapses too many values of z to the same value of x to have enough diversity to model $p_{data}$)</li>
+</ul>
+<p>advantages:</p>
+<ul>
+<li>Markov chains are never needed</li>
+<li>no inference is needed during learning</li>
+<li>a wide variety of functions can be incorporated into the model</li>
+<li>generator network not being updated directly with data examples, but only with gradients flowing through the discriminator</li>
+<li>they can represent very sharp, even degenerate distributions</li>
+</ul>
+<p><img src="/assets/image/GenerativeAdversarialNets/1505904219705.png" alt="Alt text"></p>
+<h2 id="Conclusions-and-future-work"><a href="#Conclusions-and-future-work" class="headerlink" title="Conclusions and future work"></a>Conclusions and future work</h2><p>extensions in future:</p>
+<ul>
+<li>A conditional generative model $p(x | c)$ can be obtained by adding c as input to both G and D</li>
+<li>Learned approximate inference can be performed by training an auxiliary network to predict z given x</li>
+<li>Semi-supervised learning</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/machine-learning/" rel="tag"># machine_learning</a>
+              <a href="/tags/note/" rel="tag"># note</a>
+              <a href="/tags/GAN/" rel="tag"># GAN</a>
+              <a href="/tags/2014/" rel="tag"># 2014</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/06/18/Inception-v4,%20Inception-ResNet%20and%20the%20Impact%20of%20Residual%20Connection%20on%20Learning/" rel="prev" title="Inception-v4, Inception-ResNet and the Impact of Residual Connection on Learning">
+      <i class="fa fa-chevron-left"></i> Inception-v4, Inception-ResNet and the Impact of Residual Connection on Learning
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/09/22/Conditional%20Generative%20Adversarial%20Nets/" rel="next" title="Conditional Generative Adversarial Nets">
+      Conditional Generative Adversarial Nets <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">1.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Abstract"><span class="nav-number">2.</span> <span class="nav-text">Abstract</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Introduction"><span class="nav-number">3.</span> <span class="nav-text">Introduction</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Relate-Work"><span class="nav-number">4.</span> <span class="nav-text">Relate Work</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Adversarial-nets"><span class="nav-number">5.</span> <span class="nav-text">Adversarial nets</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Theoretical-Results"><span class="nav-number">6.</span> <span class="nav-text">Theoretical Results</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Global-Optimality-of-p-g-p-data"><span class="nav-number">6.1.</span> <span class="nav-text">Global Optimality of $p_g &#x3D; p_{data}$</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Convergence-of-Algorithm-1"><span class="nav-number">6.2.</span> <span class="nav-text">Convergence of Algorithm 1</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Experiments"><span class="nav-number">7.</span> <span class="nav-text">Experiments</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Advantages-and-disadvantages"><span class="nav-number">8.</span> <span class="nav-text">Advantages and disadvantages</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Conclusions-and-future-work"><span class="nav-number">9.</span> <span class="nav-text">Conclusions and future work</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Berwyn Zhang</p>
+  <div class="site-description" itemprop="description">Learn & output</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">29</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">26</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-address-card"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Berwyn Zhang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+</body>
+</html>

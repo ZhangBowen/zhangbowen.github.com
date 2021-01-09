@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"berwynzhang.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="总结 本文是结合RCNN和SPPnet的改进版本 大幅提成训练&#x2F;测试速度 实现端对端一体化训练    对前作缺点分析 RCNN 多阶段训练 训练慢，也占用硬盘空间 inference也慢   SPPnet 多阶段训练 fine-tuning阶段无法更新conv网络参数    网络结构">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Fast R-CNN">
+<meta property="og:url" content="https://berwynzhang.com/2017/11/07/Fast%20R-CNN/index.html">
+<meta property="og:site_name" content="Berwyn&#39;s Blog">
+<meta property="og:description" content="总结 本文是结合RCNN和SPPnet的改进版本 大幅提成训练&#x2F;测试速度 实现端对端一体化训练    对前作缺点分析 RCNN 多阶段训练 训练慢，也占用硬盘空间 inference也慢   SPPnet 多阶段训练 fine-tuning阶段无法更新conv网络参数    网络结构">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/FastR-CNN/1509949438109.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/FastR-CNN/1509955988329.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/FastR-CNN/1509967802220.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/FastR-CNN/1509967931087.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/FastR-CNN/1509968836293.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/FastR-CNN/1509970849459.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/FastR-CNN/1509971098795.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/FastR-CNN/1509972749297.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/FastR-CNN/1510022747320.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/FastR-CNN/1510024728527.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/FastR-CNN/1510039834310.png">
+<meta property="article:published_time" content="2017-11-06T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-01-09T14:22:12.547Z">
+<meta property="article:author" content="Berwyn Zhang">
+<meta property="article:tag" content="machine_learning">
+<meta property="article:tag" content="2015">
+<meta property="article:tag" content="RCNN">
+<meta property="article:tag" content="Microsoft">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://berwynzhang.com/assets/image/FastR-CNN/1509949438109.png">
+
+<link rel="canonical" href="https://berwynzhang.com/2017/11/07/Fast%20R-CNN/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Fast R-CNN | Berwyn's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Berwyn's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2017/11/07/Fast%20R-CNN/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Fast R-CNN
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2017-11-07 00:00:00" itemprop="dateCreated datePublished" datetime="2017-11-07T00:00:00+08:00">2017-11-07</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-09 22:22:12" itemprop="dateModified" datetime="2021-01-09T22:22:12+08:00">2021-01-09</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>本文是结合RCNN和SPPnet的改进版本<ul>
+<li>大幅提成训练/测试速度</li>
+<li>实现端对端一体化训练</li>
+</ul>
+</li>
+</ul>
+<h3 id="对前作缺点分析"><a href="#对前作缺点分析" class="headerlink" title="对前作缺点分析"></a>对前作缺点分析</h3><ul>
+<li>RCNN<ul>
+<li>多阶段训练</li>
+<li>训练慢，也占用硬盘空间</li>
+<li>inference也慢</li>
+</ul>
+</li>
+<li>SPPnet<ul>
+<li>多阶段训练</li>
+<li>fine-tuning阶段无法更新conv网络参数</li>
+</ul>
+</li>
+</ul>
+<h3 id="网络结构"><a href="#网络结构" class="headerlink" title="网络结构"></a>网络结构</h3><ul>
+<li>借用SPPnet的思想，每次训练只有一次整体图片的卷积计算，然后通过映射截取特定proposal的卷积值</li>
+<li>然后过RoI pooling层（窗口大小和步长根据输入大小动态计算）得到定长特征向量</li>
+<li>舍弃SVM训练阶段，直接使用网络softmax去做分类</li>
+<li>特征向量同时给到bounding-box回归训练流程，结合两个部分组成一个新的损失函数一起训练</li>
+</ul>
+<h3 id="训练样本组成"><a href="#训练样本组成" class="headerlink" title="训练样本组成"></a>训练样本组成</h3><ul>
+<li>首先分析了SPPnet不能fine-tuning卷积层参数的原因——不同图片的proposal需要重新计算卷积值走了RCNN的老路，耗时太长</li>
+<li>所以在sampling阶段，尽量用同一图片的proposal构成batch</li>
+<li>实验证明，选取同一图片的proposal没有收敛之类的问题</li>
+</ul>
+<h3 id="FC层分解"><a href="#FC层分解" class="headerlink" title="FC层分解"></a>FC层分解</h3><ul>
+<li>简化了卷积层的计算步骤之后，FC层的计算就显得时间过长了（总计算时长的38.7%）</li>
+<li>利用因式分解的思想简化计算——将u<em>v的计算量分解为t </em> (u + v)其中$t \ll min(u, v)$</li>
+</ul>
+<h3 id="其他的思考"><a href="#其他的思考" class="headerlink" title="其他的思考"></a>其他的思考</h3><ul>
+<li>fine-tuning全部网络是否有用？——用处不大，且会让训练速度大大降低，所以一般只fine-tuning后面几层（具体哪几层根据网络深度而定）</li>
+<li>分多任务训练是否有帮助？——把分类损失和bounding-box回归损失结合在一起的效果最好，原因可能是分类任务&amp;bounding任务共同反馈使网络学习的更好</li>
+<li>尺度不变性用多尺度抽取还是单尺度？——多尺度效果更好但有限；在大型网络中因为GPU内存的限制（暂时）用不了多尺度，此时单尺度的效果超越中、小网络的多尺度，所以网络结构才是关键。<strong>选择尽量深的网络加单尺度</strong></li>
+<li>需要更多的训练数据？——是的，训练数据越多越好</li>
+<li>SVMs比softmax表现效果更好？——对，感觉有点打脸？RCNN里一通分析为啥要单拎出来一个训练流程做分类，结果这次直接合在一块而且效果更好了。除了文章中提到的softmax训练引入了不同类别之间的竞争，个人认为还有一个原因是合并流程把bounding-box回归也合并进来了共同提升了效果</li>
+<li>更多的proposal会提升效果？——不是，实验证明后续proposal变多会让mAP变低</li>
+</ul>
+<h3 id="VOC测试结果"><a href="#VOC测试结果" class="headerlink" title="VOC测试结果"></a>VOC测试结果</h3><ul>
+<li>time: 1830ms</li>
+<li>VOC 2007<ul>
+<li>07 data: 66.9%</li>
+<li>07+12 data: 70%</li>
+</ul>
+</li>
+<li>VOC 2010<ul>
+<li>12 data: 66.1%</li>
+<li>07+12 data: 68.8%</li>
+</ul>
+</li>
+<li>VOC 2012<ul>
+<li>12 data: 65.7%</li>
+<li>07+12 data: 68.4%</li>
+</ul>
+</li>
+</ul>
+<h2 id="Abstrct"><a href="#Abstrct" class="headerlink" title="Abstrct"></a>Abstrct</h2><p>Fast R-CNN trains the very deep VGG16 network 9× faster than R-CNN</p>
+<h2 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h2><p>two primary challenges:</p>
+<ul>
+<li>numerous candidate object locations (often called “proposals”) must be processed</li>
+<li>these candidates provide only rough localization that must be refined to achieve precise localization</li>
+</ul>
+<p>We propose a <strong>single-stage</strong> training algorithm that jointly learns to classify object proposals and refine their spatial locations.</p>
+<h3 id="R-CNN-and-SPPnet"><a href="#R-CNN-and-SPPnet" class="headerlink" title="R-CNN and SPPnet"></a>R-CNN and SPPnet</h3><p>R-CNN’s drawbacks:</p>
+<ul>
+<li>training is a multi-stage pipeline</li>
+<li>training is expensive in space and time</li>
+<li>object detection is slow</li>
+</ul>
+<p>R-CNN is slow because it performs a ConvNet forward pass for each object proposal</p>
+<p>SPPnet just compute convolutional feature map once per image</p>
+<p>SPPnet’s drawbacks:</p>
+<ul>
+<li>training is a multi-stage pipeline</li>
+<li>fine-tuning algorithm cannot update the convolutional layers</li>
+</ul>
+<h3 id="contributions"><a href="#contributions" class="headerlink" title="contributions"></a>contributions</h3><ul>
+<li>higher detection quality</li>
+<li>training is single-stage, using a multi-task loss</li>
+<li>training can update all network layers</li>
+<li>no disk storage is required for feature caching</li>
+</ul>
+<h2 id="Fast-R-CNN-Architecture-and-Training"><a href="#Fast-R-CNN-Architecture-and-Training" class="headerlink" title="Fast R-CNN Architecture and Training"></a>Fast R-CNN Architecture and Training</h2><p><img src="/assets/image/FastR-CNN/1509949438109.png" alt="Alt text"></p>
+<ul>
+<li>the network first processes the whole image with several convolutional (conv) and max pooling layers to produce a conv feature map</li>
+<li>for each object proposal a region of interest (RoI) pooling layer extracts a fixed-length feature vector from the feature map. Each feature vector is fed into a sequence of fully connected<ul>
+<li>one that produces softmax probability estimates over K object classes plus a catch-all “background” class </li>
+<li>outputs four real-valued numbers for each of the K object classes</li>
+</ul>
+</li>
+</ul>
+<h3 id="the-RoI-pooling-layer"><a href="#the-RoI-pooling-layer" class="headerlink" title="the RoI pooling layer"></a>the RoI pooling layer</h3><p>each RoI is defined by a four-tuple (r, c, h, w) that specifies its top-left corner (r, c) and its height and width (h, w)</p>
+<p>the RoI layer is simply the special-case of the spatial pyramid pooling layer used in SPPnets <sup><a href="#fn_11" id="reffn_11">11</a></sup> in which there is only one pyramid level.</p>
+<h3 id="initializing-from-pre-trained-networks"><a href="#initializing-from-pre-trained-networks" class="headerlink" title="initializing from pre-trained networks"></a>initializing from pre-trained networks</h3><p>three transformations:</p>
+<ul>
+<li>the last max pooling layer is replaced by a RoI pooling layer</li>
+<li>the network’s last fully connected layer and softmax are replaced with the two sibling layers</li>
+<li>the network is modified to take two data inputs: a list of images and a list of RoIs in those images</li>
+</ul>
+<h3 id="fine-tuning-for-detection"><a href="#fine-tuning-for-detection" class="headerlink" title="fine-tuning for detection"></a>fine-tuning for detection</h3><p><strong>Question</strong>:</p>
+<ul>
+<li>why SPPnet is unable to update weights below the spatial pyramid pooling layer</li>
+</ul>
+<p><strong>Answer</strong>:</p>
+<ul>
+<li>that back-propagation through the SPP layer is highly inefficient when each training sample (i.e. RoI) comes from a different image</li>
+<li>the inefficiency stems from the fact that each RoI may have a very large receptive field, often spanning the entire input image</li>
+<li>the training inputs are large</li>
+</ul>
+<p><strong>Solution</strong>:</p>
+<ul>
+<li>sampled hierarchically</li>
+<li>first by sampling N images and then by sampling R/N RoIs from each image</li>
+<li>RoIs from the same image share computation and memory in the forward and backward passes</li>
+<li>don’t cause slow training convergence in practice</li>
+<li>N = 2 and R = 128</li>
+</ul>
+<h4 id="multi-task-loss"><a href="#multi-task-loss" class="headerlink" title="multi-task loss"></a>multi-task loss</h4><p>We use a multi-task loss L on each labeled RoI to jointly train for classification and bounding-box regression</p>
+<script type="math/tex; mode=display">L(p, u , t^u, v) = L_{cls}(p, u) + \lambda[u >= 1]L_{loc}(t^u, v)</script><ul>
+<li>in which $L_{cls} (p, u) = - logP_u$</li>
+<li>For background RoIs there is no notion of a ground-truth bounding box and hence $L_{loc}$ is ignored</li>
+<li>$L_{loc}(t^u, v) = \sum_{i \in \{x, y, w, h\}}smooth_{L_1}(t^u_i - v_i)$</li>
+<li>All experiments use $\lambda = 1$</li>
+</ul>
+<script type="math/tex; mode=display">\begin{equation}smooth_{L_1}(x) = \begin{cases} 
+0.5x^2, &if |x| < 1 \\
+ |x| - 0.5, &otherwise
+\end{cases}
+\end{equation}</script><h4 id="mini-bath-sampling"><a href="#mini-bath-sampling" class="headerlink" title="mini-bath sampling"></a>mini-bath sampling</h4><ul>
+<li>batch-size  = 128</li>
+<li>sampling 64 RoIs from each image</li>
+<li>images are horizontally flipped with probability 0.5</li>
+</ul>
+<h4 id="back-propagation-through-RoI-pooling-layers"><a href="#back-propagation-through-RoI-pooling-layers" class="headerlink" title="back-propagation through RoI pooling layers"></a>back-propagation through RoI pooling layers</h4><p>backwards function: </p>
+<script type="math/tex; mode=display">\frac {\partial L} {\partial x_i} = \sum_r \sum_j[i = i^*(r,j)]\frac {\partial L} {\partial y_{rj}}</script><h4 id="SGD-hyper-parameters"><a href="#SGD-hyper-parameters" class="headerlink" title="SGD hyper-parameters"></a>SGD hyper-parameters</h4><p>softmax classification and bounding-box regression are initialized from zero-mean Gaussian distributions with standard deviations 0.01 and 0.001</p>
+<p>biases are initialized to 0</p>
+<h3 id="scale-invariance"><a href="#scale-invariance" class="headerlink" title="scale invariance"></a>scale invariance</h3><p>two ways:</p>
+<ul>
+<li>“brute force” learning</li>
+<li>image pyramids</li>
+</ul>
+<h2 id="Fast-R-CNN-Detection"><a href="#Fast-R-CNN-Detection" class="headerlink" title="Fast R-CNN Detection"></a>Fast R-CNN Detection</h2><h3 id="truncated-SVD-for-faster-detection"><a href="#truncated-SVD-for-faster-detection" class="headerlink" title="truncated SVD for faster detection"></a>truncated SVD for faster detection</h3><p><img src="/assets/image/FastR-CNN/1509955988329.png" alt="Alt text"></p>
+<p>the time cost on FC is nearly half of the forward pass time</p>
+<script type="math/tex; mode=display">w \approx U\Sigma_tV^T</script><ul>
+<li>w is u * v</li>
+<li>U is v * t</li>
+<li>$\Sigma_t$ is t * t</li>
+<li>V is v * t</li>
+<li>truncated SVD reduces the parameter count from uv to t(u + v) $t \ll min(u, v)$</li>
+</ul>
+<h2 id="Main-Results"><a href="#Main-Results" class="headerlink" title="Main Results"></a>Main Results</h2><p>three main results:</p>
+<ul>
+<li>state-of-the-art mAP on VOC 2007, 2010, and 2012</li>
+<li>fast training and testing compared to R-CNN, SPPnet</li>
+<li>fine-tuning conv layers in VGG16 improves mAP</li>
+</ul>
+<h3 id="VOC-2010-and-2012-results"><a href="#VOC-2010-and-2012-results" class="headerlink" title="VOC 2010 and 2012 results"></a>VOC 2010 and 2012 results</h3><p><img src="/assets/image/FastR-CNN/1509967802220.png" alt="Alt text"></p>
+<p><img src="/assets/image/FastR-CNN/1509967931087.png" alt="Alt text"></p>
+<h3 id="VOC-2007-results"><a href="#VOC-2007-results" class="headerlink" title="VOC 2007 results"></a>VOC 2007 results</h3><p><img src="/assets/image/FastR-CNN/1509968836293.png" alt="Alt text"></p>
+<h3 id="training-and-testing-time"><a href="#training-and-testing-time" class="headerlink" title="training and testing time"></a>training and testing time</h3><p><img src="/assets/image/FastR-CNN/1509970849459.png" alt="Alt text"></p>
+<h4 id="truncated-SVD"><a href="#truncated-SVD" class="headerlink" title="truncated SVD"></a>truncated SVD</h4><p>truncated SVD can reduce detection time by more than 30% with only a small (0.3 percentage point) drop in mAP</p>
+<h3 id="which-layers-to-fine-tune"><a href="#which-layers-to-fine-tune" class="headerlink" title="which layers to fine-tune"></a>which layers to fine-tune</h3><p>validate that fine-tuning the conv layers is important for VGG16</p>
+<p>training through the RoI pooling layer is important for very deep nets</p>
+<p><img src="/assets/image/FastR-CNN/1509971098795.png" alt="Alt text"></p>
+<p><strong>Question:</strong></p>
+<ul>
+<li>Does this mean that all conv layers should be fine-tuned?</li>
+</ul>
+<p><strong>Answer:</strong></p>
+<ul>
+<li>no</li>
+<li>lower layer is generic and task independent has no meaningful effect on mAP</li>
+</ul>
+<h2 id="Design-Evaluation"><a href="#Design-Evaluation" class="headerlink" title="Design Evaluation"></a>Design Evaluation</h2><h3 id="dose-multi-task-training-help"><a href="#dose-multi-task-training-help" class="headerlink" title="dose multi-task training help"></a>dose multi-task training help</h3><p><img src="/assets/image/FastR-CNN/1509972749297.png" alt="Alt text"></p>
+<h3 id="scale-invariance-to-brute-force-or-finesse"><a href="#scale-invariance-to-brute-force-or-finesse" class="headerlink" title="scale invariance: to brute force or finesse?"></a>scale invariance: to brute force or finesse?</h3><p><img src="/assets/image/FastR-CNN/1510022747320.png" alt="Alt text"></p>
+<p>deep ConvNets are adept at directly learning scale invariance</p>
+<h3 id="do-we-need-more-training-data"><a href="#do-we-need-more-training-data" class="headerlink" title="do we need more training data?"></a>do we need more training data?</h3><p>A good object detector should improve when supplied with more training data</p>
+<ul>
+<li>roughly tripling the number of images to 16.5k</li>
+<li>improves mAP on VOC07 test from 66.9% to 70.0%</li>
+</ul>
+<h3 id="do-SVMs-outperform-softmax"><a href="#do-SVMs-outperform-softmax" class="headerlink" title="do SVMs outperform softmax?"></a>do SVMs outperform softmax?</h3><p><img src="/assets/image/FastR-CNN/1510024728527.png" alt="Alt text"></p>
+<p><strong>Reason:</strong></p>
+<ul>
+<li>softmax, unlike one-vs-rest SVMs, introduces competition between classes when scoring a RoI</li>
+</ul>
+<h3 id="are-more-proposals-always-better"><a href="#are-more-proposals-always-better" class="headerlink" title="are more proposals always better?"></a>are more proposals always better?</h3><ul>
+<li>sparse set of object proposals</li>
+<li>dense set </li>
+</ul>
+<p><img src="/assets/image/FastR-CNN/1510039834310.png" alt="Alt text"></p>
+<ul>
+<li>that swamping the deep classifier with more proposals does not help, and even slightly hurts, accuracy</li>
+</ul>
+<h3 id="preliminary-MS-COCO-results"><a href="#preliminary-MS-COCO-results" class="headerlink" title="preliminary MS COCO results"></a>preliminary MS COCO results</h3><p>skip</p>
+<h2 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h2><p>skip</p>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><blockquote id="fn_11">
+<sup>11</sup>. K.He,X.Zhang,S.Ren,andJ.Sun.Spatial pyramid pooling in deep convolutional networks for visual recognition. In ECCV,2014<a href="#reffn_11" title="Jump back to footnote [11] in the text."> &#8617;</a>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/machine-learning/" rel="tag"># machine_learning</a>
+              <a href="/tags/2015/" rel="tag"># 2015</a>
+              <a href="/tags/RCNN/" rel="tag"># RCNN</a>
+              <a href="/tags/Microsoft/" rel="tag"># Microsoft</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/11/03/Rich%20Feature%20Hierarchies%20for%20Accurate%20Object%20Detection%20and%20Semantic%20Segmentation/" rel="prev" title="Rich Feature Hierarchies for Accurate Object Detection and Semantic Segmentation">
+      <i class="fa fa-chevron-left"></i> Rich Feature Hierarchies for Accurate Object Detection and Semantic Segmentation
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/11/09/Faster%20R-CNN/" rel="next" title="Faster R-CNN">
+      Faster R-CNN <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">1.</span> <span class="nav-text">总结</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%B9%E5%89%8D%E4%BD%9C%E7%BC%BA%E7%82%B9%E5%88%86%E6%9E%90"><span class="nav-number">1.1.</span> <span class="nav-text">对前作缺点分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C%E7%BB%93%E6%9E%84"><span class="nav-number">1.2.</span> <span class="nav-text">网络结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%AD%E7%BB%83%E6%A0%B7%E6%9C%AC%E7%BB%84%E6%88%90"><span class="nav-number">1.3.</span> <span class="nav-text">训练样本组成</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#FC%E5%B1%82%E5%88%86%E8%A7%A3"><span class="nav-number">1.4.</span> <span class="nav-text">FC层分解</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B6%E4%BB%96%E7%9A%84%E6%80%9D%E8%80%83"><span class="nav-number">1.5.</span> <span class="nav-text">其他的思考</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#VOC%E6%B5%8B%E8%AF%95%E7%BB%93%E6%9E%9C"><span class="nav-number">1.6.</span> <span class="nav-text">VOC测试结果</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Abstrct"><span class="nav-number">2.</span> <span class="nav-text">Abstrct</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Introduction"><span class="nav-number">3.</span> <span class="nav-text">Introduction</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#R-CNN-and-SPPnet"><span class="nav-number">3.1.</span> <span class="nav-text">R-CNN and SPPnet</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#contributions"><span class="nav-number">3.2.</span> <span class="nav-text">contributions</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Fast-R-CNN-Architecture-and-Training"><span class="nav-number">4.</span> <span class="nav-text">Fast R-CNN Architecture and Training</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#the-RoI-pooling-layer"><span class="nav-number">4.1.</span> <span class="nav-text">the RoI pooling layer</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#initializing-from-pre-trained-networks"><span class="nav-number">4.2.</span> <span class="nav-text">initializing from pre-trained networks</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#fine-tuning-for-detection"><span class="nav-number">4.3.</span> <span class="nav-text">fine-tuning for detection</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#multi-task-loss"><span class="nav-number">4.3.1.</span> <span class="nav-text">multi-task loss</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#mini-bath-sampling"><span class="nav-number">4.3.2.</span> <span class="nav-text">mini-bath sampling</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#back-propagation-through-RoI-pooling-layers"><span class="nav-number">4.3.3.</span> <span class="nav-text">back-propagation through RoI pooling layers</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#SGD-hyper-parameters"><span class="nav-number">4.3.4.</span> <span class="nav-text">SGD hyper-parameters</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#scale-invariance"><span class="nav-number">4.4.</span> <span class="nav-text">scale invariance</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Fast-R-CNN-Detection"><span class="nav-number">5.</span> <span class="nav-text">Fast R-CNN Detection</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#truncated-SVD-for-faster-detection"><span class="nav-number">5.1.</span> <span class="nav-text">truncated SVD for faster detection</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Main-Results"><span class="nav-number">6.</span> <span class="nav-text">Main Results</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#VOC-2010-and-2012-results"><span class="nav-number">6.1.</span> <span class="nav-text">VOC 2010 and 2012 results</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#VOC-2007-results"><span class="nav-number">6.2.</span> <span class="nav-text">VOC 2007 results</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#training-and-testing-time"><span class="nav-number">6.3.</span> <span class="nav-text">training and testing time</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#truncated-SVD"><span class="nav-number">6.3.1.</span> <span class="nav-text">truncated SVD</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#which-layers-to-fine-tune"><span class="nav-number">6.4.</span> <span class="nav-text">which layers to fine-tune</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Design-Evaluation"><span class="nav-number">7.</span> <span class="nav-text">Design Evaluation</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#dose-multi-task-training-help"><span class="nav-number">7.1.</span> <span class="nav-text">dose multi-task training help</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#scale-invariance-to-brute-force-or-finesse"><span class="nav-number">7.2.</span> <span class="nav-text">scale invariance: to brute force or finesse?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#do-we-need-more-training-data"><span class="nav-number">7.3.</span> <span class="nav-text">do we need more training data?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#do-SVMs-outperform-softmax"><span class="nav-number">7.4.</span> <span class="nav-text">do SVMs outperform softmax?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#are-more-proposals-always-better"><span class="nav-number">7.5.</span> <span class="nav-text">are more proposals always better?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#preliminary-MS-COCO-results"><span class="nav-number">7.6.</span> <span class="nav-text">preliminary MS COCO results</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Conclusion"><span class="nav-number">8.</span> <span class="nav-text">Conclusion</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-number">9.</span> <span class="nav-text">Reference</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Berwyn Zhang</p>
+  <div class="site-description" itemprop="description">Learn & output</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">29</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">26</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-address-card"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Berwyn Zhang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+</body>
+</html>

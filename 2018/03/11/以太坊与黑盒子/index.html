@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"berwynzhang.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="知乎同名文章笔记，特此说明 智能合约之前提到的一些技术，是支撑比特币正常运转的技术，使用同样的技术可以产生其他不同的应用，接下来我们来讨论一下整个区块链领域最热门，被认为能够改变世界的应用——智能合约 智能合约并不是合约电子化，而是——双方达成协议并签署后，无需第三方就可以强制执行合约上的内容，无法单方面撤销或者反悔的合约">
+<meta property="og:type" content="article">
+<meta property="og:title" content="以太坊与黑盒子">
+<meta property="og:url" content="https://berwynzhang.com/2018/03/11/%E4%BB%A5%E5%A4%AA%E5%9D%8A%E4%B8%8E%E9%BB%91%E7%9B%92%E5%AD%90/index.html">
+<meta property="og:site_name" content="Berwyn&#39;s Blog">
+<meta property="og:description" content="知乎同名文章笔记，特此说明 智能合约之前提到的一些技术，是支撑比特币正常运转的技术，使用同样的技术可以产生其他不同的应用，接下来我们来讨论一下整个区块链领域最热门，被认为能够改变世界的应用——智能合约 智能合约并不是合约电子化，而是——双方达成协议并签署后，无需第三方就可以强制执行合约上的内容，无法单方面撤销或者反悔的合约">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/以太坊与黑盒子/1520747033875.png">
+<meta property="article:published_time" content="2018-03-10T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-01-09T15:19:27.056Z">
+<meta property="article:author" content="Berwyn Zhang">
+<meta property="article:tag" content="bitcoin">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://berwynzhang.com/assets/image/以太坊与黑盒子/1520747033875.png">
+
+<link rel="canonical" href="https://berwynzhang.com/2018/03/11/%E4%BB%A5%E5%A4%AA%E5%9D%8A%E4%B8%8E%E9%BB%91%E7%9B%92%E5%AD%90/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>以太坊与黑盒子 | Berwyn's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Berwyn's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2018/03/11/%E4%BB%A5%E5%A4%AA%E5%9D%8A%E4%B8%8E%E9%BB%91%E7%9B%92%E5%AD%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          以太坊与黑盒子
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-03-11 00:00:00" itemprop="dateCreated datePublished" datetime="2018-03-11T00:00:00+08:00">2018-03-11</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-09 23:19:27" itemprop="dateModified" datetime="2021-01-09T23:19:27+08:00">2021-01-09</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%8C%BA%E5%9D%97%E9%93%BE/" itemprop="url" rel="index"><span itemprop="name">区块链</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/28930323">知乎同名文章</a>笔记，特此说明</p>
+<h2 id="智能合约"><a href="#智能合约" class="headerlink" title="智能合约"></a>智能合约</h2><p>之前提到的一些技术，是支撑比特币正常运转的技术，使用同样的技术可以产生其他不同的应用，接下来我们来讨论一下整个区块链领域最热门，被认为能够改变世界的应用——智能合约</p>
+<p>智能合约并不是合约电子化，而是——双方达成协议并签署后，无需第三方就可以强制执行合约上的内容，无法单方面撤销或者反悔的合约</p>
+<p><img src="/assets/image/以太坊与黑盒子/1520747033875.png" alt="Alt text"></p>
+<p>想象比特币是这样一个黑盒系统，给定输入，返回输出：</p>
+<ul>
+<li>输入包含交易信息：签名，金额等</li>
+<li>系统验证，签名正确，金额合法并且没有被使用过，输出一个新的记录这些交易的账本存起来</li>
+<li>同时把这些交易记录发布到网上</li>
+<li>如果系统验证没有通过，那么什么也不做</li>
+</ul>
+<p>在中心化的场景下，实现这个功能并不难，但是在去中心化的场景下就需要区块链的那套技术了</p>
+<h2 id="区块链与图灵机"><a href="#区块链与图灵机" class="headerlink" title="区块链与图灵机"></a>区块链与图灵机</h2><p>如果把上述黑盒子的输入和输出改变，实际上这个黑盒子可以处理去中心话的几乎各种需求</p>
+<p>图灵当年设想了一下人类所有的思维活动，发现其实一切计算，一切思考，无非是几个简单的逻辑动作<br>于是，他就设计了一个可以模拟一切人类思考和计算行为的机器，叫做图灵机</p>
+<p>而刚才我们提到的黑盒子也是一台图灵机——你想得到的，区块链都能做</p>
+<p>而以太坊，就是一个（接近）图灵机的黑盒子</p>
+<p>换句话说，以太坊是台计算机而不止是一台记账的机器<br>记账系统只是一个软件，而以太坊的功能是可以装几乎任何软件，实现几乎任何功能</p>
+<p>假设我们要在以太坊上装一个象棋程序可以这么设定：</p>
+<ul>
+<li>输入：<ul>
+<li>象棋程序，内含规则，胜负条件等</li>
+<li>双方各10个数字货币</li>
+<li>双方每人一步输入自己走的某一步</li>
+</ul>
+</li>
+<li>黑盒子：<ul>
+<li>按照输入的象棋程序中规定的规则读取双方输入，判定双方收入合法性，以及最终结果，按照给定规则输出</li>
+</ul>
+</li>
+<li>输出：<ul>
+<li>更新账本，将20个数字货币转入赢家账户</li>
+</ul>
+</li>
+</ul>
+<p>从这个角度上看，区块链又是什么呢？<br>区块链其实是把中心化的黑盒子搬到一个去中心的，不安全的网络中的技术</p>
+<p>为了能让黑盒子正常运行，区块链主要干了两件事：</p>
+<ul>
+<li>用密码学防止内存中的数据被篡改</li>
+<li>用共识算法保证只要大部分节点是好的，这个黑盒子就能正常工作</li>
+</ul>
+<p>这是区块链真正让人兴奋的地方</p>
+<h3 id="性能瓶颈"><a href="#性能瓶颈" class="headerlink" title="性能瓶颈"></a>性能瓶颈</h3><p>由于工作原理，区块链的黑盒子与传统的电脑有很大不同<br>传统电脑的瓶颈主要在于运算速度，而分布式系统由于使用了共识算法，输出结果才是瓶颈所在</p>
+<p>黑盒子的性能非常有限，体现在两个方面：</p>
+<ul>
+<li>前面提到了，输出速度是有限的，算的再快没有用，只要结果的数据量大，或者节点太多，最终的输出都会卡在这里</li>
+<li>如果某个运算需要用到输出结果的话，这个问题会被放大</li>
+</ul>
+<p>所以这就要求黑盒子的程序需要尽量少的确认结果，（例如A + B + C + D，最后对一次答案就行了，不用做一次加法对一次答案）</p>
+<p>但是对于某些场景这个优化方案不适用，因为需要严格的时序，比如转账消费，需要在交易发起的时候就验证交易的合法性</p>
+<h3 id="法律和伦理问题"><a href="#法律和伦理问题" class="headerlink" title="法律和伦理问题"></a>法律和伦理问题</h3><p>假设我们设计一个盒子，然而发现这个盒子跟我们想象的不一样，怎么办？<br>一个分布式共识的系统，如果出了问题该由谁负责？<br>如果有人利用这个问题获得了本不应该获得的好处，是否算是犯罪？</p>
+<p>一个理想的角度来看，自然是设计者负责，而由于漏洞所获得的好处不应该是犯罪</p>
+<p>但实际上现实要比理想复杂的多</p>
+<p>最著名的例子，就是以太坊的DAO事件</p>
+<p>DAO是一个以太坊成立之初就高调成立的，认为去中心化和以太坊可以解决一切问题的组织</p>
+<p>某一次某个智能合约出现了问题，黑客利用漏洞转走了360万以太币</p>
+<p>最终的结果是以太坊用硬分叉逆转了这个结果，然而也导致了以太坊分裂为了如今的以太坊和以太坊经典</p>
+<p>在这里我们来看看这件事揭示的问题——</p>
+<ol>
+<li>我们的社会不是代码组成的。“代码即法律”听起来很美好，但是作为法律的制定者的程序员们能否承担起可能承担的后果</li>
+<li>事实上类似的问题不是第一次出现，但是硬分叉是第一次。所以当问题足够严重时，就必须做出选择，是保存规则的公正还是破坏游戏规则让系统继续运转下去</li>
+<li>DAO的黑客没有收到起诉，他自己也不认为自己做了一件错事——代码就是法律，他做的事是法律所许可的</li>
+</ol>
+<p>以上三个问题是智能合约所面临的最大问题</p>
+<h3 id="专用和通用之间的矛盾"><a href="#专用和通用之间的矛盾" class="headerlink" title="专用和通用之间的矛盾"></a>专用和通用之间的矛盾</h3><p>在共识网络里黑盒子的可靠性和使用的人数挂钩，所以，无论黑盒子是否通用，都会被宣传成通用的，以达到让更多人使用的目的</p>
+<p>但是通用的意思是可以接受任何输入包括死循环</p>
+<p>以太坊为了防止这种现象发生用了一个非常聪明的方案——给所有运算加上了运算费<br>然而这个钱是付给打包这个程序进区块的节点的，收到奖励的只有一个人<br>所以产生了一个问题，衡量程序的运算是否值得被打包的是由一个节点控制，所有节点都需要被迫运行这个程序<br>一旦运算量过大，算力小的节点可能会退出</p>
+<p>所以这个方案并不完美，需要找到其他的方式</p>
+<p>这里就面临一个选择：</p>
+<ul>
+<li>面对一个具体应用，实现具体功能实现可量化的安全性</li>
+<li>提供一个类图灵完备应用，其中有各种条件限制，有更大概率出bug</li>
+</ul>
+<p>两条路都有人选，但是后者用户量更大，更容易拿到钱</p>
+<p>以太坊选择了后者</p>
+<p>尽管以太坊现在还不是一个完美的系统，但是以太坊勇于承认错误并修正<br>以太坊走在一条正确的道路上</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/bitcoin/" rel="tag"># bitcoin</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/03/09/%E3%80%8A%E5%8C%BA%E5%9D%97%E9%93%BE%E6%BC%94%E4%B9%89%E3%80%8B%E7%AC%94%E8%AE%B0/" rel="prev" title="《区块链演义》笔记">
+      <i class="fa fa-chevron-left"></i> 《区块链演义》笔记
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/03/13/Bitcoin%20A%20Peer-to-Peer%20Electronic%20Cash%20System/" rel="next" title="Bitcoin A Peer-to-Peer Electronic Cash System">
+      Bitcoin A Peer-to-Peer Electronic Cash System <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%99%BA%E8%83%BD%E5%90%88%E7%BA%A6"><span class="nav-number">1.</span> <span class="nav-text">智能合约</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8C%BA%E5%9D%97%E9%93%BE%E4%B8%8E%E5%9B%BE%E7%81%B5%E6%9C%BA"><span class="nav-number">2.</span> <span class="nav-text">区块链与图灵机</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%80%A7%E8%83%BD%E7%93%B6%E9%A2%88"><span class="nav-number">2.1.</span> <span class="nav-text">性能瓶颈</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B3%95%E5%BE%8B%E5%92%8C%E4%BC%A6%E7%90%86%E9%97%AE%E9%A2%98"><span class="nav-number">2.2.</span> <span class="nav-text">法律和伦理问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%93%E7%94%A8%E5%92%8C%E9%80%9A%E7%94%A8%E4%B9%8B%E9%97%B4%E7%9A%84%E7%9F%9B%E7%9B%BE"><span class="nav-number">2.3.</span> <span class="nav-text">专用和通用之间的矛盾</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Berwyn Zhang</p>
+  <div class="site-description" itemprop="description">Learn & output</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">29</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">26</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-address-card"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Berwyn Zhang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+</body>
+</html>

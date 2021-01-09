@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"berwynzhang.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="总结 本文主要是通过数学的方法分析现有GAN训练中存在的问题 先从KL散度入手——散度不对称对于两种不同的损失（真实分布存在而生成分布不存在；真实分布不存在而生成分布存在）给予了两种截然不同的惩罚 然后分析了训练过程不稳定的原因 当生成器的损失函数是$E_{x \sim P_r}[logD(x)] + E_{x \sim P_g}[log(1 - D(x))]$&#x3D;$ 2JS(P_r||P_g) -">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Towards Principled Methods for Training Generative Adversarial Networks">
+<meta property="og:url" content="https://berwynzhang.com/2017/10/10/Towards%20Principled%20Methods%20for%20Training%20Generative%20Adversarial%20Networks/index.html">
+<meta property="og:site_name" content="Berwyn&#39;s Blog">
+<meta property="og:description" content="总结 本文主要是通过数学的方法分析现有GAN训练中存在的问题 先从KL散度入手——散度不对称对于两种不同的损失（真实分布存在而生成分布不存在；真实分布不存在而生成分布存在）给予了两种截然不同的惩罚 然后分析了训练过程不稳定的原因 当生成器的损失函数是$E_{x \sim P_r}[logD(x)] + E_{x \sim P_g}[log(1 - D(x))]$&#x3D;$ 2JS(P_r||P_g) -">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/TowardsPrincipledMethodsforTrainingGenerativeAdversarialNetworks/1506763308309.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/TowardsPrincipledMethodsforTrainingGenerativeAdversarialNetworks/1506766047849.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/TowardsPrincipledMethodsforTrainingGenerativeAdversarialNetworks/1507551032079.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/TowardsPrincipledMethodsforTrainingGenerativeAdversarialNetworks/1507554440170.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/TowardsPrincipledMethodsforTrainingGenerativeAdversarialNetworks/1507554700878.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/TowardsPrincipledMethodsforTrainingGenerativeAdversarialNetworks/1507556591030.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/TowardsPrincipledMethodsforTrainingGenerativeAdversarialNetworks/1507618155558.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/TowardsPrincipledMethodsforTrainingGenerativeAdversarialNetworks/1507618428482.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/TowardsPrincipledMethodsforTrainingGenerativeAdversarialNetworks/1507620188056.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/TowardsPrincipledMethodsforTrainingGenerativeAdversarialNetworks/1507623304015.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/TowardsPrincipledMethodsforTrainingGenerativeAdversarialNetworks/1507624221646.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/TowardsPrincipledMethodsforTrainingGenerativeAdversarialNetworks/1507626072477.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/TowardsPrincipledMethodsforTrainingGenerativeAdversarialNetworks/1507628042588.png">
+<meta property="article:published_time" content="2017-10-09T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-01-09T10:53:06.662Z">
+<meta property="article:author" content="Berwyn Zhang">
+<meta property="article:tag" content="machine_learning">
+<meta property="article:tag" content="note">
+<meta property="article:tag" content="GAN">
+<meta property="article:tag" content="2017">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://berwynzhang.com/assets/image/TowardsPrincipledMethodsforTrainingGenerativeAdversarialNetworks/1506763308309.png">
+
+<link rel="canonical" href="https://berwynzhang.com/2017/10/10/Towards%20Principled%20Methods%20for%20Training%20Generative%20Adversarial%20Networks/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Towards Principled Methods for Training Generative Adversarial Networks | Berwyn's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Berwyn's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2017/10/10/Towards%20Principled%20Methods%20for%20Training%20Generative%20Adversarial%20Networks/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Towards Principled Methods for Training Generative Adversarial Networks
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2017-10-10 00:00:00" itemprop="dateCreated datePublished" datetime="2017-10-10T00:00:00+08:00">2017-10-10</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-09 18:53:06" itemprop="dateModified" datetime="2021-01-09T18:53:06+08:00">2021-01-09</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>本文主要是通过数学的方法分析现有GAN训练中存在的问题</li>
+<li>先从KL散度入手——散度不对称对于两种不同的损失（真实分布存在而生成分布不存在；真实分布不存在而生成分布存在）给予了两种截然不同的惩罚</li>
+<li>然后分析了训练过程不稳定的原因<ul>
+<li>当生成器的损失函数是$E_{x \sim P_r}[logD(x)] + E_{x \sim P_g}[log(1 - D(x))]$=$ 2JS(P_r||P_g) - 2log2$时，在分类器最优时，此损失函数是一个常数(低维流形理论JS散度一直为常数$log2$)，根本没有梯度，所以随着存在梯度消失的问题</li>
+<li>当生成器的损失函数是$-logD$ = $KL(P_g||P_r) - 2JS(P_r||P_g)$时有两个问题。第一个是两个散度的优化方向矛盾，一个是让两个分布尽量近一个是尽量远，导致训练方向不稳定；另外KL的散度加大了对于$P_r = 0 且 P_g = 1$的惩罚，导致模型坍塌</li>
+</ul>
+</li>
+<li>提出解决方案——给两个分布加噪音，使两个低维流形维度升高，产生重叠，从而使JS散度不为常数，之后慢慢将噪声去除</li>
+<li>提出Wasserstein距离，但是没有过多讨论，留到下一篇Wasserstein GAN再说</li>
+</ul>
+<h2 id="Abstract"><a href="#Abstract" class="headerlink" title="Abstract"></a>Abstract</h2><p>this paper is proposed to make theoretical steps towards fully understanding the training dynamics of GANs</p>
+<p>three sections:</p>
+<ul>
+<li>the problem at hand</li>
+<li>studying and proving rigorously the problems including instability and saturation</li>
+<li>examines a practical and theoretically grounded direction towards solving these problems</li>
+</ul>
+<h2 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h2><p>this paper aims to change unstable behaviour of GANs by providing a solid understanding of these issues, and create principled research direction towards adressing them</p>
+<h3 id="KL-divergence"><a href="#KL-divergence" class="headerlink" title="KL divergence"></a>KL divergence</h3><p>traditional approaches is to minimize:</p>
+<script type="math/tex; mode=display">KL(P_r||P_g) = \int_XP_r(x)log\frac {P_r(x)} {P_g(x)}dx</script><p>this divergence is not symmetrical between $P_r$ and $P_g$:</p>
+<ul>
+<li>if $P_r(x) &gt; P_g(x)$ that means generator can not generate real data. KL grows quickly to infinity</li>
+<li>if $P_r(x) &lt; p_g(x)$ that means generator output a image that doesn’t look real. KL goes to 0</li>
+</ul>
+<p>if we would minimize $KL(P_g||P_r)$ instead, meaning that this cost function would pay a high cost for generating not plausibly looking pictures</p>
+<h3 id="optimization-gets-massively-unstable"><a href="#optimization-gets-massively-unstable" class="headerlink" title="optimization gets massively unstable"></a>optimization gets massively unstable</h3><p>several questions:</p>
+<ul>
+<li>Why do updates get worse as the discriminator gets better? Both in the original and the new cost function.</li>
+<li>Why is GAN training massively unstable?</li>
+<li>Is the new cost function following a similar divergence to the JSD? If so, what are its<br>properties?</li>
+<li>Is there a way to avoid some of these issues?</li>
+</ul>
+<p>The fundamental contributions of this paper are the answer to all these questions</p>
+<h2 id="Source-of-instability"><a href="#Source-of-instability" class="headerlink" title="Source of instability"></a>Source of instability</h2><p>the discriminator will have cost     at most $2log2 - 2JSD(P_r||P_g)$, in practice, if we just train D till convergence, its error will go to 0</p>
+<p><img src="/assets/image/TowardsPrincipledMethodsforTrainingGenerativeAdversarialNetworks/1506763308309.png" alt="Alt text"></p>
+<p>if the supports of $P_r$ and $P_g$ are disjoint or lie in low dimensional manifolds, there is always a perfect discriminator between them</p>
+<h3 id="the-perfect-discriminator-theorems"><a href="#the-perfect-discriminator-theorems" class="headerlink" title="the perfect discriminator theorems"></a>the perfect discriminator theorems</h3><ul>
+<li>we will first explain the case where $P_r$ and $P_g$ have disjoint supports</li>
+</ul>
+<p>Theorem 2.1:<br><img src="/assets/image/TowardsPrincipledMethodsforTrainingGenerativeAdversarialNetworks/1506766047849.png" alt="Alt text"></p>
+<ul>
+<li>in the next theorem, we take away the disjoint assumption</li>
+</ul>
+<p>we can safely assume in practice that any two manifolds never perfectly align</p>
+<p><img src="/assets/image/TowardsPrincipledMethodsforTrainingGenerativeAdversarialNetworks/1507551032079.png" alt="Alt text"></p>
+<p><img src="/assets/image/TowardsPrincipledMethodsforTrainingGenerativeAdversarialNetworks/1507554440170.png" alt="Alt text"></p>
+<ul>
+<li>We now state our perfect discrimination result for the case of two manifolds</li>
+</ul>
+<p><img src="/assets/image/TowardsPrincipledMethodsforTrainingGenerativeAdversarialNetworks/1507554700878.png" alt="Alt text"></p>
+<p><img src="/assets/image/TowardsPrincipledMethodsforTrainingGenerativeAdversarialNetworks/1507556591030.png" alt="Alt text"></p>
+<p>if these divergencies are always maxed out attempting to minimize them by gradient descent isn’t really possible</p>
+<h3 id="the-consequences-and-the-problems-of-each-cost-function"><a href="#the-consequences-and-the-problems-of-each-cost-function" class="headerlink" title="the consequences, and the problems of each cost function"></a>the consequences, and the problems of each cost function</h3><p>If the two distributions we care about have supports that are disjoint or lie on low dimensional manifolds, the optimal discriminator will be perfect and its gradient will be zero almost everywhere</p>
+<h4 id="the-original-cost-function"><a href="#the-original-cost-function" class="headerlink" title="the original cost function"></a>the original cost function</h4><p><img src="/assets/image/TowardsPrincipledMethodsforTrainingGenerativeAdversarialNetworks/1507618155558.png" alt="Alt text"></p>
+<p><img src="/assets/image/TowardsPrincipledMethodsforTrainingGenerativeAdversarialNetworks/1507618428482.png" alt="Alt text"></p>
+<p>This shows that as our discriminator gets better, the gradient of the generator vanishes</p>
+<p><img src="/assets/image/TowardsPrincipledMethodsforTrainingGenerativeAdversarialNetworks/1507620188056.png" alt="Alt text"></p>
+<h4 id="the-logD-alternative"><a href="#the-logD-alternative" class="headerlink" title="the $-logD$ alternative"></a>the $-logD$ alternative</h4><p>the avoid gradients vanishing, people use another gradient step:</p>
+<p><img src="/assets/image/TowardsPrincipledMethodsforTrainingGenerativeAdversarialNetworks/1507623304015.png" alt="Alt text"></p>
+<p><img src="/assets/image/TowardsPrincipledMethodsforTrainingGenerativeAdversarialNetworks/1507624221646.png" alt="Alt text"></p>
+<p><img src="/assets/image/TowardsPrincipledMethodsforTrainingGenerativeAdversarialNetworks/1507626072477.png" alt="Alt text"></p>
+<p><img src="/assets/image/TowardsPrincipledMethodsforTrainingGenerativeAdversarialNetworks/1507628042588.png" alt="Alt text"></p>
+<h2 id="Towards-Softer-Metrics-and-Distributions"><a href="#Towards-Softer-Metrics-and-Distributions" class="headerlink" title="Towards Softer Metrics and Distributions"></a>Towards Softer Metrics and Distributions</h2><p>An important question now is how to fix the instability and vanishing gradients issues</p>
+<p>Something we can do to break the assumptions of these theorems is add continuous noise to the inputs of the discriminator</p>
+<p>skip the looooooots of proof……</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/machine-learning/" rel="tag"># machine_learning</a>
+              <a href="/tags/note/" rel="tag"># note</a>
+              <a href="/tags/GAN/" rel="tag"># GAN</a>
+              <a href="/tags/2017/" rel="tag"># 2017</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/09/27/Unsupervised%20representation%20learning%20with%20deep%20convolutional%20Generative%20Adersarial%20Networks/" rel="prev" title="Unsupervised representation learning with deep convolutional Generative Adersarial Networks">
+      <i class="fa fa-chevron-left"></i> Unsupervised representation learning with deep convolutional Generative Adersarial Networks
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/10/13/Wasserstein%20GAN/" rel="next" title="Wasserstein GAN">
+      Wasserstein GAN <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">1.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Abstract"><span class="nav-number">2.</span> <span class="nav-text">Abstract</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Introduction"><span class="nav-number">3.</span> <span class="nav-text">Introduction</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#KL-divergence"><span class="nav-number">3.1.</span> <span class="nav-text">KL divergence</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#optimization-gets-massively-unstable"><span class="nav-number">3.2.</span> <span class="nav-text">optimization gets massively unstable</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Source-of-instability"><span class="nav-number">4.</span> <span class="nav-text">Source of instability</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#the-perfect-discriminator-theorems"><span class="nav-number">4.1.</span> <span class="nav-text">the perfect discriminator theorems</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#the-consequences-and-the-problems-of-each-cost-function"><span class="nav-number">4.2.</span> <span class="nav-text">the consequences, and the problems of each cost function</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#the-original-cost-function"><span class="nav-number">4.2.1.</span> <span class="nav-text">the original cost function</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#the-logD-alternative"><span class="nav-number">4.2.2.</span> <span class="nav-text">the $-logD$ alternative</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Towards-Softer-Metrics-and-Distributions"><span class="nav-number">5.</span> <span class="nav-text">Towards Softer Metrics and Distributions</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Berwyn Zhang</p>
+  <div class="site-description" itemprop="description">Learn & output</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">29</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">26</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-address-card"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Berwyn Zhang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+</body>
+</html>

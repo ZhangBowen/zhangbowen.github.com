@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"berwynzhang.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="总结 提出问题：在神经网络的训练过程中，后面层的输入是前面网络的输出，所以在前面网络参数变动的时候，后面层的输入分布一直在变化，我们称这种现象为——内部协变量漂移。这种现象会干扰神经网络训练 本文提出的BN结构就是希望解决此问题，从而加速网络训练，提升训练稳定性  演变过程 传统稳定分布的方式是白化——去除特征之间的相关性然后把分布变为均值为0，方差为1的高斯分布 但是这种方式计算量过大且不能处处">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift">
+<meta property="og:url" content="https://berwynzhang.com/2017/06/04/Batch%20Normalization_%20Accelerating%20Deep%20Network%20Training%20by%20Reducing%20Internal%20Covariate%20Shift/index.html">
+<meta property="og:site_name" content="Berwyn&#39;s Blog">
+<meta property="og:description" content="总结 提出问题：在神经网络的训练过程中，后面层的输入是前面网络的输出，所以在前面网络参数变动的时候，后面层的输入分布一直在变化，我们称这种现象为——内部协变量漂移。这种现象会干扰神经网络训练 本文提出的BN结构就是希望解决此问题，从而加速网络训练，提升训练稳定性  演变过程 传统稳定分布的方式是白化——去除特征之间的相关性然后把分布变为均值为0，方差为1的高斯分布 但是这种方式计算量过大且不能处处">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/BatchNormalization_AcceleratingDeepNetworkTrainingbyReducingInternalCovariateShift/1508815510896.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/BatchNormalization_AcceleratingDeepNetworkTrainingbyReducingInternalCovariateShift/1508846059834.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/BatchNormalization_AcceleratingDeepNetworkTrainingbyReducingInternalCovariateShift/1508902087156.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/BatchNormalization_AcceleratingDeepNetworkTrainingbyReducingInternalCovariateShift/1508902136215.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/BatchNormalization_AcceleratingDeepNetworkTrainingbyReducingInternalCovariateShift/1508923614475.png">
+<meta property="article:published_time" content="2017-06-03T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-01-04T16:03:02.575Z">
+<meta property="article:author" content="Berwyn Zhang">
+<meta property="article:tag" content="machine_learning">
+<meta property="article:tag" content="note">
+<meta property="article:tag" content="Inception">
+<meta property="article:tag" content="2015">
+<meta property="article:tag" content="CNN">
+<meta property="article:tag" content="google">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://berwynzhang.com/assets/image/BatchNormalization_AcceleratingDeepNetworkTrainingbyReducingInternalCovariateShift/1508815510896.png">
+
+<link rel="canonical" href="https://berwynzhang.com/2017/06/04/Batch%20Normalization_%20Accelerating%20Deep%20Network%20Training%20by%20Reducing%20Internal%20Covariate%20Shift/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift | Berwyn's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Berwyn's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2017/06/04/Batch%20Normalization_%20Accelerating%20Deep%20Network%20Training%20by%20Reducing%20Internal%20Covariate%20Shift/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2017-06-04 00:00:00" itemprop="dateCreated datePublished" datetime="2017-06-04T00:00:00+08:00">2017-06-04</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-05 00:03:02" itemprop="dateModified" datetime="2021-01-05T00:03:02+08:00">2021-01-05</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>提出问题：在神经网络的训练过程中，后面层的输入是前面网络的输出，所以在前面网络参数变动的时候，后面层的输入分布一直在变化，我们称这种现象为——内部协变量漂移。这种现象会干扰神经网络训练</li>
+<li>本文提出的BN结构就是希望解决此问题，从而加速网络训练，提升训练稳定性</li>
+</ul>
+<h3 id="演变过程"><a href="#演变过程" class="headerlink" title="演变过程"></a>演变过程</h3><ul>
+<li>传统稳定分布的方式是白化——去除特征之间的相关性然后把分布变为均值为0，方差为1的高斯分布</li>
+<li>但是这种方式计算量过大且不能处处可导，所以做了两个简化<ul>
+<li>把每个特征分别做处理</li>
+<li>使用mini-batch代替全体训练样本做处理</li>
+</ul>
+</li>
+<li>计算量大大降低之后，为了保持增加模型的拟合能力，我们引进了两个可学习参数$\gamma$和$\beta$使用公式$y^{(k)} = \gamma^{(k)}\hat x^{(k)} + \beta^{(k)}$来做变换</li>
+<li>当$\gamma$等于方差且$\beta$等于均值时，等同于还原成原分布</li>
+</ul>
+<h3 id="Inference"><a href="#Inference" class="headerlink" title="Inference"></a>Inference</h3><ul>
+<li>既然变换公式需要用到训练batch的mean和var，那么当模型inference的时候怎么办?</li>
+<li>文章给出的答案是在训练过程中用滑动平均的方式维护一个全局的mean和var，inference的时候就用这个代替batch的数据</li>
+</ul>
+<h3 id="应用在卷积网络"><a href="#应用在卷积网络" class="headerlink" title="应用在卷积网络"></a>应用在卷积网络</h3><ul>
+<li>BN可以应用在各种网络上</li>
+<li>当应用在卷积网络上时我们把一个feature map上的所有数据当做一个特征，共享一组$\gamma$和$\beta$</li>
+</ul>
+<h3 id="优势"><a href="#优势" class="headerlink" title="优势"></a>优势</h3><ul>
+<li>可选用更高的初始学习率</li>
+<li>降低对于权重初始化方法的依赖</li>
+<li>BN同时可作为正则化项使用从而减小/取消dropout和L2系数;</li>
+<li>提高模型训练速度</li>
+<li>在实验中达到了更高的分类精度</li>
+</ul>
+<h3 id="实验结果"><a href="#实验结果" class="headerlink" title="实验结果"></a>实验结果</h3><p>LSVRC 2012 数据集</p>
+<ul>
+<li>ensemble(6 models, 144 crops); top5 error: 4.94%</li>
+</ul>
+<h2 id="Abstract"><a href="#Abstract" class="headerlink" title="Abstract"></a>Abstract</h2><p>Training Deep Neural Networks is complicated by the fact that the distribution of each layer’s inputs changes during training</p>
+<p>We refer to this phenomenon as internal covariate shift</p>
+<p>Our method draws its strength from making normalization a part of the model architecture and performing the normalization for each training mini-batch</p>
+<p><strong>usage</strong>:</p>
+<ul>
+<li>use much higher learning rates</li>
+<li>be less careful about initialization</li>
+<li>act as a regularizer</li>
+<li>speed up training</li>
+</ul>
+<h2 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h2><p><strong>advantages in using mini-batches of example</strong>:</p>
+<ul>
+<li>the gradient of the loss over a mini-batch is an estimate of the gradient over the training set, whose quality improves as the batch size increases</li>
+<li>Second, computation over a batch can be much more efficient than m computations for individual examples, due to the parallelism afforded by the modern computing platforms</li>
+</ul>
+<p><strong>usage of Batch Normalization</strong>:</p>
+<ul>
+<li>dramatically accelerates the training of deep neural nets</li>
+<li>use much higher learning rates without the risk of divergence</li>
+<li>regularizes the model and reduces the need for Dropout</li>
+<li>makes it possible to use saturating nonlinearities</li>
+</ul>
+<h2 id="Towards-Reducing-Internal-Covariate-Shift"><a href="#Towards-Reducing-Internal-Covariate-Shift" class="headerlink" title="Towards Reducing Internal Covariate Shift"></a>Towards Reducing Internal Covariate Shift</h2><p><strong>Internal Covariate Shift</strong>——change in the distribution of network activations due to the change in network parameters during training</p>
+<p><strong>target</strong>:</p>
+<ul>
+<li>To improve the training, we seek to reduce the internal covariate shift</li>
+</ul>
+<p><strong>how</strong>:</p>
+<ul>
+<li>fixing the distribution of the layer inputs x as the training progresses</li>
+<li>the network training converges faster if its inputs are whitened</li>
+<li>however, whitening the layer inputs is expensive and not everywhere differentiable</li>
+<li>we want to find another way</li>
+</ul>
+<h2 id="Normalization-via-Mini-Batch-Statistics"><a href="#Normalization-via-Mini-Batch-Statistics" class="headerlink" title="Normalization via Mini-Batch Statistics"></a>Normalization via Mini-Batch Statistics</h2><p>Since the full whitening of each layer’s inputs is costly and not everywhere differentiable we make two necessary simplifications:</p>
+<ul>
+<li>instead of whitening the features in layer inputs and outputs jointly, we will normalize each scalar feature independently</li>
+<li>we introduce, for each activation $x^{(k)}$, a pair of parameters $\gamma^{(k)}, \beta^{(k)}$, which scale and shift the normalized value: <script type="math/tex">y^{(k)} = \gamma^{(k)}\hat x^{(k)} + \beta^{(k)}</script></li>
+<li>since we use mini-batches in stochastic gradient training, each mini-batch produces estimates of the mean and variance of each activation</li>
+</ul>
+<p><strong>BN transform as follow:</strong></p>
+<p><img src="/assets/image/BatchNormalization_AcceleratingDeepNetworkTrainingbyReducingInternalCovariateShift/1508815510896.png" alt="Alt text"></p>
+<h3 id="Training-and-Inference-with-Batch-Normalized-Networks"><a href="#Training-and-Inference-with-Batch-Normalized-Networks" class="headerlink" title="Training and Inference with Batch-Normalized Networks"></a>Training and Inference with Batch-Normalized Networks</h3><ul>
+<li>BN is neither necessary nor desirable during inference</li>
+<li>using moving averages to calculate means and variances using during inference</li>
+</ul>
+<h3 id="Batch-Normalized-Convolutional-Networks"><a href="#Batch-Normalized-Convolutional-Networks" class="headerlink" title="Batch-Normalized Convolutional Networks"></a>Batch-Normalized Convolutional Networks</h3><ul>
+<li>the bias b can be ignored</li>
+<li>$z = g(Wu + b)$ is replaced with $z = g(BN(Wu))$</li>
+<li>we use the effective mini-batch of size $m’ = |B| = m <em> p </em> q$ where $p, q$ is the width and height of feature map</li>
+<li>i.e. we learn a pair of parameters $\gamma^{(k)}$ and $\beta^{(k)}$ per feature map, rather than per activation</li>
+</ul>
+<h3 id="Batch-Normalization-enables-higher-learning-rates"><a href="#Batch-Normalization-enables-higher-learning-rates" class="headerlink" title="Batch Normalization enables higher learning rates"></a>Batch Normalization enables higher learning rates</h3><ul>
+<li>it prevents small changes to the parameters from amplifying into larger and suboptimal changes in activations in gradients</li>
+<li>BN also makes training more resilient to the parameter scale</li>
+</ul>
+<h3 id="Batch-Normalization-regularizes-the-model"><a href="#Batch-Normalization-regularizes-the-model" class="headerlink" title="Batch Normalization regularizes the model"></a>Batch Normalization regularizes the model</h3><ul>
+<li>a training example is seen in conjunction with other examples in the mini-batch</li>
+<li>the training network no longer producing deterministic values for a given training example</li>
+</ul>
+<h2 id="Experiments"><a href="#Experiments" class="headerlink" title="Experiments"></a>Experiments</h2><h3 id="Activations-over-time"><a href="#Activations-over-time" class="headerlink" title="Activations over time"></a>Activations over time</h3><p><img src="/assets/image/BatchNormalization_AcceleratingDeepNetworkTrainingbyReducingInternalCovariateShift/1508846059834.png" alt="Alt text"></p>
+<h3 id="ImageNet-Classification"><a href="#ImageNet-Classification" class="headerlink" title="ImageNet Classification"></a>ImageNet Classification</h3><p>network is Inception except the 5 × 5 convolutional layers are replaced by two consecutive layers of 3 × 3 convolutions with up to 128 filters.</p>
+<h4 id="Accelerating-BN-Networks"><a href="#Accelerating-BN-Networks" class="headerlink" title="Accelerating BN Networks"></a>Accelerating BN Networks</h4><p>further changed the network and its training parameters as follows:</p>
+<ul>
+<li>increase learning rate</li>
+<li>remove dropout</li>
+<li>reduce the $L_2$ weight regularzation by a factor of 5</li>
+<li>accelerate the learning rate decay —— 6 times faster</li>
+<li>Remove Local Response Normalization</li>
+<li>Shuffle training examples more thoroughly</li>
+<li>Reduce the photometric distortions</li>
+</ul>
+<h4 id="Single-Network-Classification"><a href="#Single-Network-Classification" class="headerlink" title="Single-Network Classification"></a>Single-Network Classification</h4><p>evaluated network list:</p>
+<ul>
+<li>Inception</li>
+<li>BN-Baseline: Same as Inception with Batch Normalization before each nonlinearity</li>
+<li>BN-x5: The initial learning rate was increased by a factor of 5, to 0.0075</li>
+<li>BN-x30: Like BN-x5, but with initial learning rate 0.045</li>
+<li>BN-x5-Sigmoid: Like BN-x5, but with sigmoid nonlinearity instead ReLU</li>
+</ul>
+<p><img src="/assets/image/BatchNormalization_AcceleratingDeepNetworkTrainingbyReducingInternalCovariateShift/1508902087156.png" alt="Alt text"></p>
+<p><img src="/assets/image/BatchNormalization_AcceleratingDeepNetworkTrainingbyReducingInternalCovariateShift/1508902136215.png" alt="Alt text"></p>
+<h4 id="Ensemble-Classification"><a href="#Ensemble-Classification" class="headerlink" title="Ensemble Classification"></a>Ensemble Classification</h4><p><img src="/assets/image/BatchNormalization_AcceleratingDeepNetworkTrainingbyReducingInternalCovariateShift/1508923614475.png" alt="Alt text"></p>
+<h2 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h2><p>skip</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/machine-learning/" rel="tag"># machine_learning</a>
+              <a href="/tags/note/" rel="tag"># note</a>
+              <a href="/tags/Inception/" rel="tag"># Inception</a>
+              <a href="/tags/2015/" rel="tag"># 2015</a>
+              <a href="/tags/CNN/" rel="tag"># CNN</a>
+              <a href="/tags/google/" rel="tag"># google</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/05/26/Going%20deeper%20with%20convolutions/" rel="prev" title="Going deeper with convolutions">
+      <i class="fa fa-chevron-left"></i> Going deeper with convolutions
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/06/11/Rethinking%20the%20Inception%20Architecture%20for%20Computer%20Vision/" rel="next" title="Rethinking the Inception Architecture for Computer Vision">
+      Rethinking the Inception Architecture for Computer Vision <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">1.</span> <span class="nav-text">总结</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%94%E5%8F%98%E8%BF%87%E7%A8%8B"><span class="nav-number">1.1.</span> <span class="nav-text">演变过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Inference"><span class="nav-number">1.2.</span> <span class="nav-text">Inference</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BA%94%E7%94%A8%E5%9C%A8%E5%8D%B7%E7%A7%AF%E7%BD%91%E7%BB%9C"><span class="nav-number">1.3.</span> <span class="nav-text">应用在卷积网络</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BC%98%E5%8A%BF"><span class="nav-number">1.4.</span> <span class="nav-text">优势</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E7%BB%93%E6%9E%9C"><span class="nav-number">1.5.</span> <span class="nav-text">实验结果</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Abstract"><span class="nav-number">2.</span> <span class="nav-text">Abstract</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Introduction"><span class="nav-number">3.</span> <span class="nav-text">Introduction</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Towards-Reducing-Internal-Covariate-Shift"><span class="nav-number">4.</span> <span class="nav-text">Towards Reducing Internal Covariate Shift</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Normalization-via-Mini-Batch-Statistics"><span class="nav-number">5.</span> <span class="nav-text">Normalization via Mini-Batch Statistics</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Training-and-Inference-with-Batch-Normalized-Networks"><span class="nav-number">5.1.</span> <span class="nav-text">Training and Inference with Batch-Normalized Networks</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Batch-Normalized-Convolutional-Networks"><span class="nav-number">5.2.</span> <span class="nav-text">Batch-Normalized Convolutional Networks</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Batch-Normalization-enables-higher-learning-rates"><span class="nav-number">5.3.</span> <span class="nav-text">Batch Normalization enables higher learning rates</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Batch-Normalization-regularizes-the-model"><span class="nav-number">5.4.</span> <span class="nav-text">Batch Normalization regularizes the model</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Experiments"><span class="nav-number">6.</span> <span class="nav-text">Experiments</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Activations-over-time"><span class="nav-number">6.1.</span> <span class="nav-text">Activations over time</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ImageNet-Classification"><span class="nav-number">6.2.</span> <span class="nav-text">ImageNet Classification</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Accelerating-BN-Networks"><span class="nav-number">6.2.1.</span> <span class="nav-text">Accelerating BN Networks</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Single-Network-Classification"><span class="nav-number">6.2.2.</span> <span class="nav-text">Single-Network Classification</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Ensemble-Classification"><span class="nav-number">6.2.3.</span> <span class="nav-text">Ensemble Classification</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Conclusion"><span class="nav-number">7.</span> <span class="nav-text">Conclusion</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Berwyn Zhang</p>
+  <div class="site-description" itemprop="description">Learn & output</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">29</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">26</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-address-card"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Berwyn Zhang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+</body>
+</html>

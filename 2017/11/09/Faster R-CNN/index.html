@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"berwynzhang.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="总结 本文的主旨是将生成proposal的过程也使用神经网络处理，并且共享了classification的中间卷积结果，大大减少了proposal过程的用时  RPN网络结构 用一个n*n(本文用3)的卷积核在classification的最后一层卷积出来的feature map上滑动 以每个feature为中心生成3(不同尺寸)*3(不同比例)的定长proposal 特征vector(在训练时与">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Faster R-CNN">
+<meta property="og:url" content="https://berwynzhang.com/2017/11/09/Faster%20R-CNN/index.html">
+<meta property="og:site_name" content="Berwyn&#39;s Blog">
+<meta property="og:description" content="总结 本文的主旨是将生成proposal的过程也使用神经网络处理，并且共享了classification的中间卷积结果，大大减少了proposal过程的用时  RPN网络结构 用一个n*n(本文用3)的卷积核在classification的最后一层卷积出来的feature map上滑动 以每个feature为中心生成3(不同尺寸)*3(不同比例)的定长proposal 特征vector(在训练时与">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/FasterR-CNN/1510109557879.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/FasterR-CNN/1510137940405.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/FasterR-CNN/1510142741568.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/FasterR-CNN/1510142846509.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/FasterR-CNN/1510142980904.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/FasterR-CNN/1510143423083.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/FasterR-CNN/1510144610811.png">
+<meta property="article:published_time" content="2017-11-08T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-01-09T14:25:36.987Z">
+<meta property="article:author" content="Berwyn Zhang">
+<meta property="article:tag" content="machine_learning">
+<meta property="article:tag" content="2015">
+<meta property="article:tag" content="RCNN">
+<meta property="article:tag" content="Microsoft">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://berwynzhang.com/assets/image/FasterR-CNN/1510109557879.png">
+
+<link rel="canonical" href="https://berwynzhang.com/2017/11/09/Faster%20R-CNN/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Faster R-CNN | Berwyn's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Berwyn's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2017/11/09/Faster%20R-CNN/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Faster R-CNN
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2017-11-09 00:00:00" itemprop="dateCreated datePublished" datetime="2017-11-09T00:00:00+08:00">2017-11-09</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-09 22:25:36" itemprop="dateModified" datetime="2021-01-09T22:25:36+08:00">2021-01-09</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>本文的主旨是将生成proposal的过程也使用神经网络处理，并且共享了classification的中间卷积结果，大大减少了proposal过程的用时</li>
+</ul>
+<h3 id="RPN网络结构"><a href="#RPN网络结构" class="headerlink" title="RPN网络结构"></a>RPN网络结构</h3><ul>
+<li>用一个n*n(本文用3)的卷积核在classification的最后一层卷积出来的feature map上滑动</li>
+<li>以每个feature为中心生成3(不同尺寸)*3(不同比例)的定长proposal 特征vector(在训练时与图片边界产生交叉的proposal丢弃)</li>
+<li>然后在这个vector后面接两个1*1卷积，得出两组结果<ul>
+<li>一组表示这个proposal有待检测物体的概率(2个数 softmax)</li>
+<li>一组表示边界框的位置(4个数)</li>
+</ul>
+</li>
+<li>根据有物体的概率做NMS(阈值0.7)</li>
+<li>这种生成proposal的方式具有平移不变性</li>
+</ul>
+<h3 id="网络训练"><a href="#网络训练" class="headerlink" title="网络训练"></a>网络训练</h3><ul>
+<li>损失函数和Fast-RCNN一样，也是分类损失和回归损失的结合</li>
+<li>构造batch的时候尽量正负样本比1:1</li>
+</ul>
+<h3 id="共享参数"><a href="#共享参数" class="headerlink" title="共享参数"></a>共享参数</h3><ul>
+<li>由于做detection的时候要求proposal方式的固定的，这就导致了（暂时）没法让这两个流程一起训练</li>
+<li>作者给出了一个4步训练流程<ul>
+<li>先单独训练RPN</li>
+<li>然后用RPN给出的proposal单独训练Fast-RCNN</li>
+<li>然后用Fast-RCNN的中间卷积结果，单做RPN的滑动feature map，冻结中间卷积结果，fine-tuning RPN</li>
+<li>然后冻结中间卷积结果，fine-tuning Fast-RCNN的卷积结果后面几层(fc层)</li>
+</ul>
+</li>
+</ul>
+<h3 id="简化实验"><a href="#简化实验" class="headerlink" title="简化实验"></a>简化实验</h3><p>简化一些功能，通过最终效果推导该功能的效果</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>简化功能</th>
+<th>mAP变化</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>不共享参数</td>
+<td>59.9-&gt;58.7</td>
+<td>共享训练的第三步，提高了RPN的效果</td>
+</tr>
+<tr>
+<td>在训练过程中用SS代替RPN,去除RPN对detection部分的影响(下面的实验都是)</td>
+<td>59.5-&gt;56.8</td>
+<td>由于训练和测试时proposal的不一致</td>
+</tr>
+<tr>
+<td>只用top100的proposal</td>
+<td>56.8-&gt;55.1</td>
+<td>只下降了一点，证明RPN的精确度很高</td>
+</tr>
+<tr>
+<td>不用NMS</td>
+<td>56.8-&gt;55.2</td>
+<td>证明NMS不仅加快了速度而且不会降低mAP</td>
+</tr>
+<tr>
+<td>去除RPN的cls输出, 随机取top1k</td>
+<td>56.8-&gt;55.8</td>
+<td>基本没动,与下面实验对比</td>
+</tr>
+<tr>
+<td>去除RPN的cls输出，随机取top100</td>
+<td>56.8-&gt;44.6</td>
+<td>cls输出与proposal是否包含物体高度相关</td>
+</tr>
+<tr>
+<td>去除RPN的reg输出</td>
+<td>56.8-&gt;52.1</td>
+<td>物体框的精度主要靠reg输出修正来提高</td>
+</tr>
+<tr>
+<td>使用更强大的网络</td>
+<td>56.8-&gt;59.2</td>
+<td>网络结构对结果的影响很大</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="VOC测试结果"><a href="#VOC测试结果" class="headerlink" title="VOC测试结果"></a>VOC测试结果</h3><ul>
+<li>time: 198ms</li>
+<li>VOC 2007<ul>
+<li>07 data: 69.9%</li>
+<li>07+12 data: 73.2%</li>
+</ul>
+</li>
+<li>VOC 2012<ul>
+<li>12 data: 67.0%</li>
+<li>07+12 data: 70.4%</li>
+</ul>
+</li>
+</ul>
+<h2 id="Abstract"><a href="#Abstract" class="headerlink" title="Abstract"></a>Abstract</h2><p>we introduce a Region Proposal Network (RPN) that shares full-image convolutional features with the detection network, thus enabling nearly cost-free region proposals</p>
+<h2 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h2><p>proposals are the computational bottleneck in state-of-the-art detection systems</p>
+<p>re-implement region proposal for the GPU. This may be an effective engineering solution</p>
+<p>we show that an algorithmic change—computing proposals with a deep net</p>
+<p>our observation is that the convolutional (conv) feature maps used by region-based detectors</p>
+<ul>
+<li>one that encodes each conv map position into a short (e.g., 256-d) feature vector</li>
+<li>at each conv map position, outputs an objectness score and regressed bounds for k region proposals</li>
+</ul>
+<h2 id="Related-Work"><a href="#Related-Work" class="headerlink" title="Related Work"></a>Related Work</h2><p>skip</p>
+<h2 id="Region-Proposal-Networks"><a href="#Region-Proposal-Networks" class="headerlink" title="Region Proposal Networks"></a>Region Proposal Networks</h2><p>a Region Proposal Network (RPN) takes an image (of any size) as input and outputs a set of rectangular object proposals, each with an objectness score</p>
+<ul>
+<li>slide a small network(n * n) over the conv feature map output by the last shared conv layer</li>
+<li>this vector is fed into two sibling fully-connected layers<ul>
+<li>a box-regression layer (reg)</li>
+<li>a box-classification layer (cls)</li>
+</ul>
+</li>
+<li>this architecture is naturally implemented with an n × n conv layer followed by two sibling 1 × 1 conv layers (for reg and cls, respectively)</li>
+<li>n = 3 in this paper</li>
+</ul>
+<p><img src="/assets/image/FasterR-CNN/1510109557879.png" alt="Region Proposal Network (RPN)" title="Region Proposal Network (RPN)"></p>
+<h3 id="translation-invariant-anchors"><a href="#translation-invariant-anchors" class="headerlink" title="translation-invariant anchors"></a>translation-invariant anchors</h3><p>while predict k region proposals, there are</p>
+<ul>
+<li>4k outputs in reg layer</li>
+<li><p>2k(softmax)/k(regression) outputs in cls layer</p>
+</li>
+<li><p>we use 3 scales and 3 aspect ratios, yielding k = 9 anchors</p>
+</li>
+</ul>
+<p>this approach is <strong>translation invariant</strong></p>
+<h3 id="a-loss-function-for-learning-region-proposals"><a href="#a-loss-function-for-learning-region-proposals" class="headerlink" title="a loss function for learning region proposals"></a>a loss function for learning region proposals</h3><p>positive label:</p>
+<ul>
+<li>the anchor/anchors with the highest Intersection-over-Union (IoU) overlap with a ground-truth box</li>
+<li>an anchor that has an IoU overlap higher than 0.7 with any ground-truth box</li>
+</ul>
+<p>negative label:</p>
+<ul>
+<li>IoU ratio is lower than 0.3 for all ground-truth boxes</li>
+</ul>
+<p>drop other anchors</p>
+<p>loss function for an image is defined as:</p>
+<script type="math/tex; mode=display">L({p_i}, {t_i}) = \frac 1 {N_{cls}}\sum_iL_{cls}(p_i, p_i^*) + \lambda\frac 1 {N_{neg}}\sum_ip_i^*L_{reg}(t_i, t_i^*)</script><p>each regressor is responsible for one scale and one aspect ratio</p>
+<h3 id="optimization"><a href="#optimization" class="headerlink" title="optimization"></a>optimization</h3><p>we randomly sample 256 anchors in an image where the sampled positive and negative anchors have a ratio of up to 1:1</p>
+<h3 id="sharing-convolutional-features-for-region-proposal-and-object-detection"><a href="#sharing-convolutional-features-for-region-proposal-and-object-detection" class="headerlink" title="sharing convolutional features for region proposal and object detection"></a>sharing convolutional features for region proposal and object detection</h3><p>describe an algorithm that learns conv layers that are shared between the RPN and Fast R-CNN</p>
+<p><strong>Why can’t we push them together</strong></p>
+<ul>
+<li>Fast R-CNN training depends on fixed object proposals</li>
+<li>training simultaneously maybe not converge</li>
+</ul>
+<p>4-step training algorithm:</p>
+<ul>
+<li>we train the RPN as described above</li>
+<li>we train a separate detection network by Fast R-CNN using the proposals generated by the step-1 RPN</li>
+<li>we use the detector network to initialize RPN training, but we fix the shared conv layers and only fine-tune the layers unique to RPN</li>
+<li>Finally, keeping the shared conv layers fixed, we fine-tune the fc layers of the Fast R-CNN</li>
+</ul>
+<h3 id="implementation-details"><a href="#implementation-details" class="headerlink" title="implementation details"></a>implementation details</h3><p>multi-scale feature extraction may improve accuracy but does not exhibit a good speed-accuracy trade-off</p>
+<p>box side size:</p>
+<ul>
+<li>128</li>
+<li>256</li>
+<li>512</li>
+</ul>
+<p>aspect ratio</p>
+<ul>
+<li>1:1</li>
+<li>1:2</li>
+<li>2:1</li>
+</ul>
+<p><strong>Question</strong>:</p>
+<ul>
+<li>how to handle the anchor boxes that cross image boundaries?</li>
+</ul>
+<p><strong>Answer</strong>:</p>
+<ul>
+<li>during training, we ignore all cross-boundary anchors so they do not contribute to the loss</li>
+<li>during testing, however, we still apply the fully-convolutional RPN to the entire image</li>
+</ul>
+<p>adopt non-maximum suppression and fix the IoU threshold for NMS at 0.7</p>
+<h2 id="Experiments"><a href="#Experiments" class="headerlink" title="Experiments"></a>Experiments</h2><p><img src="/assets/image/FasterR-CNN/1510137940405.png" alt="Alt text"></p>
+<h3 id="ablation-experiments"><a href="#ablation-experiments" class="headerlink" title="ablation experiments"></a>ablation experiments</h3><p><strong>shared to unshared:</strong></p>
+<p>reduces the result slightly to 58.7%</p>
+<p>in the third step when the detector-tuned features are used to fine-tune the RPN, the proposal quality is improved</p>
+<p><strong>SS in training &amp; RPN in testing:</strong></p>
+<p>leads to an mAP of 56.8%</p>
+<p>because of the inconsistency between the training/testing proposals</p>
+<p><strong>use top 100 proposals only:</strong></p>
+<p>leads to a competitive result (55.1%)</p>
+<p>RPN proposals are accurate</p>
+<p><strong>without NMS:</strong></p>
+<p>mAP: 55.2%</p>
+<p>NMS does not harm the detection mAP and may reduce false alarms</p>
+<p><strong>without cls:</strong></p>
+<p>randomly sample N proposals</p>
+<p>top 100’s mAP: 44.6%</p>
+<p>shows scores account for the accuracy</p>
+<p><strong>without reg:</strong></p>
+<p>mAP drops to 52.1%</p>
+<p>this suggests that the high-quality proposals are mainly due to regressed positions</p>
+<p><strong>more powerful networks:</strong></p>
+<p>The mAP improves from 56.8% (using RPN+ZF) to 59.2% (using RPN+VGG)</p>
+<h3 id="detection-accuracy-and-running-time-of-VGG-16"><a href="#detection-accuracy-and-running-time-of-VGG-16" class="headerlink" title="detection accuracy and running time of VGG-16"></a>detection accuracy and running time of VGG-16</h3><p>VOC 07:</p>
+<p><img src="/assets/image/FasterR-CNN/1510142741568.png" alt="Alt text"></p>
+<p>VOC 12:</p>
+<p><img src="/assets/image/FasterR-CNN/1510142846509.png" alt="Alt text"></p>
+<p>run time:</p>
+<p><img src="/assets/image/FasterR-CNN/1510142980904.png" alt="Alt text"></p>
+<h3 id="analysis-of-recall-to-IoU"><a href="#analysis-of-recall-to-IoU" class="headerlink" title="analysis of recall-to-IoU"></a>analysis of recall-to-IoU</h3><p>It is more appropriate to use this metric to diagnose the proposal method than to evaluate it</p>
+<p><img src="/assets/image/FasterR-CNN/1510143423083.png" alt="Alt text"></p>
+<p>the RPN method behaves gracefully when the number of proposals drops from 2k to 300</p>
+<h3 id="one-stage-detection-vs-two-stage-proposal-detection"><a href="#one-stage-detection-vs-two-stage-proposal-detection" class="headerlink" title="one-stage detection vs. two-stage proposal + detection"></a>one-stage detection vs. two-stage proposal + detection</h3><ul>
+<li>class-specific detection pipeline</li>
+<li>class-agnostic proposals and class-specific detections</li>
+</ul>
+<p><img src="/assets/image/FasterR-CNN/1510144610811.png" alt="Alt text"></p>
+<p>the one-stage system has an mAP of 53.9%. this is lower than the two-stage system (58.7%) by 4.8%</p>
+<p> the one-stage system is slower as it has considerably more proposals to process</p>
+<h2 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h2><p>skip</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/machine-learning/" rel="tag"># machine_learning</a>
+              <a href="/tags/2015/" rel="tag"># 2015</a>
+              <a href="/tags/RCNN/" rel="tag"># RCNN</a>
+              <a href="/tags/Microsoft/" rel="tag"># Microsoft</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/11/07/Fast%20R-CNN/" rel="prev" title="Fast R-CNN">
+      <i class="fa fa-chevron-left"></i> Fast R-CNN
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/11/10/RCNN%E6%80%BB%E7%BB%93/" rel="next" title="RCNN总结">
+      RCNN总结 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">1.</span> <span class="nav-text">总结</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#RPN%E7%BD%91%E7%BB%9C%E7%BB%93%E6%9E%84"><span class="nav-number">1.1.</span> <span class="nav-text">RPN网络结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C%E8%AE%AD%E7%BB%83"><span class="nav-number">1.2.</span> <span class="nav-text">网络训练</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B1%E4%BA%AB%E5%8F%82%E6%95%B0"><span class="nav-number">1.3.</span> <span class="nav-text">共享参数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%80%E5%8C%96%E5%AE%9E%E9%AA%8C"><span class="nav-number">1.4.</span> <span class="nav-text">简化实验</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#VOC%E6%B5%8B%E8%AF%95%E7%BB%93%E6%9E%9C"><span class="nav-number">1.5.</span> <span class="nav-text">VOC测试结果</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Abstract"><span class="nav-number">2.</span> <span class="nav-text">Abstract</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Introduction"><span class="nav-number">3.</span> <span class="nav-text">Introduction</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Related-Work"><span class="nav-number">4.</span> <span class="nav-text">Related Work</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Region-Proposal-Networks"><span class="nav-number">5.</span> <span class="nav-text">Region Proposal Networks</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#translation-invariant-anchors"><span class="nav-number">5.1.</span> <span class="nav-text">translation-invariant anchors</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#a-loss-function-for-learning-region-proposals"><span class="nav-number">5.2.</span> <span class="nav-text">a loss function for learning region proposals</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#optimization"><span class="nav-number">5.3.</span> <span class="nav-text">optimization</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sharing-convolutional-features-for-region-proposal-and-object-detection"><span class="nav-number">5.4.</span> <span class="nav-text">sharing convolutional features for region proposal and object detection</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#implementation-details"><span class="nav-number">5.5.</span> <span class="nav-text">implementation details</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Experiments"><span class="nav-number">6.</span> <span class="nav-text">Experiments</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ablation-experiments"><span class="nav-number">6.1.</span> <span class="nav-text">ablation experiments</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#detection-accuracy-and-running-time-of-VGG-16"><span class="nav-number">6.2.</span> <span class="nav-text">detection accuracy and running time of VGG-16</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#analysis-of-recall-to-IoU"><span class="nav-number">6.3.</span> <span class="nav-text">analysis of recall-to-IoU</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#one-stage-detection-vs-two-stage-proposal-detection"><span class="nav-number">6.4.</span> <span class="nav-text">one-stage detection vs. two-stage proposal + detection</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Conclusion"><span class="nav-number">7.</span> <span class="nav-text">Conclusion</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Berwyn Zhang</p>
+  <div class="site-description" itemprop="description">Learn & output</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">29</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">26</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-address-card"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Berwyn Zhang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+</body>
+</html>

@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"berwynzhang.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="总结 文章首先说明了学习一个概率密度的传统方法使用KL散度 但是KL散度在两个低维流形的概率分布中不好使，因为他们没有无法忽视的重叠，从而散度是一个常数。通过加噪声可以补救这个问题，但是并不是一个好方法（对于GAN来说会使生成的图片模糊不清） 对于传统方法，目前的新方法是从一个固定分布$p(z)$随出一个随机变量$z$然后将$z$放入一个函数映射$g_\theta : z \rightarrow">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Wasserstein GAN">
+<meta property="og:url" content="https://berwynzhang.com/2017/10/13/Wasserstein%20GAN/index.html">
+<meta property="og:site_name" content="Berwyn&#39;s Blog">
+<meta property="og:description" content="总结 文章首先说明了学习一个概率密度的传统方法使用KL散度 但是KL散度在两个低维流形的概率分布中不好使，因为他们没有无法忽视的重叠，从而散度是一个常数。通过加噪声可以补救这个问题，但是并不是一个好方法（对于GAN来说会使生成的图片模糊不清） 对于传统方法，目前的新方法是从一个固定分布$p(z)$随出一个随机变量$z$然后将$z$放入一个函数映射$g_\theta : z \rightarrow">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/WassersteinGAN/1507717270526.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/WassersteinGAN/1507860668056.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/WassersteinGAN/1507864355326.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/WassersteinGAN/1507866341728.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/WassersteinGAN/1507877890405.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/WassersteinGAN/1507883649939.png">
+<meta property="article:published_time" content="2017-10-12T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-01-09T12:55:13.903Z">
+<meta property="article:author" content="Berwyn Zhang">
+<meta property="article:tag" content="machine_learning">
+<meta property="article:tag" content="note">
+<meta property="article:tag" content="GAN">
+<meta property="article:tag" content="2017">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://berwynzhang.com/assets/image/WassersteinGAN/1507717270526.png">
+
+<link rel="canonical" href="https://berwynzhang.com/2017/10/13/Wasserstein%20GAN/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Wasserstein GAN | Berwyn's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Berwyn's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2017/10/13/Wasserstein%20GAN/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Wasserstein GAN
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2017-10-13 00:00:00" itemprop="dateCreated datePublished" datetime="2017-10-13T00:00:00+08:00">2017-10-13</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-09 20:55:13" itemprop="dateModified" datetime="2021-01-09T20:55:13+08:00">2021-01-09</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>文章首先说明了学习一个概率密度的传统方法使用KL散度</li>
+<li>但是KL散度在两个低维流形的概率分布中不好使，因为他们没有无法忽视的重叠，从而散度是一个常数。通过加噪声可以补救这个问题，但是并不是一个好方法（对于GAN来说会使生成的图片模糊不清）</li>
+<li>对于传统方法，目前的新方法是从一个固定分布$p(z)$随出一个随机变量$z$然后将$z$放入一个函数映射$g_\theta : z \rightarrow x$得到一个服从$P_\theta$分布的样本。<ul>
+<li>这样做有两个好处，一个是这种方式可以更合更低维度的分布</li>
+<li>另外这种方式可以更加方便的生成新样本</li>
+</ul>
+</li>
+<li>接下来作者开始分析WGAN中使用Wasserstein距离代替原来JS散度的原因，从这种距离的性质入手<ul>
+<li>如果$g_\theta$是连续的那么$W(P_r, P_\theta)$也是连续的</li>
+<li>如果$g$是K利普希茨连续，那么$W(P_r, P_\theta)$几乎在全部可导</li>
+<li>上述两条性质对于JS散度不成立，所以我们选用Wasserstein距离代替KL散度</li>
+</ul>
+</li>
+<li>为了让$g_\theta$保持利普希茨连续，我们将网络中所有参数控制在[-0.01, 0.01]区间内<ul>
+<li>这个数值不宜太大，否则会使收敛速度过慢</li>
+<li>不宜太小，否则可能会导致梯度消失</li>
+</ul>
+</li>
+<li>使用W距离后判别器损失函数为$-(f_w(x) - f_w(g_\theta(z)))$, 生成器损失函数为$-f_w(g_\theta(z))$</li>
+<li>因为W距离连续可导，所以在交替训练的过程中可以将分类器训练至收敛，不必向以往一样两步分类器一步生成器</li>
+<li>WGAN的显著优势：<ul>
+<li>不会模型坍塌——W距离连续得到的另外一个好处是不会导致模型坍塌；对于原始损失函数来说，判别器的输出是个二分类结果，那么对于最优的分类器来说，生成器的最终结果只能是坍塌即生成真实图像训练样本；换成W距离后，判别器输出的是距离，是回归问题，不会导致坍塌</li>
+<li>WGAN提升了稳定性——由于我们在交替训练过程中可以把判别器训练到局部最优，判别器越精确，梯度也就越精确，训练也就越稳定</li>
+<li>有实际意义的损失函数——WGAN的生成器损失函数可以当做模型训练进度的可量化指标，不用向以往一样人肉观察生成出来的样本来做判别模型好坏的标准；但是需要注意不能拿这个指标衡量不同结构的模型</li>
+</ul>
+</li>
+<li>optimizer的选择：训练的时候由于交替训练，损失函数不要使用基于动量的（如Adam）optimizer，改用RMSProp，一般在这种梯度不稳定的情况下表现的不错</li>
+</ul>
+<h2 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h2><ul>
+<li>when we learn a probability distribution, This is often done by defining a parametric family of densities $P_\theta (\theta \in R^d)$ and finding the one that maximized the likelihood on our data, this amounts to minimizing the Kullback-Leibler divergence $KL(P_r||P_g)$</li>
+<li>but It is then unlikely that the model manifold and the true distribution’s support have a non-negligible intersection</li>
+<li>the typical remedy is to add a noise term to the model distribution</li>
+<li>the added noise term is clearly incorrect for the problem, but is needed to make the maximum likelihood approach work</li>
+</ul>
+<p>now:</p>
+<ul>
+<li>Rather than estimating the density of $P_r$, we varying $\theta : g_\theta(z) \rightarrow x$</li>
+<li>two advantages: this approach can represent distributions confined to a low dimensional manifold</li>
+<li>second, the ability to easily generate samples is often more useful than knowing the numerical value of the density</li>
+</ul>
+<p>In this paper, we direct our attention on the various ways to measure how close the model distribution and the real distribution are</p>
+<p>the contribution of this paper are:</p>
+<ul>
+<li>section 2, we provide a comprehensive theoretical analysis of how the Earth Mover (EM) distance behaves in comparison to popular probability distances and divergences used in the context of learning distributions</li>
+<li>section 3, we define a form of GAN called Wasserstein-GAN that mini- mizes a reasonable and efficient approximation of the EM distance, and we theoretically show that the corresponding optimization problem is sound</li>
+<li>section 4, we empirically show that WGANs cure the main training prob- lems of GANs.</li>
+</ul>
+<h2 id="Different-Distance"><a href="#Different-Distance" class="headerlink" title="Different Distance"></a>Different Distance</h2><ul>
+<li>the total variation(TV) distance</li>
+</ul>
+<script type="math/tex; mode=display">\delta(P_r, P_g) = \underset {A \in \Sigma} {sup} |P_r(A) - P_g(A)|</script><ul>
+<li>the Kullback-Leibler(KL) divergence</li>
+</ul>
+<script type="math/tex; mode=display">KL(P_r||P_g) = \int log(\frac {P_r(x)} {P_g(x)})P_r(x)d\mu(x)</script><ul>
+<li>the Jensen-Shannon(JS) divergence</li>
+</ul>
+<script type="math/tex; mode=display">JS(P_r, P_g) = KL(P_r||P_m)  + KL(P_g||P_m)</script><p>where $P_m$ is the mixture $(P_r + P_g) / 2$</p>
+<ul>
+<li>the Earth-Mover(EM) distance or Wasserstein-1</li>
+</ul>
+<script type="math/tex; mode=display">W(P_r, P_g) = \underset {\gamma \in \Pi(P_r, P_g)} {inf} E_{(x, y)\sim \gamma}[|| x - y ||] \label {1}</script><p>where $\Pi(P_r, P_g)$ denotes the set of all joint distributions $\gamma(x, y)$ whose marginals are respectively $P_r$ and $P_g$</p>
+<p><img src="/assets/image/WassersteinGAN/1507717270526.png" alt="Alt text"></p>
+<p>use EM distance as lose function:</p>
+<ul>
+<li>if g is continuous in $\theta$, so is $W(P_r, P_\theta)$</li>
+<li>if g is locally Lipschitz and satisfies regularity assumption, then $W(P_r, P_\theta)$ is continuous everywhere, and differentiable almost every where</li>
+<li>statement 1 and 2 are false for the JS divergence and KLs</li>
+</ul>
+<p>All this shows that EM is a much more sensible cost function for our problem</p>
+<h2 id="Wasserstein-GAN"><a href="#Wasserstein-GAN" class="headerlink" title="Wasserstein GAN"></a>Wasserstein GAN</h2><p>the infimum of Wasserstein distance is highly intractable, but Kantorovich-Rubinstein duality tells us that</p>
+<script type="math/tex; mode=display">W(P_r, P_\theta) = \underset {||f||_L \le 1} {sup} E_{x \sim P_r}[f(x)] - E_{x \sim P_\theta}[f(x)]</script><p>we have</p>
+<script type="math/tex; mode=display">\nabla_\theta W(P_r, P_\theta) = - E_{z \sim p(z)}[\nabla_\theta f(g_\theta(z))] \tag 1</script><p>to roughly approximate a appropriate function, something that we can do is train a neural network parameterized with weights w lying in a compact space W and then backprop through equation(2) </p>
+<p>in order to have parameters w lie in a compact space, something simple we can do is clamp the weights to a fixed box (say $W = [−0.01, 0.01]^l$) after each gradient update</p>
+<p><img src="/assets/image/WassersteinGAN/1507860668056.png" alt="Alt text"></p>
+<p>means that we can (and should) train the critic till optimality<br><img src="/assets/image/WassersteinGAN/1507864355326.png" alt="Alt text"></p>
+<p>the fact that we can train the critic till optimality makes it impossible to collapse modes</p>
+<h2 id="Empirical-Results"><a href="#Empirical-Results" class="headerlink" title="Empirical Results"></a>Empirical Results</h2><p>two main benefits of WGANs:</p>
+<ul>
+<li>a meaningful loss metric that correlates with the generator’s convergence and sample quality</li>
+<li>improved stability of the optimization process</li>
+</ul>
+<h3 id="Experimental-Procedure"><a href="#Experimental-Procedure" class="headerlink" title="Experimental Procedure"></a>Experimental Procedure</h3><p>dataset: LSUN-Bedrooms dataset<br>baseline: DCGAN</p>
+<h3 id="Meaningful-loss-metric"><a href="#Meaningful-loss-metric" class="headerlink" title="Meaningful loss metric"></a>Meaningful loss metric</h3><p>our first experiment illustrates how this estimate correlates well with the quality of the generated samples</p>
+<p><img src="/assets/image/WassersteinGAN/1507866341728.png" alt="Alt text"></p>
+<p>the constant scaling factor that depends on the critic’s architecture means it’s hard to compare models with different critics</p>
+<p><img src="/assets/image/WassersteinGAN/1507877890405.png" alt="Alt text"></p>
+<p>JS divergence has no significant correlation between sample quality and loss</p>
+<p>don’t use momentum based optimizer, otherwise training process will be unstable, use RMSProp instead</p>
+<h3 id="improved-stability"><a href="#improved-stability" class="headerlink" title="improved stability"></a>improved stability</h3><ul>
+<li>one of the benefits of WGAN is that it allows us to train the critic till optimality the better the critic, the higher quality the gradients we use to train the generator</li>
+<li>another benefit is that WGANs are much more robust than GANs when one varies the architectural choices for the generator<br><img src="/assets/image/WassersteinGAN/1507883649939.png" alt="Alt text"></li>
+</ul>
+<ul>
+<li>in no experiment did we see evidence of mode collapse for the WGAN algorithm</li>
+</ul>
+<h2 id="Related-Work"><a href="#Related-Work" class="headerlink" title="Related Work"></a>Related Work</h2><p>skip…</p>
+<h2 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h2><ul>
+<li>improve the stability of learning</li>
+<li>no mode collapse</li>
+<li>provide meaningful learning curves useful for debugging and hyperparameter searches</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/machine-learning/" rel="tag"># machine_learning</a>
+              <a href="/tags/note/" rel="tag"># note</a>
+              <a href="/tags/GAN/" rel="tag"># GAN</a>
+              <a href="/tags/2017/" rel="tag"># 2017</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/10/10/Towards%20Principled%20Methods%20for%20Training%20Generative%20Adversarial%20Networks/" rel="prev" title="Towards Principled Methods for Training Generative Adversarial Networks">
+      <i class="fa fa-chevron-left"></i> Towards Principled Methods for Training Generative Adversarial Networks
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/10/14/GAN%E6%80%BB%E7%BB%93/" rel="next" title="GAN总结">
+      GAN总结 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">1.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Introduction"><span class="nav-number">2.</span> <span class="nav-text">Introduction</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Different-Distance"><span class="nav-number">3.</span> <span class="nav-text">Different Distance</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Wasserstein-GAN"><span class="nav-number">4.</span> <span class="nav-text">Wasserstein GAN</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Empirical-Results"><span class="nav-number">5.</span> <span class="nav-text">Empirical Results</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Experimental-Procedure"><span class="nav-number">5.1.</span> <span class="nav-text">Experimental Procedure</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Meaningful-loss-metric"><span class="nav-number">5.2.</span> <span class="nav-text">Meaningful loss metric</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#improved-stability"><span class="nav-number">5.3.</span> <span class="nav-text">improved stability</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Related-Work"><span class="nav-number">6.</span> <span class="nav-text">Related Work</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Conclusion"><span class="nav-number">7.</span> <span class="nav-text">Conclusion</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Berwyn Zhang</p>
+  <div class="site-description" itemprop="description">Learn & output</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">29</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">26</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-address-card"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Berwyn Zhang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+</body>
+</html>

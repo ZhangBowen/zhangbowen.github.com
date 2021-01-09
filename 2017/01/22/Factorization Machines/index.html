@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"berwynzhang.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="Factorization Machine are a new model class that combines the advantages of Support Vector Machines able to estimate interactions even in problems with huge sparsity dual form is not necessary, estim">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Factorization Machines">
+<meta property="og:url" content="https://berwynzhang.com/2017/01/22/Factorization%20Machines/index.html">
+<meta property="og:site_name" content="Berwyn&#39;s Blog">
+<meta property="og:description" content="Factorization Machine are a new model class that combines the advantages of Support Vector Machines able to estimate interactions even in problems with huge sparsity dual form is not necessary, estim">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/FactorizationMachines/1484216408156.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/FactorizationMachines/1484302786060.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/FactorizationMachines/1484553331640.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/FactorizationMachines/1484558701251.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/FactorizationMachines/1484790697567.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/FactorizationMachines/1484813529165.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/FactorizationMachines/1484822449348.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/FactorizationMachines/1484877746039.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/FactorizationMachines/1484881439658.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/FactorizationMachines/1484882122445.png">
+<meta property="article:published_time" content="2017-01-21T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-01-04T15:46:25.860Z">
+<meta property="article:author" content="Berwyn Zhang">
+<meta property="article:tag" content="machine_learning">
+<meta property="article:tag" content="note">
+<meta property="article:tag" content="FM">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://berwynzhang.com/assets/image/FactorizationMachines/1484216408156.png">
+
+<link rel="canonical" href="https://berwynzhang.com/2017/01/22/Factorization%20Machines/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Factorization Machines | Berwyn's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Berwyn's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2017/01/22/Factorization%20Machines/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Factorization Machines
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2017-01-22 00:00:00" itemprop="dateCreated datePublished" datetime="2017-01-22T00:00:00+08:00">2017-01-22</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-04 23:46:25" itemprop="dateModified" datetime="2021-01-04T23:46:25+08:00">2021-01-04</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <ul>
+<li>Factorization Machine are a new model class that combines the advantages of Support Vector Machines</li>
+<li>able to estimate interactions even in problems with huge sparsity</li>
+<li>dual form is not necessary, estimate model parameters directly</li>
+</ul>
+<h2 id="INTRODUCTION"><a href="#INTRODUCTION" class="headerlink" title="INTRODUCTION"></a>INTRODUCTION</h2><p>the advantages of FM:</p>
+<ul>
+<li>FMs allow parameter estimation under very sparse data where SVMs fail</li>
+<li>FMs have linear complexity, can be optimized in the primal and do not rely on support vectors like SVMs</li>
+<li>FMs are a general predictor that can work with any real valued feature vector. In contrast to this, other state-of-art factorization models work only on  very restricted input data</li>
+</ul>
+<h2 id="PREDICTION-UNDER-SPARSITY"><a href="#PREDICTION-UNDER-SPARSITY" class="headerlink" title="PREDICTION UNDER SPARSITY"></a>PREDICTION UNDER SPARSITY</h2><p>assume we have the transaction data of a movie review system. here feature vectors can be created as follow:<br><img src="/assets/image/FactorizationMachines/1484216408156.png" alt="Alt text"></p>
+<h2 id="FACTORIZATION-MACHINES"><a href="#FACTORIZATION-MACHINES" class="headerlink" title="FACTORIZATION MACHINES"></a>FACTORIZATION MACHINES</h2><h3 id="factorization-Machine-Model"><a href="#factorization-Machine-Model" class="headerlink" title="factorization Machine Model"></a>factorization Machine Model</h3><h4 id="model-equation"><a href="#model-equation" class="headerlink" title="model equation"></a>model equation</h4><script type="math/tex; mode=display">
+\hat y(x) := w_0 + \sum_{i = 1}^n w_ix_i + \sum_{i = 1}^n\sum_{j = i + 1}^{n}<v_i, v_j>x_ix_j</script><p>where in $&lt;\cdot , \cdot&gt;$ is dot product of two vectors</p>
+<ul>
+<li>$w_0$ is the global bias</li>
+<li>$w_i$ models the strength of the i-th variable</li>
+<li>$\hat w_{i,j} := <v_i, v_j>$ models the interaction between the i-th and j-th variable. Instead of using an own model parameter $w_{i,j}$ for each interaction, the FM models the interaction by factorizing it. this is the key point which allow high quality parameter estimates of higher-order interaction(d &gt;= 2) under sparsity</li>
+</ul>
+<h4 id="Expressiveness"><a href="#Expressiveness" class="headerlink" title="Expressiveness"></a>Expressiveness</h4><p>FMs can express any interaction matrix W if k is chosen large enough. Nevertheless in sparse settings, typically <code>a small k should be chosen</code> because there is not enough data to estimate complex interaction matrix W</p>
+<h4 id="Parameter-Estimation-Under-Sparsity"><a href="#Parameter-Estimation-Under-Sparsity" class="headerlink" title="Parameter Estimation Under Sparsity"></a>Parameter Estimation Under Sparsity</h4><p>FMs can estimate interactions even in sparsity data well because they break the independence of the interaction parameters by factorizing them</p>
+<h4 id="computation"><a href="#computation" class="headerlink" title="computation"></a>computation</h4><p>straight forward computation of equation 1 is in $O(kn^2)$<br>with reformulating it drops to linear runtime</p>
+<p>after follow reformulation complexity of computation si down to$O(kn)$<br><img src="/assets/image/FactorizationMachines/1484302786060.png" alt="Alt text"></p>
+<p>moreover we have only to compute non-zero elements, thus the complexity is down to $O(k\overline m_D)$ $\overline m_D = 2$ for typical recommender systems</p>
+<h3 id="Factorization-Machines-as-Predictors"><a href="#Factorization-Machines-as-Predictors" class="headerlink" title="Factorization Machines as Predictors"></a>Factorization Machines as Predictors</h3><p>FM can be applied to a variety of prediction tasks</p>
+<ul>
+<li>Regression</li>
+<li>Binary classification</li>
+<li>Ranking</li>
+</ul>
+<p>regularization terms like L2 are usually added to optimization objective to prevent overfitting</p>
+<h3 id="Learning-Factorization-Machines"><a href="#Learning-Factorization-Machines" class="headerlink" title="Learning Factorization Machines"></a>Learning Factorization Machines</h3><p>the gradient of the FM model is:<br><img src="/assets/image/FactorizationMachines/1484553331640.png" alt="Alt text"></p>
+<p>$\sum_{j=1}^nv_{j,f}x_j$ is independent of i and thus can be precomputed</p>
+<h3 id="d-way-Factorization-Machine"><a href="#d-way-Factorization-Machine" class="headerlink" title="d-way Factorization Machine"></a>d-way Factorization Machine</h3><p>the two-way FM describe so far can easily be generalized to a d-way FM:</p>
+<p><img src="/assets/image/FactorizationMachines/1484558701251.png" alt="Alt text"></p>
+<h3 id="Summary"><a href="#Summary" class="headerlink" title="Summary"></a>Summary</h3><p>two main advantages:</p>
+<ul>
+<li>The interactions between values can be estimated even under high sparisity. Especially, it is possible to generalize to unobserved interactions</li>
+<li>The number of parameters as well as the time for prediction and learning is linear.</li>
+</ul>
+<h2 id="FMs-vs-SVMs"><a href="#FMs-vs-SVMs" class="headerlink" title="FMs vs SVMs"></a>FMs vs SVMs</h2><h3 id="SVM-model"><a href="#SVM-model" class="headerlink" title="SVM model"></a>SVM model</h3><p>In the following, we discuss the relationships of FMs and SVMs by analyzing the primal form of the SVMs</p>
+<h4 id="linear-kernel"><a href="#linear-kernel" class="headerlink" title="linear kernel"></a>linear kernel</h4><p>kernel: $K(x, z) = 1 + <x, z>$<br>mapping: $\phi(x) = (1, x_1, \dots, x_n)$<br>SVMs:</p>
+<script type="math/tex; mode=display">\hat y(x) = w_0 + \sum_{i = 1}^{n}w_ix_i</script><p>is identical to a FM of degree d = 1</p>
+<h4 id="polynomial-kernel"><a href="#polynomial-kernel" class="headerlink" title="polynomial kernel"></a>polynomial kernel</h4><p>kernel: $K(x,z) = (<x, z> + 1)^2$<br>mapping: <script type="math/tex">\phi(x) = (1, \sqrt2x_1, \dots, \sqrt2x_n,</script></p>
+<script type="math/tex; mode=display">x_1^2, \dots, x_n^2,</script><script type="math/tex; mode=display">\sqrt2x_1x_2, \dots, \sqrt2x_1x_n, \sqrt2x_2x_3, \dots, \sqrt2x_{n-1}x_n)</script><p>SVMs:</p>
+<script type="math/tex; mode=display">\hat y(x) = w_0 + \sqrt2\sum_{i = 1}^nw_ix_i + \sum_{i = 1}^{n}w_{i,i}^{(2)}x_i^2 + \sqrt2\sum_{i = 1}^n\sum_{j = i +1}^nw_{i,j}^{(2)}x_ix_j</script><p>is similar to a FM of degree d = 2</p>
+<ul>
+<li>all interaction parameters w_{i, j} of SVMs are completely independent</li>
+<li>the interaction parameters of FMs are factorized</li>
+</ul>
+<h3 id="parameter-Estimation-Under-Sparsity"><a href="#parameter-Estimation-Under-Sparsity" class="headerlink" title="parameter Estimation Under Sparsity"></a>parameter Estimation Under Sparsity</h3><p>in the case of collaborative filtering with user and item indicator variables. The feature vectors are sparse and only two elements are non-zero</p>
+<h4 id="linear-SVM"><a href="#linear-SVM" class="headerlink" title="linear SVM"></a>linear SVM</h4><p>model is equivalent to</p>
+<script type="math/tex; mode=display">\hat y(x) = w_0 + w_u +w_i</script><p>As this model is very simple, the parameters can be estimated well even under sparsity, nevertheless the empirical prediction quality is low</p>
+<h4 id="Polynomial-SVM"><a href="#Polynomial-SVM" class="headerlink" title="Polynomial SVM"></a>Polynomial SVM</h4><p>model is equivalent to</p>
+<script type="math/tex; mode=display">\hat y(x) = w_0 + \sqrt2(w_u + w_i) + w_{u,u}^{(2)} + w_{i,i}^{(2)} + \sqrt2w_{u,i}^{(2)}</script><p>the interaction item $w_{u,i}^{(2)}$ has at most one observation in the training data. And thus the polynomial SVM can make no use of any 2-way interaction for predicting.so the Polynomial SVM cannot provide better estimations than linear SVM</p>
+<h3 id="summary"><a href="#summary" class="headerlink" title="summary"></a>summary</h3><ul>
+<li>FMs can be estimated well even under sparsity. SVMs can not</li>
+<li>FMs can be directly learned in the primal. Non-linear SVMs are usually learned in the dual</li>
+<li>The model equation of FMs is independent of the training data. Prediction with SVMs depends on parts of the training data</li>
+</ul>
+<h2 id="FMs-vs-Other-Factorization-Models"><a href="#FMs-vs-Other-Factorization-Models" class="headerlink" title="FMs vs. Other Factorization Models"></a>FMs vs. Other Factorization Models</h2><h3 id="Matrix-and-Tensor-Factorization"><a href="#Matrix-and-Tensor-Factorization" class="headerlink" title="Matrix and Tensor Factorization"></a>Matrix and Tensor Factorization</h3><p>MF is the simple version model of FM, which only has interaction parts</p>
+<h3 id="SVD"><a href="#SVD" class="headerlink" title="SVD++"></a>SVD++</h3><p>SVD++ model:</p>
+<script type="math/tex; mode=display">w_0 + w_u + w_i + q_i^T(p_u + |N(u)|^{-\frac {1} {2}}\sum_{j \in N(u)}y_j)</script><p>A FMs can mimic this model by using the following input data:<br><img src="/assets/image/FactorizationMachines/1484790697567.png" alt="Alt text"></p>
+<p>now the input data set is like this:</p>
+<script type="math/tex; mode=display">(u, i, N_{u_1}, N_{u_2}, \dots, N_{u_l})</script><p>the prediction result resolved to three parts:</p>
+<ul>
+<li>bias parts:  $w_0$</li>
+<li>linear parts: $w_u + w_i + w_l$</li>
+<li>interaction parts: $<u, i>, <u, \sum_{j}^{l}N_{u_j}>, <i, \sum_j^lN_{u_j}>, &lt;\sum_j^lN_{u_j}, \sum_{k = j+1}^lN_{u_k}&gt;$</li>
+</ul>
+<p>re-rank element according to SVD++:<img src="/assets/image/FactorizationMachines/1484813529165.png" alt="Alt text"></p>
+<h3 id="PITF-for-Tag-Recommendation"><a href="#PITF-for-Tag-Recommendation" class="headerlink" title="PITF for Tag Recommendation"></a>PITF for Tag Recommendation</h3><p>The problem of tag prediction is defined as ranking tags</p>
+<p>input data set is:<br><img src="/assets/image/FactorizationMachines/1484822449348.png" alt="Alt text"></p>
+<p>the prediction result reolved to three parts</p>
+<ul>
+<li>bias parts: $w_0$</li>
+<li>linear parts: $w_u + w_i + w_t$</li>
+<li>interaction parts: $<v_u, v_i> + <v_u, v_t> + <v_i, v_t>$</li>
+</ul>
+<p>in the tag recommendation situation, only one difference between two competitor, $vt$</p>
+<p>the FM model is equivalent to:</p>
+<p>$\hat y(x) = w_t + <v_u, v_t> + <v_i, v_t>$</p>
+<p>PITF and FM are almost identical except</p>
+<ul>
+<li>FM model has a bias term</li>
+<li>the factorization parameters for the tags $v_t$ are shared for the FM model but individual for the original PITF model</li>
+</ul>
+<p><img src="/assets/image/FactorizationMachines/1484877746039.png" alt="Alt text"></p>
+<p>the figure shows empirically that both models also achieve comparable prediction quality for this task</p>
+<h3 id="Factorized-Personalized-Markov-Chains"><a href="#Factorized-Personalized-Markov-Chains" class="headerlink" title="Factorized Personalized Markov Chains"></a>Factorized Personalized Markov Chains</h3><p>input date set is:<br><img src="/assets/image/FactorizationMachines/1484881439658.png" alt="Alt text"></p>
+<p>where $B_t^u \subseteq L$ is the set of all items a user u has purchased at time t</p>
+<p>the prediction:<br><img src="/assets/image/FactorizationMachines/1484882122445.png" alt="Alt text"></p>
+<p>only score differences between $(u, i_A, t)$ and $(u, i_B, t)$ are used in the prediction is item term</p>
+<p>FM model is equivalent to:</p>
+<script type="math/tex; mode=display">\hat y(x) = w_i + <v_u, v_i> + \frac 1 {B_{t-1}^u}\sum_{l \in B_{t-1}^u}<v_i, v_l></script><p>difference between  FPMC and FMs</p>
+<ul>
+<li>bias</li>
+<li>share item vector</li>
+</ul>
+<h3 id="summary-1"><a href="#summary-1" class="headerlink" title="summary"></a>summary</h3><ul>
+<li>through m parts joining into a whole matrix, FM is identical to MF</li>
+<li>FM can mimic other specialized models(such as SVD++, PITF, FPMC) well</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/machine-learning/" rel="tag"># machine_learning</a>
+              <a href="/tags/note/" rel="tag"># note</a>
+              <a href="/tags/FM/" rel="tag"># FM</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/01/04/%E5%90%B4%E6%81%A9%E8%BE%BE%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/" rel="prev" title="吴恩达机器学习课程笔记">
+      <i class="fa fa-chevron-left"></i> 吴恩达机器学习课程笔记
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/02/15/A%20Gradient%20Boosting%20Machine/" rel="next" title="A Gradient Boosting Machine">
+      A Gradient Boosting Machine <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#INTRODUCTION"><span class="nav-number">1.</span> <span class="nav-text">INTRODUCTION</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#PREDICTION-UNDER-SPARSITY"><span class="nav-number">2.</span> <span class="nav-text">PREDICTION UNDER SPARSITY</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#FACTORIZATION-MACHINES"><span class="nav-number">3.</span> <span class="nav-text">FACTORIZATION MACHINES</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#factorization-Machine-Model"><span class="nav-number">3.1.</span> <span class="nav-text">factorization Machine Model</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#model-equation"><span class="nav-number">3.1.1.</span> <span class="nav-text">model equation</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Expressiveness"><span class="nav-number">3.1.2.</span> <span class="nav-text">Expressiveness</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Parameter-Estimation-Under-Sparsity"><span class="nav-number">3.1.3.</span> <span class="nav-text">Parameter Estimation Under Sparsity</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#computation"><span class="nav-number">3.1.4.</span> <span class="nav-text">computation</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Factorization-Machines-as-Predictors"><span class="nav-number">3.2.</span> <span class="nav-text">Factorization Machines as Predictors</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Learning-Factorization-Machines"><span class="nav-number">3.3.</span> <span class="nav-text">Learning Factorization Machines</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#d-way-Factorization-Machine"><span class="nav-number">3.4.</span> <span class="nav-text">d-way Factorization Machine</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Summary"><span class="nav-number">3.5.</span> <span class="nav-text">Summary</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#FMs-vs-SVMs"><span class="nav-number">4.</span> <span class="nav-text">FMs vs SVMs</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#SVM-model"><span class="nav-number">4.1.</span> <span class="nav-text">SVM model</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#linear-kernel"><span class="nav-number">4.1.1.</span> <span class="nav-text">linear kernel</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#polynomial-kernel"><span class="nav-number">4.1.2.</span> <span class="nav-text">polynomial kernel</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#parameter-Estimation-Under-Sparsity"><span class="nav-number">4.2.</span> <span class="nav-text">parameter Estimation Under Sparsity</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#linear-SVM"><span class="nav-number">4.2.1.</span> <span class="nav-text">linear SVM</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Polynomial-SVM"><span class="nav-number">4.2.2.</span> <span class="nav-text">Polynomial SVM</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#summary"><span class="nav-number">4.3.</span> <span class="nav-text">summary</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#FMs-vs-Other-Factorization-Models"><span class="nav-number">5.</span> <span class="nav-text">FMs vs. Other Factorization Models</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Matrix-and-Tensor-Factorization"><span class="nav-number">5.1.</span> <span class="nav-text">Matrix and Tensor Factorization</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SVD"><span class="nav-number">5.2.</span> <span class="nav-text">SVD++</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PITF-for-Tag-Recommendation"><span class="nav-number">5.3.</span> <span class="nav-text">PITF for Tag Recommendation</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Factorized-Personalized-Markov-Chains"><span class="nav-number">5.4.</span> <span class="nav-text">Factorized Personalized Markov Chains</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#summary-1"><span class="nav-number">5.5.</span> <span class="nav-text">summary</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Berwyn Zhang</p>
+  <div class="site-description" itemprop="description">Learn & output</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">29</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">26</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-address-card"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Berwyn Zhang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+</body>
+</html>

@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"berwynzhang.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="总结 新的detection方法的特点 利用了高拟合能力的卷积神经网络 缓解了训练detection任务数据量少的问题    物体定位问题旧方案：  当成回归问题做——效果不好 用滑动窗口做——新的数据集图片比较大，不适合">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Rich Feature Hierarchies for Accurate Object Detection and Semantic Segmentation">
+<meta property="og:url" content="https://berwynzhang.com/2017/11/03/Rich%20Feature%20Hierarchies%20for%20Accurate%20Object%20Detection%20and%20Semantic%20Segmentation/index.html">
+<meta property="og:site_name" content="Berwyn&#39;s Blog">
+<meta property="og:description" content="总结 新的detection方法的特点 利用了高拟合能力的卷积神经网络 缓解了训练detection任务数据量少的问题    物体定位问题旧方案：  当成回归问题做——效果不好 用滑动窗口做——新的数据集图片比较大，不适合">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/Rich%20FeatureHierarchiesforAccurateObjectDetectionandSemanticSegmentation/1509523020006.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/Rich%20FeatureHierarchiesforAccurateObjectDetectionandSemanticSegmentation/1509537804468.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/Rich%20FeatureHierarchiesforAccurateObjectDetectionandSemanticSegmentation/1509609361970.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/Rich%20FeatureHierarchiesforAccurateObjectDetectionandSemanticSegmentation/1509610038578.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/Rich%20FeatureHierarchiesforAccurateObjectDetectionandSemanticSegmentation/1509611082119.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/Rich%20FeatureHierarchiesforAccurateObjectDetectionandSemanticSegmentation/1509612143011.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/Rich%20FeatureHierarchiesforAccurateObjectDetectionandSemanticSegmentation/1509613730389.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/Rich%20FeatureHierarchiesforAccurateObjectDetectionandSemanticSegmentation/1509614433764.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/Rich%20FeatureHierarchiesforAccurateObjectDetectionandSemanticSegmentation/1509614795025.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/Rich%20FeatureHierarchiesforAccurateObjectDetectionandSemanticSegmentation/1509624060182.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/Rich%20FeatureHierarchiesforAccurateObjectDetectionandSemanticSegmentation/1509626528245.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/Rich%20FeatureHierarchiesforAccurateObjectDetectionandSemanticSegmentation/1509626793790.png">
+<meta property="article:published_time" content="2017-11-02T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-01-09T14:15:21.077Z">
+<meta property="article:author" content="Berwyn Zhang">
+<meta property="article:tag" content="machine_learning">
+<meta property="article:tag" content="2014">
+<meta property="article:tag" content="RCNN">
+<meta property="article:tag" content="Berkeley">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://berwynzhang.com/assets/image/Rich%20FeatureHierarchiesforAccurateObjectDetectionandSemanticSegmentation/1509523020006.png">
+
+<link rel="canonical" href="https://berwynzhang.com/2017/11/03/Rich%20Feature%20Hierarchies%20for%20Accurate%20Object%20Detection%20and%20Semantic%20Segmentation/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Rich Feature Hierarchies for Accurate Object Detection and Semantic Segmentation | Berwyn's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Berwyn's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2017/11/03/Rich%20Feature%20Hierarchies%20for%20Accurate%20Object%20Detection%20and%20Semantic%20Segmentation/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Rich Feature Hierarchies for Accurate Object Detection and Semantic Segmentation
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2017-11-03 00:00:00" itemprop="dateCreated datePublished" datetime="2017-11-03T00:00:00+08:00">2017-11-03</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-09 22:15:21" itemprop="dateModified" datetime="2021-01-09T22:15:21+08:00">2021-01-09</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>新的detection方法的特点<ul>
+<li>利用了高拟合能力的卷积神经网络</li>
+<li>缓解了训练detection任务数据量少的问题</li>
+</ul>
+</li>
+</ul>
+<h3 id="物体定位问题"><a href="#物体定位问题" class="headerlink" title="物体定位问题"></a>物体定位问题</h3><p>旧方案：</p>
+<ul>
+<li>当成回归问题做——效果不好</li>
+<li>用滑动窗口做——新的数据集图片比较大，不适合</li>
+</ul>
+<p>新方案：</p>
+<ul>
+<li>(用selective search)生成proposals</li>
+<li>通过CNN对每个proposals生成固定长度的特征向量</li>
+<li>用多个SVM判定向量是否属于特定类别</li>
+<li>非极大值抑制筛选最终结果</li>
+</ul>
+<h3 id="数据量少的问题"><a href="#数据量少的问题" class="headerlink" title="数据量少的问题"></a>数据量少的问题</h3><p>旧方案：</p>
+<ul>
+<li>先使用无监督训练，然后有监督fine-tuning</li>
+</ul>
+<p>新方案：</p>
+<ul>
+<li>先用大量的无关classification数据训练网络初始参数</li>
+<li>然后用特定类别有监督fine-tuning</li>
+<li>迁移学习思想</li>
+</ul>
+<h3 id="可拓展性"><a href="#可拓展性" class="headerlink" title="可拓展性"></a>可拓展性</h3><ul>
+<li>生成proposal的时候是类别无关的</li>
+<li>CNN抽取特征的时候是类别无关的</li>
+<li>最后的SVM判别是和类别数量相关，但只是线性相关</li>
+<li>非极大值抑制过程也是线性相关</li>
+<li>所以在目标类别很多的时候依旧能保证高效率，而不用去做近似计算</li>
+</ul>
+<h3 id="训练细节"><a href="#训练细节" class="headerlink" title="训练细节"></a>训练细节</h3><h4 id="CNN-预训练"><a href="#CNN-预训练" class="headerlink" title="CNN 预训练"></a>CNN 预训练</h4><p>之就用classification的数据训练就行<br>这个阶段训练的是模型对于图像信息的泛化抽取能力</p>
+<h4 id="CNN-fine-tuning"><a href="#CNN-fine-tuning" class="headerlink" title="CNN fine-tuning"></a>CNN fine-tuning</h4><ul>
+<li>把预训练的最后一层替换为目标类别数+1（背景算作一个类别）的分类层</li>
+<li>所有和标记框IoU &gt;= 0.5的proposal当做标记框所在类别的正样本否则当做负样本</li>
+<li>学习率是预训练阶段的十分之一（0.001）</li>
+<li>用32个正样本和96个负样本组成一个128的batch（这个比例主要是因为正样本少）</li>
+</ul>
+<h4 id="特征分类"><a href="#特征分类" class="headerlink" title="特征分类"></a>特征分类</h4><ul>
+<li>比fine-tuning的样本筛选更加严格<ul>
+<li>只有标记框抽取出来的特征当做正样本</li>
+<li>与标记框IoU低于0.3(grid search出来的)的当做负样本</li>
+<li>IoU大于0.3但是小于1的扔掉</li>
+</ul>
+</li>
+</ul>
+<p><strong>为什么两次正负样本的选择标准不同？</strong></p>
+<p>训练CNN的时候需要的数据量比较大 fine-tuning阶段对于正样本的选取标准是一种对于标记数量不足的妥协，IoU高于0.5的都当做正样本的话，相对于标记框的数量增长了30倍，虽然数据精度下降但是最终效果反而更好</p>
+<p><strong>为什么不用CNN直接分类？</strong></p>
+<p>fine-tuning的样本选取方式不适合用于精确定位位置，所以单独训练模型去干这个事<br>训练数据要求尽可能干净，所以有了更严格的样本选取标准<br>这样一来数据量又不够了，好在SVM对于数据量少的容忍度相对较高——引入最大间隔概念，使用结构风险而非经验风险来作为损失函数<br>所以选择SVM作为最后的分类模型</p>
+<h3 id="特征可视化"><a href="#特征可视化" class="headerlink" title="特征可视化"></a>特征可视化</h3><ul>
+<li>选定一个特征（本文选取的是$pool_5$里的特征）</li>
+<li>用大量的proposal过神经网络，得到这个特征的值</li>
+<li>按特征值从大到小排列</li>
+<li>非极大值抑制筛选proposal</li>
+<li>把较大的proposal输出即为此特征的抽取信息的直观表现</li>
+</ul>
+<h3 id="分类特征值选择"><a href="#分类特征值选择" class="headerlink" title="分类特征值选择"></a>分类特征值选择</h3><ul>
+<li>CNN最后的抽象特征有多层，本文对用不同的特征作为分类特征做了实验</li>
+<li>如果没有经过fine-tuning那么用靠前网络层的更好($fc_6 &gt; fc_7$)</li>
+<li>经过fine-tuning的就用后面层作为分类特征值</li>
+</ul>
+<h3 id="网络结构选择"><a href="#网络结构选择" class="headerlink" title="网络结构选择"></a>网络结构选择</h3><p>CNN作为特征抽取器，其结构对于最后的效果有非常大的影响</p>
+<p>用了新的VGG网络进行对比，效果确实好，但是算的确实慢</p>
+<h3 id="bounding-box回归"><a href="#bounding-box回归" class="headerlink" title="bounding-box回归"></a>bounding-box回归</h3><p>借助错误分析工具可知，detection位置错是mAP低的主要原因</p>
+<p>所以单独训练一个模型去修正位置问题</p>
+<ul>
+<li>用中心点x, y坐标，方框长和宽四维数据去定义边框</li>
+<li>训练四个映射，把四维数据映射为真实值</li>
+<li>用CNN $pool_5$的值代表proposal信息</li>
+<li>采用LR模型</li>
+<li>只把proposal和真实边框IoU大于等于0.6的当做训练数据</li>
+<li>正则化参数很重要</li>
+</ul>
+<p>目标函数：</p>
+<script type="math/tex; mode=display">w_* = \underset {\hat w_*} {argmin} \sum^N_i(t^i_* - \hat w^T_*\phi_5(P^i))^2 + \lambda ||\hat w_*||^2</script><h3 id="与OverFeat对比"><a href="#与OverFeat对比" class="headerlink" title="与OverFeat对比"></a>与OverFeat对比</h3><p>只有两个区别</p>
+<ul>
+<li>OverFeat用的是multi-scale pyramid而不是selective search</li>
+<li>OverFeat是为每个类别分别训练一个bounding-box regression模型</li>
+</ul>
+<h3 id="VOC测试结果"><a href="#VOC测试结果" class="headerlink" title="VOC测试结果"></a>VOC测试结果</h3><ul>
+<li>time: 13000ms</li>
+<li>VOC 2010: 53.7%</li>
+<li>VOC 2011&amp;2012: 53.3%</li>
+<li>VOC 2013: 31.4%</li>
+</ul>
+<h2 id="Abstract"><a href="#Abstract" class="headerlink" title="Abstract"></a>Abstract</h2><p>propose a detection algorithm:</p>
+<ul>
+<li>one can apply high-capacity convolutional neural networks (CNNs) to bottom-up region proposals in order to localize and segment objects</li>
+<li>when labeled training data is scarce, supervised pre-training for an auxiliary task, followed by domain-specific fine-tuning, yields a significant performance boost</li>
+</ul>
+<p><strong>RCNN:</strong> <em>Regions with CNN features</em></p>
+<h2 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h2><p>we focused on two problems:</p>
+<ul>
+<li>localizing objects with a deep network</li>
+<li>training a high-capacity model with only a small quantity of annotated detection data</li>
+</ul>
+<h3 id="localizing-objects-with-a-deep-network"><a href="#localizing-objects-with-a-deep-network" class="headerlink" title="localizing objects with a deep network"></a>localizing objects with a deep network</h3><p><strong>old way</strong>:</p>
+<ul>
+<li>approach frames localization as a regression problem may not fare well in practice</li>
+<li>our network is too deep to use a <strong>sliding-window</strong></li>
+</ul>
+<p><strong>new method</strong>:</p>
+<ul>
+<li>recognition using regions</li>
+<li>generate proposal</li>
+<li>extracts a fixed-length feature vector from each proposal using a CNN</li>
+<li>classifies each region with category-specific linear SVMs</li>
+</ul>
+<p><img src="/assets/image/Rich FeatureHierarchiesforAccurateObjectDetectionandSemanticSegmentation/1509523020006.png" alt="Alt text"></p>
+<h3 id="scarce-labeled-data"><a href="#scarce-labeled-data" class="headerlink" title="scarce labeled data"></a>scarce labeled data</h3><p><strong>old way</strong>:</p>
+<ul>
+<li>use unsupervised pre-training, followed by supervised fine-tuning</li>
+</ul>
+<p><strong>new method</strong>:</p>
+<ul>
+<li>supervised pre-training on a large auxiliary dataset</li>
+<li>followed by domain-specific fine-tuning on a small dataset</li>
+</ul>
+<h2 id="Object-Detection-with-R-CNN"><a href="#Object-Detection-with-R-CNN" class="headerlink" title="Object Detection with R-CNN"></a>Object Detection with R-CNN</h2><p><strong>three modules</strong>:</p>
+<ul>
+<li>generates category-independent region proposals</li>
+<li>a large convolutional neural network that extracts a fixed-length feature vector from each region</li>
+<li>a set of class-specific linear SVMs</li>
+</ul>
+<h3 id="module-design"><a href="#module-design" class="headerlink" title="module design"></a>module design</h3><h4 id="region-proposals"><a href="#region-proposals" class="headerlink" title="region proposals"></a>region proposals</h4><p>use selective search to enable a controlled comparison with prior detection work</p>
+<p>use fast mode of selective search</p>
+<h4 id="feature-extraction"><a href="#feature-extraction" class="headerlink" title="feature extraction"></a>feature extraction</h4><p>use AlexNet</p>
+<h5 id="transformations"><a href="#transformations" class="headerlink" title="transformations"></a>transformations</h5><ul>
+<li>isotropically scales<ul>
+<li>with context(B)</li>
+<li>without context(C)</li>
+</ul>
+</li>
+<li>anisotropically scales(D)</li>
+</ul>
+<p>The amount of context padding (p) is defined as a border size around the original object proposal in the transformed input coordinate frame</p>
+<p><img src="/assets/image/Rich FeatureHierarchiesforAccurateObjectDetectionandSemanticSegmentation/1509537804468.png" alt="Alt text"></p>
+<p>warping with context padding (p = 16 pixels) outperformed</p>
+<h3 id="test-time-detection"><a href="#test-time-detection" class="headerlink" title="test-time detection"></a>test-time detection</h3><p>given all scored regions in an image, we apply a greedy non-maximum suppression</p>
+<h4 id="run-time-analysis"><a href="#run-time-analysis" class="headerlink" title="run-time analysis"></a>run-time analysis</h4><p>two properties make detection efficient:</p>
+<ul>
+<li>all CNN parameters are shared across all categories</li>
+<li>the feature vectors computed by the CNN are low-dimensional</li>
+</ul>
+<p>13s/image on a GPU or 53s/image on a CPU</p>
+<p><strong>scalable</strong>:</p>
+<ul>
+<li>CNN feature are class-independent</li>
+<li>The only class-specific computations are dot products</li>
+</ul>
+<p>this analysis shows that R-CNN can scale to thousands of object classes without resorting to approximate techniques</p>
+<h3 id="training"><a href="#training" class="headerlink" title="training"></a>training</h3><h4 id="supervised-pre-training"><a href="#supervised-pre-training" class="headerlink" title="supervised pre-training"></a>supervised pre-training</h4><p>using image-level annotations only (bounding- box labels are not available for this data)</p>
+<h4 id="domain-specific-fine-tuning"><a href="#domain-specific-fine-tuning" class="headerlink" title="domain-specific fine-tuning"></a>domain-specific fine-tuning</h4><p>continue CNN training using only warped region proposals</p>
+<p>the last layer is randomly initialized (N + 1)-way classification —— where N is the number of object classes, plus 1 for background</p>
+<p>We treat all region proposals with ≥ 0.5 IoU overlap with a ground-truth box as positives for that box’s class and the rest as negatives</p>
+<p>learning rate 0.001</p>
+<p>In each SGD iteration, we uniformly sample 32 positive windows (over all classes) and 96 background windows to construct a mini-batch of size 128</p>
+<h4 id="object-category-classifier"><a href="#object-category-classifier" class="headerlink" title="object category classifier"></a>object category classifier</h4><p><strong>Question</strong>:</p>
+<ul>
+<li>how to label a region that partially overlaps ground-truth?</li>
+</ul>
+<p><strong>Answer</strong>:</p>
+<ul>
+<li>We resolve this issue with an IoU overlap threshold</li>
+<li>negatives: proposal regions which IoU below threshold are defined as negatives</li>
+<li>positives: defined simply to be the ground-truth bounding boxes for each class</li>
+<li>threshold is 0.3 selected by a grid search</li>
+<li>proposals that fall into the grey zone (more than 0.3 IoU overlap, but are not ground truth) are ignored</li>
+</ul>
+<h5 id="Positive-vs-negative-examples-and-softmax"><a href="#Positive-vs-negative-examples-and-softmax" class="headerlink" title="Positive vs. negative examples and softmax"></a>Positive vs. negative examples and softmax</h5><p><strong>Question</strong>:</p>
+<ul>
+<li>Why are positive and negative examples defined differently for fine-tuning the CNN versus training the object detection SVMs?</li>
+</ul>
+<p><strong>Answer</strong>:</p>
+<ul>
+<li>fine-tuning data is limited</li>
+<li>proposals with overlap between 0.5 and 1,  expands the number of positive examples by approximately 30x</li>
+</ul>
+<p><strong>Question</strong>:</p>
+<ul>
+<li>Why, after fine-tuning, train SVMs at all?</li>
+</ul>
+<p><strong>Answer</strong>:</p>
+<ul>
+<li>definition of positive examples used in fine-tuning does not emphasize precise localization</li>
+</ul>
+<h3 id="results-on-PASCAL-VOC-2010-12"><a href="#results-on-PASCAL-VOC-2010-12" class="headerlink" title="results on PASCAL VOC 2010-12"></a>results on PASCAL VOC 2010-12</h3><p><img src="/assets/image/Rich FeatureHierarchiesforAccurateObjectDetectionandSemanticSegmentation/1509609361970.png" alt="Alt text"></p>
+<h3 id="results-on-ILSVR2013-detection"><a href="#results-on-ILSVR2013-detection" class="headerlink" title="results on ILSVR2013 detection"></a>results on ILSVR2013 detection</h3><p><img src="/assets/image/Rich FeatureHierarchiesforAccurateObjectDetectionandSemanticSegmentation/1509610038578.png" alt="Alt text"></p>
+<h2 id="Visualization-Ablation-and-Modes-of-Error"><a href="#Visualization-Ablation-and-Modes-of-Error" class="headerlink" title="Visualization, Ablation and Modes of Error"></a>Visualization, Ablation and Modes of Error</h2><h3 id="visualizing-learned-features"><a href="#visualizing-learned-features" class="headerlink" title="visualizing learned features"></a>visualizing learned features</h3><p>We propose a simple (and complementary) non-parametric method that directly shows what the network learned</p>
+<ul>
+<li>compute the unit’s activations on a large set of held-out region proposals</li>
+<li>sort the proposals from highest to lowest activation</li>
+<li>perform non- maximum suppression</li>
+</ul>
+<p><img src="/assets/image/Rich FeatureHierarchiesforAccurateObjectDetectionandSemanticSegmentation/1509611082119.png" alt="Alt text"></p>
+<h3 id="ablation-studies"><a href="#ablation-studies" class="headerlink" title="ablation studies"></a>ablation studies</h3><p>Performance layer-by-layer</p>
+<h4 id="without-fine-tuning"><a href="#without-fine-tuning" class="headerlink" title="without fine-tuning"></a>without fine-tuning</h4><p>features from fc7 generalize worse than features from fc6</p>
+<h4 id="with-fine-tuning"><a href="#with-fine-tuning" class="headerlink" title="with fine-tuning"></a>with fine-tuning</h4><p>The boost from fine-tuning is much larger for fc6 and fc7 than for pool5</p>
+<p><img src="/assets/image/Rich FeatureHierarchiesforAccurateObjectDetectionandSemanticSegmentation/1509612143011.png" alt="Alt text"></p>
+<h4 id="comparison-to-recent-feature-learning-method"><a href="#comparison-to-recent-feature-learning-method" class="headerlink" title="comparison to recent feature learning method"></a>comparison to recent feature learning method</h4><p>All R-CNN variants strongly outperform the three DPM baselines</p>
+<h3 id="network-architectures"><a href="#network-architectures" class="headerlink" title="network architectures"></a>network architectures</h3><p>the choice of architecture has a <strong>large</strong> effect on R-CNN detection performance</p>
+<p><img src="/assets/image/Rich FeatureHierarchiesforAccurateObjectDetectionandSemanticSegmentation/1509613730389.png" alt="Alt text"></p>
+<h3 id="detection-error-analysis"><a href="#detection-error-analysis" class="headerlink" title="detection error analysis"></a>detection error analysis</h3><p>we applied the excellent detection analysis tool from Hoiem et al.<sup><a href="#fn_23" id="reffn_23">23</a></sup></p>
+<p><img src="/assets/image/Rich FeatureHierarchiesforAccurateObjectDetectionandSemanticSegmentation/1509614433764.png" alt="Alt text"></p>
+<p><img src="/assets/image/Rich FeatureHierarchiesforAccurateObjectDetectionandSemanticSegmentation/1509614795025.png" alt="Alt text"></p>
+<h3 id="bounding-box-regression"><a href="#bounding-box-regression" class="headerlink" title="bounding-box regression"></a>bounding-box regression</h3><p>we train a linear regression model to predict a new detection window given the pool5 features for a selective search region proposal</p>
+<p>The input to our training algorithm is a set of N training pairs ${(P^i, G^i)}_{i = 1,\dots ,N}$ where $P^i = (P^i_x, P^i_y, P^i_w, P^i_h)$ specifies the pixel coordinates of the center of proposal $p^i$’s bounding box together with $P^i$’s width and height in pixels</p>
+<p>ground-truth bounding box G is specified in the same way</p>
+<p>our goal is to learn a transformation that maps a proposed box P to a ground-truth box G</p>
+<p>we parameterize the transformation in terms of four functions $d_x(P), d_y(P), d_w(P), d_h(P)$</p>
+<p>we can transform an input proposal P into a predicted ground-truth box $\hat G$ by applying the transformation:</p>
+<ul>
+<li>$\hat G_x = P_wd_x(P) + P_x$</li>
+<li>$\hat G_y = P_hd_y(P) + P_y$</li>
+<li>$\hat G_w = P_wexp(d_w(P))$</li>
+<li>$\hat G_h = P_hexp(d_h(P))$</li>
+</ul>
+<p>we learn $w_*$ by optimizing the regularized least square objective:</p>
+<script type="math/tex; mode=display">w_* = \underset {\hat w_*} {argmin} \sum^N_i(t^i_* - \hat w^T_*\phi_5(P^i))^2 + \lambda ||\hat w_*||^2</script><p>where $\phi_5$ is pool5 features of proposal P and $t$ is calculated by ground-truth value</p>
+<p><strong>subtle issues</strong>:</p>
+<ul>
+<li>regularization is important($\lambda = 1000$)</li>
+<li>care must be taken when selecting which training pairs (P, G) to use(only use IoU &gt;= 0.6)</li>
+</ul>
+<p>we found that iterating does not improve results</p>
+<h3 id="qualitative-results"><a href="#qualitative-results" class="headerlink" title="qualitative results"></a>qualitative results</h3><p>skip</p>
+<h2 id="The-ILSVRC2013-Detection-Dataset"><a href="#The-ILSVRC2013-Detection-Dataset" class="headerlink" title="The ILSVRC2013 Detection Dataset"></a>The ILSVRC2013 Detection Dataset</h2><p>less homogeneous than PASCAL VOC</p>
+<h3 id="dataset-overview"><a href="#dataset-overview" class="headerlink" title="dataset overview"></a>dataset overview</h3><p>train (395,918), val (20,121), and test (40,152)</p>
+<p>our general strategy is to rely heavily on the val set and use some of the train images as an auxiliary source of positive examples</p>
+<h3 id="region-proposals-1"><a href="#region-proposals-1" class="headerlink" title="region proposals"></a>region proposals</h3><p>we followed the same region proposal approach that was used for detection on PASCAL</p>
+<h3 id="training-data"><a href="#training-data" class="headerlink" title="training data"></a>training data</h3><p>we formed a set of images and boxes that includes all selective search and ground-truth boxes from val1 together with up to N ground-truth boxes per class from train</p>
+<p>An initial experiment indicated that mining negatives from all of val1, versus a 5000 image subset (roughly half of it), resulted in only a <strong>0.5 percentage</strong> point drop in mAP, while cutting SVM training time <strong>in half</strong></p>
+<p>The bounding-box regressors were trained on val1</p>
+<h3 id="validation-and-evaluation"><a href="#validation-and-evaluation" class="headerlink" title="validation and evaluation"></a>validation and evaluation</h3><p>we validated data on the val2 set</p>
+<h3 id="ablation-study"><a href="#ablation-study" class="headerlink" title="ablation study"></a>ablation study</h3><p><img src="/assets/image/Rich FeatureHierarchiesforAccurateObjectDetectionandSemanticSegmentation/1509624060182.png" alt="Alt text"></p>
+<p>essentially no difference between N = 500 and N = 1000</p>
+<h3 id="relationship-to-OverFeat"><a href="#relationship-to-OverFeat" class="headerlink" title="relationship to OverFeat"></a>relationship to OverFeat</h3><p>OverFeat can be seen (roughly) as a special case of R-CNN</p>
+<ul>
+<li>selective search vs multi-scale pyramid</li>
+<li>per-class bounding-box regressors vs single bounding-box regressor</li>
+</ul>
+<p>It is worth noting that OverFeat has a significant speed advantage over R-CNN(9x faster)</p>
+<h2 id="Semantic-Segmentation"><a href="#Semantic-Segmentation" class="headerlink" title="Semantic Segmentation"></a>Semantic Segmentation</h2><h3 id="CNN-features-for-segmentation"><a href="#CNN-features-for-segmentation" class="headerlink" title="CNN features for segmentation"></a>CNN features for segmentation</h3><p>we evaluate three strategies for computing features on CPMC regions:</p>
+<ul>
+<li>(full) ignores the region’s shape and computes CNN features directly on the warped window</li>
+<li>(fg) computes CNN features only on a region’s foreground mask</li>
+<li>(full+fg) simply concatenates the full and fg features</li>
+</ul>
+<h3 id="results-on-VOC-2011"><a href="#results-on-VOC-2011" class="headerlink" title="results on VOC 2011"></a>results on VOC 2011</h3><p><img src="/assets/image/Rich FeatureHierarchiesforAccurateObjectDetectionandSemanticSegmentation/1509626528245.png" alt="Alt text"></p>
+<ul>
+<li>layer fc6 always outperforms fc7</li>
+<li>the context provided by the full features is highly informative even given the fg features</li>
+</ul>
+<p><img src="/assets/image/Rich FeatureHierarchiesforAccurateObjectDetectionandSemanticSegmentation/1509626793790.png" alt="Alt text"></p>
+<h2 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h2><p>two insights:</p>
+<ul>
+<li>The first is to apply high-capacity convolutional neural networks to bottom-up region proposals in order to localize and segment objects</li>
+<li>The second is a paradigm for training large CNNs when labeled training data is scarce.</li>
+</ul>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><blockquote id="fn_23">
+<sup>23</sup>. D. Hoiem, Y. Chodpathumwan, and Q. Dai. Diagnosing error in object detectors. In ECCV. 2012.<a href="#reffn_23" title="Jump back to footnote [23] in the text."> &#8617;</a>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/machine-learning/" rel="tag"># machine_learning</a>
+              <a href="/tags/2014/" rel="tag"># 2014</a>
+              <a href="/tags/RCNN/" rel="tag"># RCNN</a>
+              <a href="/tags/Berkeley/" rel="tag"># Berkeley</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/10/31/Inception%E6%80%BB%E7%BB%93/" rel="prev" title="Inception总结">
+      <i class="fa fa-chevron-left"></i> Inception总结
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/11/07/Fast%20R-CNN/" rel="next" title="Fast R-CNN">
+      Fast R-CNN <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">1.</span> <span class="nav-text">总结</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%89%A9%E4%BD%93%E5%AE%9A%E4%BD%8D%E9%97%AE%E9%A2%98"><span class="nav-number">1.1.</span> <span class="nav-text">物体定位问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E9%87%8F%E5%B0%91%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">1.2.</span> <span class="nav-text">数据量少的问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%AF%E6%8B%93%E5%B1%95%E6%80%A7"><span class="nav-number">1.3.</span> <span class="nav-text">可拓展性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%AD%E7%BB%83%E7%BB%86%E8%8A%82"><span class="nav-number">1.4.</span> <span class="nav-text">训练细节</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#CNN-%E9%A2%84%E8%AE%AD%E7%BB%83"><span class="nav-number">1.4.1.</span> <span class="nav-text">CNN 预训练</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#CNN-fine-tuning"><span class="nav-number">1.4.2.</span> <span class="nav-text">CNN fine-tuning</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%89%B9%E5%BE%81%E5%88%86%E7%B1%BB"><span class="nav-number">1.4.3.</span> <span class="nav-text">特征分类</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%89%B9%E5%BE%81%E5%8F%AF%E8%A7%86%E5%8C%96"><span class="nav-number">1.5.</span> <span class="nav-text">特征可视化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%86%E7%B1%BB%E7%89%B9%E5%BE%81%E5%80%BC%E9%80%89%E6%8B%A9"><span class="nav-number">1.6.</span> <span class="nav-text">分类特征值选择</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C%E7%BB%93%E6%9E%84%E9%80%89%E6%8B%A9"><span class="nav-number">1.7.</span> <span class="nav-text">网络结构选择</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#bounding-box%E5%9B%9E%E5%BD%92"><span class="nav-number">1.8.</span> <span class="nav-text">bounding-box回归</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%8EOverFeat%E5%AF%B9%E6%AF%94"><span class="nav-number">1.9.</span> <span class="nav-text">与OverFeat对比</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#VOC%E6%B5%8B%E8%AF%95%E7%BB%93%E6%9E%9C"><span class="nav-number">1.10.</span> <span class="nav-text">VOC测试结果</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Abstract"><span class="nav-number">2.</span> <span class="nav-text">Abstract</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Introduction"><span class="nav-number">3.</span> <span class="nav-text">Introduction</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#localizing-objects-with-a-deep-network"><span class="nav-number">3.1.</span> <span class="nav-text">localizing objects with a deep network</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#scarce-labeled-data"><span class="nav-number">3.2.</span> <span class="nav-text">scarce labeled data</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Object-Detection-with-R-CNN"><span class="nav-number">4.</span> <span class="nav-text">Object Detection with R-CNN</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#module-design"><span class="nav-number">4.1.</span> <span class="nav-text">module design</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#region-proposals"><span class="nav-number">4.1.1.</span> <span class="nav-text">region proposals</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#feature-extraction"><span class="nav-number">4.1.2.</span> <span class="nav-text">feature extraction</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#transformations"><span class="nav-number">4.1.2.1.</span> <span class="nav-text">transformations</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#test-time-detection"><span class="nav-number">4.2.</span> <span class="nav-text">test-time detection</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#run-time-analysis"><span class="nav-number">4.2.1.</span> <span class="nav-text">run-time analysis</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#training"><span class="nav-number">4.3.</span> <span class="nav-text">training</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#supervised-pre-training"><span class="nav-number">4.3.1.</span> <span class="nav-text">supervised pre-training</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#domain-specific-fine-tuning"><span class="nav-number">4.3.2.</span> <span class="nav-text">domain-specific fine-tuning</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#object-category-classifier"><span class="nav-number">4.3.3.</span> <span class="nav-text">object category classifier</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Positive-vs-negative-examples-and-softmax"><span class="nav-number">4.3.3.1.</span> <span class="nav-text">Positive vs. negative examples and softmax</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#results-on-PASCAL-VOC-2010-12"><span class="nav-number">4.4.</span> <span class="nav-text">results on PASCAL VOC 2010-12</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#results-on-ILSVR2013-detection"><span class="nav-number">4.5.</span> <span class="nav-text">results on ILSVR2013 detection</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Visualization-Ablation-and-Modes-of-Error"><span class="nav-number">5.</span> <span class="nav-text">Visualization, Ablation and Modes of Error</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#visualizing-learned-features"><span class="nav-number">5.1.</span> <span class="nav-text">visualizing learned features</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ablation-studies"><span class="nav-number">5.2.</span> <span class="nav-text">ablation studies</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#without-fine-tuning"><span class="nav-number">5.2.1.</span> <span class="nav-text">without fine-tuning</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#with-fine-tuning"><span class="nav-number">5.2.2.</span> <span class="nav-text">with fine-tuning</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#comparison-to-recent-feature-learning-method"><span class="nav-number">5.2.3.</span> <span class="nav-text">comparison to recent feature learning method</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#network-architectures"><span class="nav-number">5.3.</span> <span class="nav-text">network architectures</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#detection-error-analysis"><span class="nav-number">5.4.</span> <span class="nav-text">detection error analysis</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#bounding-box-regression"><span class="nav-number">5.5.</span> <span class="nav-text">bounding-box regression</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#qualitative-results"><span class="nav-number">5.6.</span> <span class="nav-text">qualitative results</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#The-ILSVRC2013-Detection-Dataset"><span class="nav-number">6.</span> <span class="nav-text">The ILSVRC2013 Detection Dataset</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#dataset-overview"><span class="nav-number">6.1.</span> <span class="nav-text">dataset overview</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#region-proposals-1"><span class="nav-number">6.2.</span> <span class="nav-text">region proposals</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#training-data"><span class="nav-number">6.3.</span> <span class="nav-text">training data</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#validation-and-evaluation"><span class="nav-number">6.4.</span> <span class="nav-text">validation and evaluation</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ablation-study"><span class="nav-number">6.5.</span> <span class="nav-text">ablation study</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#relationship-to-OverFeat"><span class="nav-number">6.6.</span> <span class="nav-text">relationship to OverFeat</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Semantic-Segmentation"><span class="nav-number">7.</span> <span class="nav-text">Semantic Segmentation</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#CNN-features-for-segmentation"><span class="nav-number">7.1.</span> <span class="nav-text">CNN features for segmentation</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#results-on-VOC-2011"><span class="nav-number">7.2.</span> <span class="nav-text">results on VOC 2011</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Conclusion"><span class="nav-number">8.</span> <span class="nav-text">Conclusion</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-number">9.</span> <span class="nav-text">Reference</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Berwyn Zhang</p>
+  <div class="site-description" itemprop="description">Learn & output</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">29</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">26</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-address-card"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Berwyn Zhang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+</body>
+</html>

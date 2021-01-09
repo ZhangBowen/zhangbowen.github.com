@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"berwynzhang.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="最近区块链火的不行，各种创业公司，虽然不知道在做什么业务，不过可以先把技术了解下，本文是对知乎专栏《区块链演义》的总结，写一遍加深印象，特此说明。 到底，什么是比特币比特币是人类在数字世界中复制最原始的货币交易的所有尝试中，到目前为止，第一个接近成功的，也是唯一接近成功的一个。 交易方式在有中心的情况下用余额的方式记账比较方便，但是没有中心的情况下，对方需要对你的所有交易记录做校验才能证明余额的正">
+<meta property="og:type" content="article">
+<meta property="og:title" content="《区块链演义》笔记">
+<meta property="og:url" content="https://berwynzhang.com/2018/03/09/%E3%80%8A%E5%8C%BA%E5%9D%97%E9%93%BE%E6%BC%94%E4%B9%89%E3%80%8B%E7%AC%94%E8%AE%B0/index.html">
+<meta property="og:site_name" content="Berwyn&#39;s Blog">
+<meta property="og:description" content="最近区块链火的不行，各种创业公司，虽然不知道在做什么业务，不过可以先把技术了解下，本文是对知乎专栏《区块链演义》的总结，写一遍加深印象，特此说明。 到底，什么是比特币比特币是人类在数字世界中复制最原始的货币交易的所有尝试中，到目前为止，第一个接近成功的，也是唯一接近成功的一个。 交易方式在有中心的情况下用余额的方式记账比较方便，但是没有中心的情况下，对方需要对你的所有交易记录做校验才能证明余额的正">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/《区块链演义》笔记/1520496839076.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/《区块链演义》笔记/1520500667769.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/《区块链演义》笔记/1520505805915.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/《区块链演义》笔记/1520505917764.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/《区块链演义》笔记/1520591066615.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/《区块链演义》笔记/1520592074714.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/《区块链演义》笔记/1520592805921.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/《区块链演义》笔记/1520592944784.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/《区块链演义》笔记/1520593130125.png">
+<meta property="article:published_time" content="2018-03-08T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-01-09T15:16:01.422Z">
+<meta property="article:author" content="Berwyn Zhang">
+<meta property="article:tag" content="bitcoin">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://berwynzhang.com/assets/image/《区块链演义》笔记/1520496839076.png">
+
+<link rel="canonical" href="https://berwynzhang.com/2018/03/09/%E3%80%8A%E5%8C%BA%E5%9D%97%E9%93%BE%E6%BC%94%E4%B9%89%E3%80%8B%E7%AC%94%E8%AE%B0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>《区块链演义》笔记 | Berwyn's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Berwyn's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2018/03/09/%E3%80%8A%E5%8C%BA%E5%9D%97%E9%93%BE%E6%BC%94%E4%B9%89%E3%80%8B%E7%AC%94%E8%AE%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          《区块链演义》笔记
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-03-09 00:00:00" itemprop="dateCreated datePublished" datetime="2018-03-09T00:00:00+08:00">2018-03-09</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-09 23:16:01" itemprop="dateModified" datetime="2021-01-09T23:16:01+08:00">2021-01-09</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%8C%BA%E5%9D%97%E9%93%BE/" itemprop="url" rel="index"><span itemprop="name">区块链</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>最近区块链火的不行，各种创业公司，虽然不知道在做什么业务，不过可以先把技术了解下，本文是对知乎专栏<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/27419657">《区块链演义》</a>的总结，写一遍加深印象，特此说明。</p>
+<h2 id="到底，什么是比特币"><a href="#到底，什么是比特币" class="headerlink" title="到底，什么是比特币"></a>到底，什么是比特币</h2><p>比特币是人类在数字世界中复制最原始的货币交易的所有尝试中，到目前为止，第一个接近成功的，也是唯一接近成功的一个。</p>
+<h3 id="交易方式"><a href="#交易方式" class="headerlink" title="交易方式"></a>交易方式</h3><p>在有中心的情况下用余额的方式记账比较方便，但是没有中心的情况下，对方需要对你的所有交易记录做校验才能证明余额的正确性，所以去中心的交易方式是——<code>未使用的收入作为支出</code>，比特币是用<code>交易记录来表示的货币形式</code></p>
+<h3 id="正确性校验"><a href="#正确性校验" class="headerlink" title="正确性校验"></a>正确性校验</h3><p>目前的网络交易方式是中心化交易，需要一个大家公认的中心（支付宝、银行等等）作为担保，之所以这么做，因为数字货币有如下问题：</p>
+<ul>
+<li>任何现实中的货币或者一般等价物，都有一个最基本的特点，不能<code>轻易的复制</code>，但是这个对于数字货币来说就比较困难</li>
+<li>复制问题的另外一个角度：<code>双重支付</code>，同样一笔钱，如果用同一套证明机制来校验，那么可以在任何时间多次使用</li>
+<li>以上两个问题的本质是<code>分布式共识问题</code>，问题的核心是在一个人与人互相不信任的环境，想让所有人都认同你说的某件事，难如登天</li>
+</ul>
+<p>针对这个问题，朴素的思路是——每做一次交易，就把所有人召集到一起广播，效率太低了，pass，接下来我们要去寻求一个能够解决分布式共识问题的方法</p>
+<h4 id="分布式共识问题"><a href="#分布式共识问题" class="headerlink" title="分布式共识问题"></a>分布式共识问题</h4><p>比特币第一个解决了大型网络（1000节点以上）的“分布式共识”问题（传统的方法都仅限于不超过100个节点）</p>
+<p>传统的方法为什么对于节点数目有严格的要求？<br>以<strong>拜占庭容错算法</strong>举例：</p>
+<ul>
+<li>假设有N个节点，那么每次交易，为保证大家都认同你说的事情，除了交易发起者外其余节点都要交互一次</li>
+<li>即$(N - 1)^2$次，O($N^2$)的复杂度所以节点数目不能太多</li>
+</ul>
+<p>比特币交易保证正确性的方式是通过——<code>挖矿</code></p>
+<p>不懂这个概念没关系，咱们慢慢说什么是挖矿</p>
+<p>我们以说话这种场景举例：</p>
+<h5 id="对造谣的惩罚"><a href="#对造谣的惩罚" class="headerlink" title="对造谣的惩罚"></a>对造谣的惩罚</h5><p>先说与信任相对的——造谣，要缓解造谣问题至少可以有以下两种思路：</p>
+<ul>
+<li>判定 + 惩罚，但这么做需要有权威中心，不符合我们去中心的思路</li>
+<li>提高造谣成本——说话就要付钱，这也是中本聪采用的方法，一个合格的提高成本的方式需要符合三个条件<ul>
+<li>方便验证</li>
+<li>无法获益，任何人执行规定行为的时候都没有好处</li>
+<li>容易估计难度</li>
+</ul>
+</li>
+</ul>
+<p>这种东西叫做——<code>工作证明</code>(Proof-Of-Work 以下简称POW)</p>
+<p>POW最初用于防止恶意发电子邮件的，具体做法是强制要求邮件头后面带几位的冗余的字符，使得邮件头的哈希值小于某个值，才能发出。（飞行棋？）</p>
+<p>对Hash值做要求基本只能随机猜测，这样就能增加发邮件的成本，对于正常的邮件来说增加的只是一点点，但是对于群发邮件人来说，这个成本就相当大了。</p>
+<p>寻找这个<code>合法Hash值</code>的过程就是挖矿</p>
+<p>至此，造谣的成本大大提高，相对的，话语的真实性就得到了保障</p>
+<p>这里有两个个问题：</p>
+<ul>
+<li>成本变高了之后，最有可能发生的是——没人说话，除了能够cover住成本造谣的人</li>
+<li>但就算成本再高也不能保证说的所有的话都是真的，对于交易场景来说，对于造谣应该是0容忍的</li>
+</ul>
+<p>因为有第一个问题，所以我们我们还需要对说真话的人给予奖励；又因为有第二个问题，需要特殊的奖励机制来保证真实性</p>
+<h5 id="对真话的奖励"><a href="#对真话的奖励" class="headerlink" title="对真话的奖励"></a>对真话的奖励</h5><p>首先一点，这个奖励要比说话的成本高</p>
+<p>其次为了保证真实性，中本聪设计了如下机制（以抢红包做举例）：</p>
+<ul>
+<li>每隔一段时间群里发一个只有一个人能抢到的红包，条件是：<ul>
+<li>掷出10个6（说话条件）</li>
+<li>说一句真话</li>
+<li>收到大多数人的确认</li>
+</ul>
+</li>
+<li>一旦有人宣布自己满足了条件，大家就检查发的消息是否是真话，以及是否满足了说话条件</li>
+<li>检查完毕后可以发出确认消息，每个人需要对自己的检验结果负责——如果你确认为真的消息被大家投票投为假的那么你以后所有抢的红包都无效（踢出群？）</li>
+</ul>
+<p><strong>在如下三个前提下</strong>：</p>
+<ul>
+<li>奖励足够大，足以覆盖掷骰子的成本</li>
+<li>说真话及检验别人说的是否为真的成本远小于掷骰子的成本</li>
+<li>群里的大部分人是理智的——不会在未检查的情况下就确认别人的检验结果</li>
+<li>红包发放有先后顺序——如果有人宣布自己满足的条件，其他人都不会再去掷骰子而优先去验证</li>
+</ul>
+<p>于是，我们得到了一个非常理想的结果：</p>
+<ul>
+<li>大家都说真话</li>
+<li>大家都会积极的校验别人是不是说了真话</li>
+<li>大家在检验别人的内容后会积极的反馈，以便开始下一轮</li>
+</ul>
+<p>问题解决</p>
+<h4 id="交易的真实性"><a href="#交易的真实性" class="headerlink" title="交易的真实性"></a>交易的真实性</h4><p>区块链保证账本真实性和完整性的方法是，把所有交易记录串联在一起，然后用哈希函数生成key，这样可以保证不能认为修改里面的数据，即：</p>
+<ul>
+<li>哈希函数</li>
+<li>链式结构</li>
+</ul>
+<h3 id="比特币提出的心路历程"><a href="#比特币提出的心路历程" class="headerlink" title="比特币提出的心路历程"></a>比特币提出的心路历程</h3><ol>
+<li>货币在数字世界最简单的存在形式——记录交易的账本，用Hash函数和链式结构来保护账本不被篡改</li>
+<li>共识算法来防止双重支付</li>
+<li>由于共识算法的效率问题，所以需要加大说话的成本，不能让造谣成为常态</li>
+<li>但是光有惩罚没有奖励大家就都不说话了，于是又加入了奖励机制</li>
+</ol>
+<p>这就是比特币了（其实还不是很懂……）</p>
+<h3 id="网络延迟及对策"><a href="#网络延迟及对策" class="headerlink" title="网络延迟及对策"></a>网络延迟及对策</h3><p>如果我们网络是没有延迟的，这套系统就够用了，但是情况并不是这样，每个人说的话，并不能即时传达到每一个人那里</p>
+<p>这个就是计算机科学中的<code>异步拜占庭</code>容错问题</p>
+<p>根据<code>布鲁尔定理</code>——一个分布式计算系统不可能同时满足以下三点：</p>
+<ul>
+<li>一致性（Consistency）:等同于所有节点访问同一份最新的数据副本</li>
+<li>可用性（Availability）:对数据更新具备高可用性</li>
+<li>容忍网络分区（Partition tolerance）：分区相当于对通信的时限要求。系统如果不能在时限内达成数据一致性，就意味着发生了分区的情况，必须就当前操作在C和A之间做出选择</li>
+</ul>
+<p>对于比特币系统来说，我们选择了可用和容错，牺牲了一致性</p>
+<p>对于不一致的情况，中本聪加入了<code>最长链共识</code>——通过所有人都同意最长链的方法，对发布的区块达成一致</p>
+<h2 id="从货币体系看比特币的价值"><a href="#从货币体系看比特币的价值" class="headerlink" title="从货币体系看比特币的价值"></a>从货币体系看比特币的价值</h2><h3 id="货币价值体系公式"><a href="#货币价值体系公式" class="headerlink" title="货币价值体系公式"></a>货币价值体系公式</h3><p>一个货币体系的价值可以表示为：</p>
+<script type="math/tex; mode=display">R \le min(A, C, kN)</script><p>其中:</p>
+<ul>
+<li>A摧毁整个体系的成本</li>
+<li>C是体系内作弊成本，即体系内安全交易量的上限（如果交易超过这个量，那么可以从作弊中获得收益，我们认为交易有可能作弊）</li>
+<li>kN是这个货币体系中N个用户的日常交易量</li>
+</ul>
+<p>式子说明了以下问题：</p>
+<ol>
+<li>体系安全很重要</li>
+<li>体系安全的前提下，体系的价值就取决于交易量了</li>
+</ol>
+<p>同时式子中的三个参数之间本身也存在着关系，A的价值会受到交易量的影响，而C和kN往往是此消彼长。所以想要成功推广一种货币体系，需要初始条件（资金或公司等）建立A，然后吸引用户提升交易量，然后通过合作、融资等提高A，然后再提高交易量，如此反复。</p>
+<h3 id="比特币的货币价值"><a href="#比特币的货币价值" class="headerlink" title="比特币的货币价值"></a>比特币的货币价值</h3><p>在这种体系下，我们试着重新定义一下比特币——<strong>比特币是第一个将货币体系价值中A,C和kN用密码学的方法联系在一起的货币</strong></p>
+<p>比特币的安全性，是由算法保证的——并不是保证绝对的安全，而是——通过共识算法——保证安全性与N成正比</p>
+<p>上面提到，货币体系的A是<strong>作弊</strong>和<strong>推翻系统</strong>成本中的最小值<br>对于比特币来说，如果你有超过50%算力，那么你作弊的成本是0，相当于摧毁了系统；反之如果没有超过50%算力，那么作弊的可能性无限趋近于0<br>所以A = C<br>所以<script type="math/tex">R \le min(A, C, kN) = min(dN, dN, kN) = O(N)</script><br>表明比特币的价值取决于用户量，用的人多，它就有价值，用的人少，它就没价值</p>
+<p>这个东西感觉比较抽象？我们用法币和贵金属来做对比，货币价值(R)与用户数(N)的关系如下图</p>
+<p><img src="/assets/image/《区块链演义》笔记/1520496839076.png" alt="Alt text"></p>
+<ul>
+<li>蓝线对应法币，其价值基本等同于国家信用</li>
+<li>贵金属是绿线，用户数量增长到一定数量后，其价值受到交易量的影响，不能无限增长</li>
+<li>红线就是比特币，价值随着用户数量成线性增长</li>
+</ul>
+<p>比特币一天交易量近600亿人民币（2018/2/8<a target="_blank" rel="noopener" href="https://coinmarketcap.com/zh/currencies/volume/24-hour/">CoinMarketCap</a>数据）<br>但这并不是比特币的全部价值</p>
+<h3 id="比特币与泡沫？"><a href="#比特币与泡沫？" class="headerlink" title="比特币与泡沫？"></a>比特币与泡沫？</h3><p>如果把旁氏骗局的货币放在关系图中效果如下：</p>
+<p><img src="/assets/image/《区块链演义》笔记/1520500667769.png" alt="Alt text"></p>
+<p>并不是图片出错，而是旁氏骗局的货币是天然崩溃的（A小于等于0）所以与X轴重合，价值永远为0</p>
+<p>问题是，在崩溃之前，怎么知道一个货币体系是不是旁氏骗局呢？</p>
+<p>更多的时候崩溃的体系并不是A为0，但它看起来具有价值，却远比A高的多</p>
+<p>我们习惯称之为泡沫</p>
+<p>事实表明，人们总是高估A的值；或者说由于信息不对等，想让人们相信摧毁这个系统所需的代价原高于A，是件非常容易的事情</p>
+<p>这时比特币的另外一个优势就体现出来了——<code>信任可量化</code></p>
+<h3 id="比特币量化价值报告"><a href="#比特币量化价值报告" class="headerlink" title="比特币量化价值报告"></a>比特币量化价值报告</h3><p>那么比特币作弊成本量化之后是多少呢？——大约是一家平均日交易额为600亿人民币的公司的市值的51%——这是基于51%算力攻击所得出的结论，记作S/2</p>
+<p>但由于去中心化存在某些天然缺陷——<code>个人的理性选择可能导致集体的非理性</code>（<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E5%85%AC%E5%9C%B0%E6%82%B2%E5%8A%87">公地悲剧</a>和<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/zh-hans/%E5%9B%9A%E5%BE%92%E5%9B%B0%E5%A2%83">囚徒困境</a>）实际摧毁整个比特币体系所花的成本要小于S/2</p>
+<p>挖矿公司在长远的收益和短期利益之间倾向于选择后者，即使会对比特币带来灭顶之灾——收购其他公司，从而导致矿力集中化</p>
+<p><img src="/assets/image/《区块链演义》笔记/1520505805915.png" alt="2017/7数据"></p>
+<p>可以看到前四名挖矿公司拥有超过50%的算力</p>
+<p>7个月之后，情况更加严重</p>
+<p><img src="/assets/image/《区块链演义》笔记/1520505917764.png" alt="2018/3数据"></p>
+<p>前三名公司的算力总和就已经超过了50%，可以说比特币目前的安全就掌握在他们手里，如果他们联合起来作弊，那么没有人能够阻止的了</p>
+<p>假如要全部收购这些公司以掌握超过50%算力：</p>
+<ul>
+<li>先收购最小的一家，没有引起市场的警觉</li>
+<li>然后放出“备收购超过50%算力的公司，以摧毁比特币”的消息</li>
+<li>这个时候作为剩下的公司，他们的处境就是囚徒困境：<ul>
+<li>如果联合起来都不卖，那么比特币会继续稳定运行、升值</li>
+<li>如果自己不卖，而别人卖了，那么自己的公司因为比特币的崩溃而变的一文不值</li>
+<li>如果自己先卖，那么至少还能赚一笔</li>
+</ul>
+</li>
+<li>作为囚徒困境中的个体，会倾向于选择对自己最有利的选择</li>
+<li>随着收购的推进，给剩下的公司压力会越来越大，成交价会越来越低，直至比特币崩溃</li>
+<li>在这个过程中我们所需的成本大概率要小于S/2</li>
+<li>这个结论表明比特币目前的安全系数远小于主流的中心化的系统</li>
+</ul>
+<h2 id="扩容与分叉"><a href="#扩容与分叉" class="headerlink" title="扩容与分叉"></a>扩容与分叉</h2><h3 id="什么是扩容？"><a href="#什么是扩容？" class="headerlink" title="什么是扩容？"></a>什么是扩容？</h3><p>扩容并不是增发比特币，而是对每秒交易量扩容</p>
+<p>比特币规定每10分钟（左右）挖出一个大小为1MB的区块，每笔交易平均下来是250字节，于是每个区块可以放4000笔交易，大约每秒7笔交易</p>
+<p>对比支付宝双十一峰值每妙100000笔的量级，比特币的交易量上限实在是太低了</p>
+<p>于是随着参与人数增多，就出现了交易堵塞的情况</p>
+<p>目前针对此种情况的解决方案是多收交易费，但并不是长久之计</p>
+<p>扩容基本是业界共识，但是一直拖到现在，其中的原因要先从怎么扩容讲起</p>
+<h3 id="如何扩容"><a href="#如何扩容" class="headerlink" title="如何扩容"></a>如何扩容</h3><p>把问题分解为技术层面和工程层面两方面解答</p>
+<p>因为比特币是分布式系统，所以在升级的过程中会出现节点状态不一致的状况，这种情况称为分叉（fork）</p>
+<p>要解决分叉问题，我们先要弄清楚什么是分叉……</p>
+<h2 id="分叉"><a href="#分叉" class="headerlink" title="分叉"></a>分叉</h2><p>分叉分为三类：</p>
+<ul>
+<li>软分叉（不分叉）：旧节点接受新区块，新节点也接受旧区块</li>
+<li>软分叉：旧节点接受新区块，新节点不接受旧区块</li>
+<li>硬分叉：旧节点不接受新区块</li>
+</ul>
+<h3 id="软分叉（不分叉）"><a href="#软分叉（不分叉）" class="headerlink" title="软分叉（不分叉）"></a>软分叉（不分叉）</h3><p><img src="/assets/image/《区块链演义》笔记/1520591066615.png" alt="Alt text"></p>
+<p>也就是说这种情况下并不会真的分叉</p>
+<h3 id="软分叉"><a href="#软分叉" class="headerlink" title="软分叉"></a>软分叉</h3><h4 id="如果新节点算力超过50"><a href="#如果新节点算力超过50" class="headerlink" title="如果新节点算力超过50%"></a>如果新节点算力超过50%</h4><p><img src="/assets/image/《区块链演义》笔记/1520592074714.png" alt="Alt text"></p>
+<p>这个时候虽然旧节点会在新矿区挖矿，但是新节点不会在旧区块挖矿，然后新节点算力较大，那么最长的链一定是由新节点生成的，所以旧节点会选择升级，与新节点统一</p>
+<h4 id="如果新节点算力不足50"><a href="#如果新节点算力不足50" class="headerlink" title="如果新节点算力不足50%"></a>如果新节点算力不足50%</h4><p><img src="/assets/image/《区块链演义》笔记/1520592805921.png" alt="Alt text"></p>
+<p>这种情况下，新旧节点都不会互相接受<br>在新节点算力追上之前，两者是实实在在的分叉了</p>
+<h3 id="硬分叉"><a href="#硬分叉" class="headerlink" title="硬分叉"></a>硬分叉</h3><h4 id="新节点算力超过50"><a href="#新节点算力超过50" class="headerlink" title="新节点算力超过50%"></a>新节点算力超过50%</h4><p><img src="/assets/image/《区块链演义》笔记/1520592944784.png" alt="Alt text"></p>
+<p>这种情况下是软分叉第二种情况反过来</p>
+<h4 id="新节点算力没有超过50-且新节点能够接受旧节点"><a href="#新节点算力没有超过50-且新节点能够接受旧节点" class="headerlink" title="新节点算力没有超过50%且新节点能够接受旧节点"></a>新节点算力没有超过50%且新节点能够接受旧节点</h4><p><img src="/assets/image/《区块链演义》笔记/1520593130125.png" alt="Alt text"></p>
+<p>那么实际上升级操作会回滚</p>
+<h3 id="再谈如何扩容"><a href="#再谈如何扩容" class="headerlink" title="再谈如何扩容"></a>再谈如何扩容</h3><p>采用新共识算法来实现扩容的方案基本被否定——想要达到与POW一致安全性的目前只有POW</p>
+<p>在POW的前提下，POW的安全性需要在（接近）同步的情况下才能保证——你确实在和50%的节点公平竞争</p>
+<p>于是，POW引入了挖矿奖励，让矿工保持网络的同步</p>
+<p>一个新产生的区块，要传遍整个网络，需要至少半分钟</p>
+<p>新的区块就像一道题目，而传播就像发卷，这个卷子发给所有考生至少需要半分钟</p>
+<p>而这恰恰是不公平的地方，每轮挖矿总有人比别人早半分钟拿到试卷</p>
+<p>但是大家都默默的接受了，因为：</p>
+<ul>
+<li>每轮先拿到试卷的人是随机的</li>
+<li>反正考试时间是10分钟，大家觉得半分钟延迟可以接受</li>
+</ul>
+<p>但是，如果考试时间只有半分钟；或者卷子很多，发起来特别的慢，情况就不一样了</p>
+<p>从现象上来说，比特币网络会出现大量的孤块和分叉，也就是大量的算力被浪费了</p>
+<p>从本质上讲，实际是比特币的安全模型崩塌了——会出现分叉攻击，只需小于50%的算力，就能算出一条比全网最长链更长的区块链</p>
+<p>在<a target="_blank" rel="noopener" href="http://fc16.ifca.ai/bitcoin/papers/CDE+16.pdf">On scaling decentralized blockchain</a>这边论文里指出，如果十分钟产生一个区块的话，区块的大小不能超过4MB，而比特币规定了区块的大小不能超过1MB</p>
+<p>那么有没有在不增加区块大小的前提下增加交易容量呢？</p>
+<p>这就是隔离见证</p>
+<h4 id="隔离见证"><a href="#隔离见证" class="headerlink" title="隔离见证"></a>隔离见证</h4><p>一笔交易大约250字节，这里面包含了：</p>
+<ul>
+<li>交易方和交易额</li>
+<li>作为给钱的一方，需要给出有这笔钱的证明，是一组数字签名（大概占150字节）</li>
+</ul>
+<p>比特币允许使用脚本来替换签名，所以可以采用隔离见证的方式，把所有的见证部分扔到后面形成一个新的区块作为区块链的一个组成部分，这样可以把交易量提升1.5倍，而且用此种方式，旧的区块可以接受新的区块没有分叉风险</p>
+<p>但是隔离见证会降低比特币的安全性，因为只要是升级就会出现不同步，而不同步就会引起有效节点数目下降，由区块链原理可知，有效节点下降安全性也会下降</p>
+<p>唯一的解决办法是让尽量多的算力节点一起升级</p>
+<p>但是隔离见证迟迟没有部署下来，因为比特币参与者的博弈</p>
+<h3 id="比特币的参与者"><a href="#比特币的参与者" class="headerlink" title="比特币的参与者"></a>比特币的参与者</h3><p>两个重要群体：</p>
+<ul>
+<li>核心开发者（Bitcoin Core, BTC）开发了比特币的软件工具</li>
+<li>矿工（挖矿公司）负着高昂的电费用笨重的矿机挖矿，掌握几乎所有矿力</li>
+</ul>
+<p>矿工的收益来源于两方面，挖矿的奖励和交易费</p>
+<p>矿工在打包交易的时候会优先选择手续费高的交易打包，所以交易拥堵越严重，市场竞争越激烈，交易手续费越高，符合矿工利益</p>
+<p>所以只有当拥堵严重到影响交易量的时候矿工才会去想扩容</p>
+<p>所以最近两年，隔离验证才被真正推进日程</p>
+<p>但是，由于隔离验证可以很方便的实行闪电网络——可以将一部分交易挪到链下进行，减轻主链负担，所以会对矿工的交易手续费收取产生重大影响，所以矿工对于隔离见证兴趣缺缺</p>
+<p>这时，BTC和矿工之间就有了如下几个故事</p>
+<h4 id="香港共识"><a href="#香港共识" class="headerlink" title="香港共识"></a>香港共识</h4><p>由于交易堵塞的问题，比特币中出现了BC和BU分叉（都是在区块大小上做文章），虽然并没有得到矿工的实际认可，但是BTC还是感觉到了比特币受到了威胁——说分叉就分叉那还了得？</p>
+<p>但是BTC们的意见在某种意义上没有卵用，因为真正的算力在矿工手里，如果矿工决定转投某个山寨链，他们也没有办法，所有有些BTC决定去和矿工接触探个底——于是就有了第一次接触，香港共识：</p>
+<ul>
+<li>BTC: 同意矿工们扩大区块的意向，答应协助开发2MB的硬分叉升级</li>
+<li>矿工：同意支持隔离见证；同意等待BTC开发不去转BU和BC</li>
+</ul>
+<h4 id="香港共识破裂"><a href="#香港共识破裂" class="headerlink" title="香港共识破裂"></a>香港共识破裂</h4><p>几个月后，在先上隔离见证和区块链扩容的问题上两者产生了分歧（实际上由于BTC本来也不是一个中心化的组织，所以香港共识在BTC内部也没能达成一致），于是香港共识作废，双方进入撕逼状态</p>
+<h4 id="霸王硬上弓"><a href="#霸王硬上弓" class="headerlink" title="霸王硬上弓"></a>霸王硬上弓</h4><p>由于谈判进行不下去，BTC决定硬来——从2017年8月1日之后，如果不支持隔离见证（用区块上的信息表示支持与否），那么新的节点不接受该链（UASF）</p>
+<p>这样在算力不足（初始情况肯定是这样）的情况下会造成分叉，但是如果BTC的算力赶上来了，那么会合并，分叉又会合起来</p>
+<p>矿工的对策是提议在7月28日就进行硬分叉，对于支持隔离见证的区块一律视为非法（UAHF）</p>
+<p>但是由于后果太过严重，所以并没有采用，因为只要分叉就会造成用户流失以前比特币价格下跌，最后损失最大的还是矿工，随意矿工还是同意了隔离见证的升级</p>
+<p>虽然吃了个亏，但是矿工因为这个事情团结在了一起，诞生了纽约共识——在支持隔离见证的前提下，把区块扩大一倍到2MB(segwit2x)</p>
+<p>此项决议完全没有BTC的参与，并且飞快上线，比特币在上线当天暴涨20%</p>
+<p>至此扩容事件告一段落</p>
+<h2 id="比特币的未来"><a href="#比特币的未来" class="headerlink" title="比特币的未来"></a>比特币的未来</h2><h3 id="现在的比特币"><a href="#现在的比特币" class="headerlink" title="现在的比特币"></a>现在的比特币</h3><p>现在的比特币，是个<strong>中心化的</strong>交易量及其有限的非主流交易系统</p>
+<p>在这个系统设计之初，是力求去中心化的——通过算力的去中心化来达到系统的去中心化</p>
+<p>但是目前算力的过于集中应该是中本聪所没有想到的，他应该只是想建立一个去中心化的交易系统，并不是一个万世不移的中心化系统</p>
+<h3 id="十年后的比特币"><a href="#十年后的比特币" class="headerlink" title="十年后的比特币"></a>十年后的比特币</h3><p>首当其冲的问题，比特币值多少钱？</p>
+<p>上面我们提到的货币体系公式：</p>
+<script type="math/tex; mode=display">R \le min(A, C, kN)</script><p>看似比特币的价值主要取决于用户量的多少，但是当用户量增长到一定量级之后，比特币的价值会受制于交易量的大小</p>
+<p>如何评估十年后的交易量？让我们考虑一下几个影响因素：</p>
+<ul>
+<li>区块的大小：目前segwit2x和bcc都把区块加到大约8MB大小，这基本上是目前比特币所能达到的极限，也就是说交易量大概会翻八倍；</li>
+<li>网速会有变化，考虑到过去10年网速提升了大概100-1000倍左右，最乐观的估计一个区块大概可以到800MB左右，已经是说翻800倍</li>
+</ul>
+<p>除开交易量，再评估当时的真实交易需求kN</p>
+<p>仔细比较安全性、交易延迟、交易费等等指标会发现，比特币目前最大的问题是易用性不好，甚至有点反人类——秘钥丢失=钱无法找回</p>
+<p>对于十年后的比特币状态，作者的预测是——<strong>一个中心化的交易量尚可的非常难用的非主流交易系统</strong></p>
+<p>价格不会超过16000美元，如果那时候他还在的话</p>
+<h3 id="一年后的比特币"><a href="#一年后的比特币" class="headerlink" title="一年后的比特币"></a>一年后的比特币</h3><p>层出不穷的山寨币，其实是比比特币更薄更小的泡泡</p>
+<p>比如算力只有比特币的十分之一、从比特币分叉出去的BCC，价格却达到比特币五分之一，如果市场持续不理性下去，那么实际上是在支持分叉的产生</p>
+<p>而这些山寨币远没有比特币安全，如果有少量资本去攻击这些山寨币，那么会导致比特币的信任崩盘</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/bitcoin/" rel="tag"># bitcoin</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/12/21/XGBoost/" rel="prev" title="XGBoost">
+      <i class="fa fa-chevron-left"></i> XGBoost
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/03/11/%E4%BB%A5%E5%A4%AA%E5%9D%8A%E4%B8%8E%E9%BB%91%E7%9B%92%E5%AD%90/" rel="next" title="以太坊与黑盒子">
+      以太坊与黑盒子 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%B0%E5%BA%95%EF%BC%8C%E4%BB%80%E4%B9%88%E6%98%AF%E6%AF%94%E7%89%B9%E5%B8%81"><span class="nav-number">1.</span> <span class="nav-text">到底，什么是比特币</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%A4%E6%98%93%E6%96%B9%E5%BC%8F"><span class="nav-number">1.1.</span> <span class="nav-text">交易方式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%AD%A3%E7%A1%AE%E6%80%A7%E6%A0%A1%E9%AA%8C"><span class="nav-number">1.2.</span> <span class="nav-text">正确性校验</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%86%E5%B8%83%E5%BC%8F%E5%85%B1%E8%AF%86%E9%97%AE%E9%A2%98"><span class="nav-number">1.2.1.</span> <span class="nav-text">分布式共识问题</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%AF%B9%E9%80%A0%E8%B0%A3%E7%9A%84%E6%83%A9%E7%BD%9A"><span class="nav-number">1.2.1.1.</span> <span class="nav-text">对造谣的惩罚</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%AF%B9%E7%9C%9F%E8%AF%9D%E7%9A%84%E5%A5%96%E5%8A%B1"><span class="nav-number">1.2.1.2.</span> <span class="nav-text">对真话的奖励</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BA%A4%E6%98%93%E7%9A%84%E7%9C%9F%E5%AE%9E%E6%80%A7"><span class="nav-number">1.2.2.</span> <span class="nav-text">交易的真实性</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%AF%94%E7%89%B9%E5%B8%81%E6%8F%90%E5%87%BA%E7%9A%84%E5%BF%83%E8%B7%AF%E5%8E%86%E7%A8%8B"><span class="nav-number">1.3.</span> <span class="nav-text">比特币提出的心路历程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C%E5%BB%B6%E8%BF%9F%E5%8F%8A%E5%AF%B9%E7%AD%96"><span class="nav-number">1.4.</span> <span class="nav-text">网络延迟及对策</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%8E%E8%B4%A7%E5%B8%81%E4%BD%93%E7%B3%BB%E7%9C%8B%E6%AF%94%E7%89%B9%E5%B8%81%E7%9A%84%E4%BB%B7%E5%80%BC"><span class="nav-number">2.</span> <span class="nav-text">从货币体系看比特币的价值</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B4%A7%E5%B8%81%E4%BB%B7%E5%80%BC%E4%BD%93%E7%B3%BB%E5%85%AC%E5%BC%8F"><span class="nav-number">2.1.</span> <span class="nav-text">货币价值体系公式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%AF%94%E7%89%B9%E5%B8%81%E7%9A%84%E8%B4%A7%E5%B8%81%E4%BB%B7%E5%80%BC"><span class="nav-number">2.2.</span> <span class="nav-text">比特币的货币价值</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%AF%94%E7%89%B9%E5%B8%81%E4%B8%8E%E6%B3%A1%E6%B2%AB%EF%BC%9F"><span class="nav-number">2.3.</span> <span class="nav-text">比特币与泡沫？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%AF%94%E7%89%B9%E5%B8%81%E9%87%8F%E5%8C%96%E4%BB%B7%E5%80%BC%E6%8A%A5%E5%91%8A"><span class="nav-number">2.4.</span> <span class="nav-text">比特币量化价值报告</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%89%A9%E5%AE%B9%E4%B8%8E%E5%88%86%E5%8F%89"><span class="nav-number">3.</span> <span class="nav-text">扩容与分叉</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E6%89%A9%E5%AE%B9%EF%BC%9F"><span class="nav-number">3.1.</span> <span class="nav-text">什么是扩容？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E6%89%A9%E5%AE%B9"><span class="nav-number">3.2.</span> <span class="nav-text">如何扩容</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%86%E5%8F%89"><span class="nav-number">4.</span> <span class="nav-text">分叉</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BD%AF%E5%88%86%E5%8F%89%EF%BC%88%E4%B8%8D%E5%88%86%E5%8F%89%EF%BC%89"><span class="nav-number">4.1.</span> <span class="nav-text">软分叉（不分叉）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BD%AF%E5%88%86%E5%8F%89"><span class="nav-number">4.2.</span> <span class="nav-text">软分叉</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A6%82%E6%9E%9C%E6%96%B0%E8%8A%82%E7%82%B9%E7%AE%97%E5%8A%9B%E8%B6%85%E8%BF%8750"><span class="nav-number">4.2.1.</span> <span class="nav-text">如果新节点算力超过50%</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A6%82%E6%9E%9C%E6%96%B0%E8%8A%82%E7%82%B9%E7%AE%97%E5%8A%9B%E4%B8%8D%E8%B6%B350"><span class="nav-number">4.2.2.</span> <span class="nav-text">如果新节点算力不足50%</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A1%AC%E5%88%86%E5%8F%89"><span class="nav-number">4.3.</span> <span class="nav-text">硬分叉</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%96%B0%E8%8A%82%E7%82%B9%E7%AE%97%E5%8A%9B%E8%B6%85%E8%BF%8750"><span class="nav-number">4.3.1.</span> <span class="nav-text">新节点算力超过50%</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%96%B0%E8%8A%82%E7%82%B9%E7%AE%97%E5%8A%9B%E6%B2%A1%E6%9C%89%E8%B6%85%E8%BF%8750-%E4%B8%94%E6%96%B0%E8%8A%82%E7%82%B9%E8%83%BD%E5%A4%9F%E6%8E%A5%E5%8F%97%E6%97%A7%E8%8A%82%E7%82%B9"><span class="nav-number">4.3.2.</span> <span class="nav-text">新节点算力没有超过50%且新节点能够接受旧节点</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%8D%E8%B0%88%E5%A6%82%E4%BD%95%E6%89%A9%E5%AE%B9"><span class="nav-number">4.4.</span> <span class="nav-text">再谈如何扩容</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%9A%94%E7%A6%BB%E8%A7%81%E8%AF%81"><span class="nav-number">4.4.1.</span> <span class="nav-text">隔离见证</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%AF%94%E7%89%B9%E5%B8%81%E7%9A%84%E5%8F%82%E4%B8%8E%E8%80%85"><span class="nav-number">4.5.</span> <span class="nav-text">比特币的参与者</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%A6%99%E6%B8%AF%E5%85%B1%E8%AF%86"><span class="nav-number">4.5.1.</span> <span class="nav-text">香港共识</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%A6%99%E6%B8%AF%E5%85%B1%E8%AF%86%E7%A0%B4%E8%A3%82"><span class="nav-number">4.5.2.</span> <span class="nav-text">香港共识破裂</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%9C%B8%E7%8E%8B%E7%A1%AC%E4%B8%8A%E5%BC%93"><span class="nav-number">4.5.3.</span> <span class="nav-text">霸王硬上弓</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%AF%94%E7%89%B9%E5%B8%81%E7%9A%84%E6%9C%AA%E6%9D%A5"><span class="nav-number">5.</span> <span class="nav-text">比特币的未来</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%8E%B0%E5%9C%A8%E7%9A%84%E6%AF%94%E7%89%B9%E5%B8%81"><span class="nav-number">5.1.</span> <span class="nav-text">现在的比特币</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8D%81%E5%B9%B4%E5%90%8E%E7%9A%84%E6%AF%94%E7%89%B9%E5%B8%81"><span class="nav-number">5.2.</span> <span class="nav-text">十年后的比特币</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%80%E5%B9%B4%E5%90%8E%E7%9A%84%E6%AF%94%E7%89%B9%E5%B8%81"><span class="nav-number">5.3.</span> <span class="nav-text">一年后的比特币</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Berwyn Zhang</p>
+  <div class="site-description" itemprop="description">Learn & output</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">29</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">26</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-address-card"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Berwyn Zhang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+</body>
+</html>
