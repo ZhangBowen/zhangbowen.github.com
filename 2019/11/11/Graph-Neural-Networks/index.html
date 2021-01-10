@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"berwynzhang.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="A Comprehensive Survey on Graph Neural Networks  GNN分类（按更新方式）    与图嵌入的关系">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Graph Neural Networks">
+<meta property="og:url" content="https://berwynzhang.com/2019/11/11/Graph-Neural-Networks/index.html">
+<meta property="og:site_name" content="Berwyn&#39;s Blog">
+<meta property="og:description" content="A Comprehensive Survey on Graph Neural Networks  GNN分类（按更新方式）    与图嵌入的关系">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/GraphNeuralNetworks/1.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/GraphNeuralNetworks/1.jpg">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/GraphNeuralNetworks/2.jpg">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/GraphNeuralNetworks/2.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/GraphNeuralNetworks/3.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/GraphNeuralNetworks/4.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/GraphNeuralNetworks/5.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/GraphNeuralNetworks/6.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/GraphNeuralNetworks/7.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/GraphNeuralNetworks/8.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/GraphNeuralNetworks/9.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/GraphNeuralNetworks/10.png">
+<meta property="article:published_time" content="2019-11-10T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-01-10T15:19:48.452Z">
+<meta property="article:author" content="Berwyn Zhang">
+<meta property="article:tag" content="machine_learning">
+<meta property="article:tag" content="summary">
+<meta property="article:tag" content="GNN">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://berwynzhang.com/assets/image/GraphNeuralNetworks/1.png">
+
+<link rel="canonical" href="https://berwynzhang.com/2019/11/11/Graph-Neural-Networks/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Graph Neural Networks | Berwyn's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Berwyn's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2019/11/11/Graph-Neural-Networks/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Graph Neural Networks
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2019-11-11 00:00:00" itemprop="dateCreated datePublished" datetime="2019-11-11T00:00:00+08:00">2019-11-11</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-10 23:19:48" itemprop="dateModified" datetime="2021-01-10T23:19:48+08:00">2021-01-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="A-Comprehensive-Survey-on-Graph-Neural-Networks"><a href="#A-Comprehensive-Survey-on-Graph-Neural-Networks" class="headerlink" title="A Comprehensive Survey on Graph Neural Networks"></a>A Comprehensive Survey on Graph Neural Networks</h2><p><img src="/assets/image/GraphNeuralNetworks/1.png" alt="1753b44165f44bd7b515e16609755fe2.png"></p>
+<ul>
+<li>GNN分类（按更新方式）</li>
+</ul>
+<p><img src="/assets/image/GraphNeuralNetworks/1.jpg" alt="d6f4ce19b5088e88be4545d921a27f4b.jpeg"></p>
+<ul>
+<li>与图嵌入的关系</li>
+</ul>
+<p><img src="/assets/image/GraphNeuralNetworks/2.jpg" alt="e365ac8b84ba2454f8b046f34d2b6f85.jpeg"></p>
+<h2 id="Revisiting-Semi-Supervised-Learning-with-Graph-Embeddings"><a href="#Revisiting-Semi-Supervised-Learning-with-Graph-Embeddings" class="headerlink" title="Revisiting Semi-Supervised Learning with Graph Embeddings"></a>Revisiting Semi-Supervised Learning with Graph Embeddings</h2><h3 id="Related-Work"><a href="#Related-Work" class="headerlink" title="Related Work"></a>Related Work</h3><h4 id="Graph-Based-Semi-Supervised-Learning"><a href="#Graph-Based-Semi-Supervised-Learning" class="headerlink" title="Graph-Based Semi-Supervised Learning"></a>Graph-Based Semi-Supervised Learning</h4><ul>
+<li>Graph-based semi-supervised learning is based on the assumption that nearby nodes tend to have the same labels.</li>
+</ul>
+<p><strong>Loss:</strong></p>
+<script type="math/tex; mode=display">\sum_{i = 1}^Ll(y_i, f(x_i)) + \lambda\sum_{i,j}a_{ij}||f(x_i)-f(x_j)||^2</script><ul>
+<li>the first term is the standard supervised loss function</li>
+<li>The second term is the graph Laplacian regularization, which incurs a large penalty when similar nodes with a large $w_{ij}$ are predicted to have different labels</li>
+</ul>
+<h3 id="Learning-Embeddings"><a href="#Learning-Embeddings" class="headerlink" title="Learning Embeddings"></a>Learning Embeddings</h3><p>A number of embedding learning methods are based on the <strong>Skipgram</strong> model, which is a variant of the softmax model</p>
+<p><strong>Loss:</strong></p>
+<script type="math/tex; mode=display">-\sum_{(i,c)}logp(c|i) = -\sum_{(i,c)}(w_c^Te_i-log\sum_{c'\in C}exp(W^T_{c'}e_i))</script><ul>
+<li>$C$ is the set of all possible context</li>
+<li>$w$ are parameters of the Skipgram model</li>
+<li>$e_i$ is the embedding of instance $i$</li>
+</ul>
+<p><strong>Application:</strong></p>
+<ul>
+<li>word2vec(NLP)</li>
+<li>Deepwalk(Graph)</li>
+<li>LINE(multiple context spaces)</li>
+</ul>
+<h3 id="Semi-Supervised-Learning-with-Graph-Embeddings"><a href="#Semi-Supervised-Learning-with-Graph-Embeddings" class="headerlink" title="Semi-Supervised Learning with Graph Embeddings"></a>Semi-Supervised Learning with Graph Embeddings</h3><p><strong>Loss:</strong></p>
+<script type="math/tex; mode=display">\mathcal{L}_s + \lambda\mathcal{L}_u</script><ul>
+<li>$\mathcal{L}_s$ is a supervised loss of predicting the labels</li>
+<li>$\mathcal{L}_u$ is an unsupervised loss of predicting the graph context</li>
+</ul>
+<h4 id="Sampling-Context"><a href="#Sampling-Context" class="headerlink" title="Sampling Context"></a>Sampling Context</h4><p>We formulate the unsupervised loss $\mathcal{L}_u$ as a variant of Skipgram loss</p>
+<p><strong>negative sampling:</strong></p>
+<p>we are sampling $(i, c, γ)$ from a distribution, where $i$ and $c$ denote instance and context respectively, $γ = +1$ means $(i, c)$ is a positive pair and $γ = −1$ means negative. Given $(i, c, γ)$, we minimize the cross entropy loss of classifying the pair $(i, c)$ to a binary label $γ$:</p>
+<script type="math/tex; mode=display">-\mathbb{I}(\gamma = 1)log\sigma(W_c^Te_i) - \mathbb{I}(\gamma = - 1)log\sigma(-w_c^Te_i)</script><p><strong>sampling algorithm:</strong></p>
+<p><img src="/assets/image/GraphNeuralNetworks/2.png" alt="247dde07a01b39c6880108008b0944f6.png"></p>
+<p><strong>example:</strong></p>
+<p><img src="/assets/image/GraphNeuralNetworks/3.png" alt="47a76ea4ddddbdd62c55992b635f019c.png"></p>
+<h4 id="Transductive-Formulation"><a href="#Transductive-Formulation" class="headerlink" title="Transductive Formulation"></a>Transductive Formulation</h4><p><img src="/assets/image/GraphNeuralNetworks/4.png" alt="62601ed5f2f47a31943aae00d191bc0b.png"></p>
+<p>The two hidden layers are concatenated, and fed to a softmax layer to predict the class label of the instance</p>
+<h4 id="Inductive-Formulation"><a href="#Inductive-Formulation" class="headerlink" title="Inductive Formulation"></a>Inductive Formulation</h4><p><img src="/assets/image/GraphNeuralNetworks/5.png" alt="76027a4f7c4f13a86ffec0ed7c2cb51b.png"></p>
+<h3 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h3><p><strong>contributions:</strong></p>
+<ul>
+<li>incontrast to previous semi-supervised learning approaches that largely depend on graph Laplacian regularization, we propose a novel approach by joint training of classification and graph context prediction</li>
+<li>since it is difficult to generalize graph embeddings to novel instances, we design a novel inductive approach that conditions embeddings on input features</li>
+</ul>
+<h2 id="ANRL-Attributed-Network-Representation-Learning-via-Deep-Neural-Networks"><a href="#ANRL-Attributed-Network-Representation-Learning-via-Deep-Neural-Networks" class="headerlink" title="ANRL: Attributed Network Representation Learning via Deep Neural Networks"></a>ANRL: Attributed Network Representation Learning via Deep Neural Networks</h2><p><strong>issues：</strong></p>
+<ul>
+<li>network topology and node attributes are two heterogeneous information sources, thus it is challenging to preserve their properties in a common vector space</li>
+<li>the observed network data is often incomplete and even noisy, which brings more difficulties for obtaining informative representations</li>
+</ul>
+<p><strong>contributions:</strong></p>
+<ul>
+<li>integrates network structural proximity and node attributes affinity into low-dimensional representation spaces<ul>
+<li>we design a neighbor enhancement autoencoder, which can retain better similarity between data samples in the representation space</li>
+<li>We also propose an attribute-aware skip-gram model to capture the structure correlations</li>
+<li>These two components share connections to the encoder</li>
+</ul>
+</li>
+</ul>
+<h3 id="Proposed-Model"><a href="#Proposed-Model" class="headerlink" title="Proposed Model"></a>Proposed Model</h3><h4 id="problem-formulation"><a href="#problem-formulation" class="headerlink" title="problem formulation"></a>problem formulation</h4><p>we aim to represent:</p>
+<ul>
+<li>each node $i ∈ V$ as a low-dimensional vector $y_i$</li>
+<li>mapping function f preserves not only network structure but also node attribute proximity</li>
+</ul>
+<h4 id="neighbor-enhancement-autoencoder"><a href="#neighbor-enhancement-autoencoder" class="headerlink" title="neighbor enhancement autoencoder"></a>neighbor enhancement autoencoder</h4><p><strong>Loss:</strong></p>
+<script type="math/tex; mode=display">\mathcal{L}_{ae} = \sum_{i = 1}^n||\hat{x}_i - T(v_i)||_2^2</script><ul>
+<li>$\hat{x}_i$ is the reconstruction output of decoder</li>
+<li>$T(v_i)$ returns the target neighbors of $v_i$</li>
+<li>$T(·)$ incorporates prior knowledge into the model and can be adopted by the following two formulations:<ul>
+<li>Weighted Average Neighbor</li>
+<li>Elementwise Median Neighbor</li>
+</ul>
+</li>
+</ul>
+<h4 id="attribute-aware-skip-gram-model"><a href="#attribute-aware-skip-gram-model" class="headerlink" title="attribute-aware skip-gram model"></a>attribute-aware skip-gram model</h4><p><strong>Loss:</strong></p>
+<script type="math/tex; mode=display">\mathcal{L}_{sg} = -\sum_{i = 1}^n\sum_{c \in C}\sum_{-b \le j \le b}logp(v_{i + j}|X_i)</script><p>where:</p>
+<ul>
+<li>$v_{i+j}$ is the node context in the generated random sequence</li>
+<li>$b$ is the window size</li>
+</ul>
+<p><strong>negative sampling:</strong></p>
+<p>for a specific node-context pair $(v_i,v_{i+j})$, we have the following objective:</p>
+<script type="math/tex; mode=display">log\sigma(V_{i + j}^{'T}f(x_i)) + \sum_{n = 1}^{|neg|}\mathbb{E}_{v_n \sim p_n(v)}[log\sigma(-V_n^{'T}f(x_i))]</script><p>where:</p>
+<ul>
+<li>$P_n(v) ∝ d_v^{3/4}$ as suggested in [Mikolov et al., 2013b]</li>
+<li>where $d_v$ is the degree of node v</li>
+</ul>
+<h4 id="joint-optimization"><a href="#joint-optimization" class="headerlink" title="joint optimization"></a>joint optimization</h4><p><img src="/assets/image/GraphNeuralNetworks/6.png" alt="75a5372652e03f3201ca6878d4a1fe99.png"></p>
+<p><strong>Loss:</strong></p>
+<script type="math/tex; mode=display">L = L_{sg} + \alpha L_{ae} + \beta L_{reg}</script><h3 id="Conclusions"><a href="#Conclusions" class="headerlink" title="Conclusions"></a>Conclusions</h3><ul>
+<li>incorporates both node attributes and network structure information into the embedding</li>
+<li>To further address the structure proximity and attribute affinity preserving, we develop a neighbor enhancement autoencoder and attribute-aware skip-gram model to exploit the complex interrelations between structural information and attributes</li>
+</ul>
+<h2 id="DeepWalk-Online-Learning-of-Social-Representations"><a href="#DeepWalk-Online-Learning-of-Social-Representations" class="headerlink" title="DeepWalk: Online Learning of Social Representations"></a>DeepWalk: Online Learning of Social Representations</h2><p>the sparsity of a network representation is both a strength and a weakness:</p>
+<ul>
+<li>Sparsity enables the design of efficient discrete algorithms</li>
+<li>but can make it harder to generalize in statistical learning</li>
+</ul>
+<p>We develop an algorithm (DeepWalk) that learns social representations of a graph’s vertices, by modeling a stream of short random walks</p>
+<p>DeepWalk takes a graph as input and produces a latent representation as an output</p>
+<p>We propose an unsupervised method which learns features that capture the graph structure independent of the labels’ distribution.</p>
+<h3 id="Learning-Social-Representations"><a href="#Learning-Social-Representations" class="headerlink" title="Learning Social Representations"></a>Learning Social Representations</h3><p>We seek learning social representations with the following characteristics:</p>
+<ul>
+<li><strong>Adaptability</strong> - Real social networks are constantly evolving; new social relations should not require repeating the learning process all over again.</li>
+<li><strong>Community aware</strong> - The distance between latent dimensions should represent a metric for evaluating social similarity between the corresponding members of the network. This allows generalization in networks with homophily.</li>
+<li><strong>Low dimensional</strong> - When labeled data is scarce, low-dimensional models generalize better, and speed up convergence and inference.</li>
+<li><strong>Continuous</strong> - We require latent representations to model partial community membership in continuous space. In addition to providing a nuanced view of community membership, a continuous representation has smooth decision boundaries between communities which allows more robust classification.</li>
+</ul>
+<h4 id="random-walks"><a href="#random-walks" class="headerlink" title="random walks"></a>random walks</h4><p>We denote a random walk rooted at vertex $v_i$ as $W_{v_i}$ . It is a stochastic process with random variables $W_{v_i}^1 ,W_{v_i}^2 ,…,W_{v_i}^k$<br>such that $W_{v_i}^{k + 1}$ is a vertex chosen at random from the neighbors of vertex $v_k$</p>
+<h4 id="connection-power-laws"><a href="#connection-power-laws" class="headerlink" title="connection: power laws"></a>connection: power laws</h4><p>we observe that the frequency which vertices appear in the short random walks will also follow a power-law distribution<br>word frequency in natural language follows a similar distribution</p>
+<p><img src="/assets/image/GraphNeuralNetworks/7.png" alt="ad03eece940a4447781ce5982a93c130.png"></p>
+<h4 id="Language-Modeling"><a href="#Language-Modeling" class="headerlink" title="Language Modeling"></a>Language Modeling</h4><p><strong>relaxations：</strong></p>
+<p>from</p>
+<script type="math/tex; mode=display">Pr(v_i | (\Phi(v_1),\Phi(v_2),\dots,\Phi(v_{i-1})))</script><p>to</p>
+<script type="math/tex; mode=display">\underset{\Phi}{minimize} -logPr(\{v_{i-w}, \dots, v_{i - 1}, v_{i + 1}, \dots, v_{i+1}\}| \Phi(v_i))</script><ul>
+<li>First, the order independence assumption better captures a sense of <em>nearness</em> that is provided by random walks.</li>
+<li>Moreover, this relaxation is quite useful for speeding up the training time by building small<br>models as one vertex is given at a time</li>
+</ul>
+<h3 id="Method"><a href="#Method" class="headerlink" title="Method"></a>Method</h3><h4 id="DeepWalk"><a href="#DeepWalk" class="headerlink" title="DeepWalk"></a>DeepWalk</h4><p>the algorithm consists of two main components:</p>
+<ul>
+<li>a random walk generator</li>
+<li>an update procedure</li>
+</ul>
+<p>A walk samples uniformly from the neighbors of the last vertex visited until the maximum $length(t)$ is reached</p>
+<p><img src="/assets/image/GraphNeuralNetworks/8.png" alt="c436b689ea0a6d8819ba0e725bedda37.png"></p>
+<p>At the start of each pass we generate a random ordering to traverse the vertices. This is not strictly required, but is well-known to speed up the convergence of stochastic gradient descent.</p>
+<h5 id="skipgram"><a href="#skipgram" class="headerlink" title="skipgram"></a>skipgram</h5><p><img src="/assets/image/GraphNeuralNetworks/9.png" alt="fa661be56616ffeffe86c6cace2258b1.png"></p>
+<p>To speed the training time, Hierarchical Softmax can be used to approximate the probability distribution</p>
+<h5 id="hierarchical-softmax"><a href="#hierarchical-softmax" class="headerlink" title="hierarchical softmax"></a>hierarchical softmax</h5><p>we assign the vertices to the leaves of a binary tree, the prediction problem turns into maximizing the probability of a specific path in the tree</p>
+<script type="math/tex; mode=display">Pr(u_k|\Phi (v_j)) = \prod_{l = 1} ^{\left \lceil log|V| \right \rceil}Pr(b_l | \Phi(v_j))</script><p>Huffman coding is used to reduce the access time of frequent elements in the tree</p>
+<h3 id="Variants"><a href="#Variants" class="headerlink" title="Variants"></a>Variants</h3><ul>
+<li>Streaming</li>
+<li>Non-random walks</li>
+</ul>
+<h2 id="LINE-Large-scale-Information-Network-Embedding"><a href="#LINE-Large-scale-Information-Network-Embedding" class="headerlink" title="LINE: Large-scale Information Network Embedding"></a>LINE: Large-scale Information Network Embedding</h2><ul>
+<li>We propose a novel network embedding model called the “LINE,” which suits arbitrary types of information networks and easily scales to millions of nodes. It has a carefully designed objective function that preserves both the first-order and second-order proximities.</li>
+<li>We propose an edge-sampling algorithm for optimizing the objective. The algorithm tackles the limitation of the classical stochastic gradient decent and improves the effectiveness and efficiency of the inference.</li>
+</ul>
+<p><img src="/assets/image/GraphNeuralNetworks/10.png" alt="4bc7dcdb06e86c3d60ed07dd5934eda6.png"></p>
+<h3 id="Problem-definition"><a href="#Problem-definition" class="headerlink" title="Problem definition"></a>Problem definition</h3><p><strong>First-order Proximity:</strong></p>
+<p>the local pairwise proximity between two vertices</p>
+<p><strong>Second-order Proximity:</strong></p>
+<p>proximity between a pair of vertices (u,v) in a network is the similarity between their neighborhood network structures</p>
+<h3 id="Large-Scale-Information-Network-Embedding"><a href="#Large-Scale-Information-Network-Embedding" class="headerlink" title="Large-Scale Information Network Embedding"></a>Large-Scale Information Network Embedding</h3><h4 id="LINE-with-First-order-Proximity"><a href="#LINE-with-First-order-Proximity" class="headerlink" title="LINE with First-order Proximity"></a>LINE with First-order Proximity</h4><p>define the joint probability between vertex $v_i$ and $v_j$ as follows:</p>
+<script type="math/tex; mode=display">p_1(v_i, v_j) = \frac {1} {1 + exp(-u_i \cdot u_j)}</script><p>empirical probability:</p>
+<script type="math/tex; mode=display">\hat {p}_1(i,j) = \frac {w_{ij}} {W}</script><p>objective function:</p>
+<script type="math/tex; mode=display">O_1 = d(\hat p_1(\cdot, \cdot), p_1(\cdot, \cdot))</script><p>Replacing d(·, ·) with KL-divergence and omitting some constants, we have:</p>
+<script type="math/tex; mode=display">O_1 = -\sum_{(i,j) \in E}w_{ij}log p_1(v_i, v_j)</script><h4 id="LINE-with-Second-order-Proximity"><a href="#LINE-with-Second-order-Proximity" class="headerlink" title="LINE with Second-order Proximity"></a>LINE with Second-order Proximity</h4><p>define the joint probability between vertex $v_i$ and $v_j$ as follows:</p>
+<script type="math/tex; mode=display">p_2(v_j|v_i) = \frac {exp(u_j \cdot u_i)} {\sum_{k =1}^{|V|}exp(u_k \cdot u_i)}</script><p>empirical probability:</p>
+<script type="math/tex; mode=display">\hat p_2(v_j|v_i) = \frac {w_{ij}} {d_i}</script><p>objective function:</p>
+<script type="math/tex; mode=display">O_2 = \sum_{i \in V}\lambda_id(\hat p_2(\cdot|v_i), p_2(\cdot|v_i))</script><p>Replacing d(·, ·) with KL-divergence and omitting some constants, we have:</p>
+<script type="math/tex; mode=display">O_2 = -\sum_{(i,j) \in E}w_{ij}log p_2(v_j | v_i)</script><h3 id="Model-Optimization"><a href="#Model-Optimization" class="headerlink" title="Model Optimization"></a>Model Optimization</h3><ul>
+<li>negative sampling</li>
+<li>Optimization via Edge Sampling</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/machine-learning/" rel="tag"># machine_learning</a>
+              <a href="/tags/summary/" rel="tag"># summary</a>
+              <a href="/tags/GNN/" rel="tag"># GNN</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/09/11/Non-local-Neural-Networks/" rel="prev" title="Non-local Neural Networks">
+      <i class="fa fa-chevron-left"></i> Non-local Neural Networks
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#A-Comprehensive-Survey-on-Graph-Neural-Networks"><span class="nav-number">1.</span> <span class="nav-text">A Comprehensive Survey on Graph Neural Networks</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Revisiting-Semi-Supervised-Learning-with-Graph-Embeddings"><span class="nav-number">2.</span> <span class="nav-text">Revisiting Semi-Supervised Learning with Graph Embeddings</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Related-Work"><span class="nav-number">2.1.</span> <span class="nav-text">Related Work</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Graph-Based-Semi-Supervised-Learning"><span class="nav-number">2.1.1.</span> <span class="nav-text">Graph-Based Semi-Supervised Learning</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Learning-Embeddings"><span class="nav-number">2.2.</span> <span class="nav-text">Learning Embeddings</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Semi-Supervised-Learning-with-Graph-Embeddings"><span class="nav-number">2.3.</span> <span class="nav-text">Semi-Supervised Learning with Graph Embeddings</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Sampling-Context"><span class="nav-number">2.3.1.</span> <span class="nav-text">Sampling Context</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Transductive-Formulation"><span class="nav-number">2.3.2.</span> <span class="nav-text">Transductive Formulation</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Inductive-Formulation"><span class="nav-number">2.3.3.</span> <span class="nav-text">Inductive Formulation</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Conclusion"><span class="nav-number">2.4.</span> <span class="nav-text">Conclusion</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ANRL-Attributed-Network-Representation-Learning-via-Deep-Neural-Networks"><span class="nav-number">3.</span> <span class="nav-text">ANRL: Attributed Network Representation Learning via Deep Neural Networks</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Proposed-Model"><span class="nav-number">3.1.</span> <span class="nav-text">Proposed Model</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#problem-formulation"><span class="nav-number">3.1.1.</span> <span class="nav-text">problem formulation</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#neighbor-enhancement-autoencoder"><span class="nav-number">3.1.2.</span> <span class="nav-text">neighbor enhancement autoencoder</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#attribute-aware-skip-gram-model"><span class="nav-number">3.1.3.</span> <span class="nav-text">attribute-aware skip-gram model</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#joint-optimization"><span class="nav-number">3.1.4.</span> <span class="nav-text">joint optimization</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Conclusions"><span class="nav-number">3.2.</span> <span class="nav-text">Conclusions</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DeepWalk-Online-Learning-of-Social-Representations"><span class="nav-number">4.</span> <span class="nav-text">DeepWalk: Online Learning of Social Representations</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Learning-Social-Representations"><span class="nav-number">4.1.</span> <span class="nav-text">Learning Social Representations</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#random-walks"><span class="nav-number">4.1.1.</span> <span class="nav-text">random walks</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#connection-power-laws"><span class="nav-number">4.1.2.</span> <span class="nav-text">connection: power laws</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Language-Modeling"><span class="nav-number">4.1.3.</span> <span class="nav-text">Language Modeling</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Method"><span class="nav-number">4.2.</span> <span class="nav-text">Method</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#DeepWalk"><span class="nav-number">4.2.1.</span> <span class="nav-text">DeepWalk</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#skipgram"><span class="nav-number">4.2.1.1.</span> <span class="nav-text">skipgram</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#hierarchical-softmax"><span class="nav-number">4.2.1.2.</span> <span class="nav-text">hierarchical softmax</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Variants"><span class="nav-number">4.3.</span> <span class="nav-text">Variants</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#LINE-Large-scale-Information-Network-Embedding"><span class="nav-number">5.</span> <span class="nav-text">LINE: Large-scale Information Network Embedding</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Problem-definition"><span class="nav-number">5.1.</span> <span class="nav-text">Problem definition</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Large-Scale-Information-Network-Embedding"><span class="nav-number">5.2.</span> <span class="nav-text">Large-Scale Information Network Embedding</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#LINE-with-First-order-Proximity"><span class="nav-number">5.2.1.</span> <span class="nav-text">LINE with First-order Proximity</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#LINE-with-Second-order-Proximity"><span class="nav-number">5.2.2.</span> <span class="nav-text">LINE with Second-order Proximity</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Model-Optimization"><span class="nav-number">5.3.</span> <span class="nav-text">Model Optimization</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Berwyn Zhang</p>
+  <div class="site-description" itemprop="description">Learn & output</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">38</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-address-card"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Berwyn Zhang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+</body>
+</html>

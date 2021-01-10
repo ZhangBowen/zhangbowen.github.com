@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"berwynzhang.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="总结 本文针对CNN对局部信息的计算提出了一种新的操作结构，用来捕获全局信息之间的关系 所谓non-local计算就是当计算某一点的响应结果时，将全局响应值带权求和 使用non-local有以下几个好处: 计算某一点的输出时考虑该点与全局的相关性 计算不复杂的同时可以涨点 non-local操作保持原输入输出的尺寸不变，可以方便的加到网络中去   通用公式：$y_i&#x3D; \frac {1} {C(x">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Non-local Neural Networks">
+<meta property="og:url" content="https://berwynzhang.com/2018/09/11/Non-local-Neural-Networks/index.html">
+<meta property="og:site_name" content="Berwyn&#39;s Blog">
+<meta property="og:description" content="总结 本文针对CNN对局部信息的计算提出了一种新的操作结构，用来捕获全局信息之间的关系 所谓non-local计算就是当计算某一点的响应结果时，将全局响应值带权求和 使用non-local有以下几个好处: 计算某一点的输出时考虑该点与全局的相关性 计算不复杂的同时可以涨点 non-local操作保持原输入输出的尺寸不变，可以方便的加到网络中去   通用公式：$y_i&#x3D; \frac {1} {C(x">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/Non-localNeuralNetworks/1.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/Non-localNeuralNetworks/2.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/Non-localNeuralNetworks/3.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/Non-localNeuralNetworks/4.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/Non-localNeuralNetworks/5.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/Non-localNeuralNetworks/6.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/Non-localNeuralNetworks/7.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/Non-localNeuralNetworks/8.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/Non-localNeuralNetworks/9.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/Non-localNeuralNetworks/10.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/Non-localNeuralNetworks/11.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/Non-localNeuralNetworks/12.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/Non-localNeuralNetworks/13.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/Non-localNeuralNetworks/14.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/Non-localNeuralNetworks/15.png">
+<meta property="article:published_time" content="2018-09-10T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-01-10T15:09:52.130Z">
+<meta property="article:author" content="Berwyn Zhang">
+<meta property="article:tag" content="machine_learning">
+<meta property="article:tag" content="note">
+<meta property="article:tag" content="2018">
+<meta property="article:tag" content="video">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://berwynzhang.com/assets/image/Non-localNeuralNetworks/1.png">
+
+<link rel="canonical" href="https://berwynzhang.com/2018/09/11/Non-local-Neural-Networks/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Non-local Neural Networks | Berwyn's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Berwyn's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2018/09/11/Non-local-Neural-Networks/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Non-local Neural Networks
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-09-11 00:00:00" itemprop="dateCreated datePublished" datetime="2018-09-11T00:00:00+08:00">2018-09-11</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-10 23:09:52" itemprop="dateModified" datetime="2021-01-10T23:09:52+08:00">2021-01-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>本文针对CNN对局部信息的计算提出了一种新的操作结构，用来捕获全局信息之间的关系</li>
+<li>所谓non-local计算就是当计算某一点的响应结果时，将全局响应值带权求和</li>
+<li>使用non-local有以下几个好处:<ul>
+<li>计算某一点的输出时考虑该点与全局的相关性</li>
+<li>计算不复杂的同时可以涨点</li>
+<li>non-local操作保持原输入输出的尺寸不变，可以方便的加到网络中去</li>
+</ul>
+</li>
+<li>通用公式：$y_i= \frac {1} {C(x)}\sum_{\forall j}f(x_i, x_j)g(x_j)$<ul>
+<li>通常g函数就选为1*1卷积</li>
+<li>f函数一版选择Embedded Gaussian高斯函数，选择其他几种实际效果差距不大</li>
+<li>特别说明一点当f函数选择为Embedded Gaussian时，公式就等同于self-attention的形式，说明self-attention是non-local的一种特例</li>
+</ul>
+</li>
+<li>在non-local的具体实现上有一些改动用来加速计算<ul>
+<li>计算相关性矩阵的时候将channel数目减半</li>
+<li>计算相关性的时候不，枚举计算全局的点，可以通过pooling做降采样</li>
+</ul>
+</li>
+<li>训练的细节<ul>
+<li>使用image-net的模型作为初始化</li>
+<li>只在non-local的最后输出加BN，其余地方都不加</li>
+</ul>
+</li>
+<li>调参试验<ul>
+<li>关于f函数的选择？对结果影响不大</li>
+<li>把non-local块加在哪里?对结果影响不大，加在最后一层有轻微掉点</li>
+<li>加non-local块的数量？加的越多越好</li>
+<li>全局时间/全局空间/全局时空?将non-local单独应用于时间/空间均有提升，不过都不如应用于全局时空提升大</li>
+<li>C2D+non-local与C3D作对比？C2D+non-local好</li>
+<li>将non-local应用于C3D?也可以获得提升</li>
+<li>加长时间维度？可以取得更好的效果</li>
+</ul>
+</li>
+</ul>
+<h2 id="Abstract"><a href="#Abstract" class="headerlink" title="Abstract"></a>Abstract</h2><p>In this paper we present non-local operations as a generic family of building blocks for capturing long-range dependencies</p>
+<h2 id="Intorduction"><a href="#Intorduction" class="headerlink" title="Intorduction"></a>Intorduction</h2><p>Repeating local operations has several limitations:</p>
+<ul>
+<li>it is computationally inefficient</li>
+<li>it causes optimization difficulties that need to be carefully addressed</li>
+<li>these challenges make multihop dependency modeling difficult</li>
+</ul>
+<p>A non-local operation computes the response at a position as a weighted sum of the features at all positions in the input feature maps</p>
+<p><img src="/assets/image/Non-localNeuralNetworks/1.png" alt="4f4ad7a9bb78a03a26159c614df6bb5d.png"></p>
+<p>There are several advantages of using non-local operations:</p>
+<ul>
+<li>In contrast to the progressive behavior of recurrent and convolutional operations, non-local operations capture long-range dependencies directly by computing interactions between any two positions, regardless of their positional distance</li>
+<li>As we show in experiments, non-local operations are efficient and achieve their best results even with only a few layers</li>
+<li>Finally, our non-local operations maintain the variable input sizes and can be easily combined with other operations</li>
+</ul>
+<h2 id="Related-Work"><a href="#Related-Work" class="headerlink" title="Related Work"></a>Related Work</h2><p>skip-over</p>
+<h2 id="Non-local-Neural-Networks"><a href="#Non-local-Neural-Networks" class="headerlink" title="Non-local Neural Networks"></a>Non-local Neural Networks</h2><h3 id="Formulation"><a href="#Formulation" class="headerlink" title="Formulation"></a>Formulation</h3><p>We define a generic non-local operation in deep neural networks as:</p>
+<script type="math/tex; mode=display">y_i= \frac {1} {C(x)}\sum_{\forall j}f(x_i, x_j)g(x_j)</script><ul>
+<li>Here i is the index of an output position</li>
+<li>j is the index that enumerates all possible positions</li>
+<li>x is the input signal</li>
+<li>y is the output signal of the same size as x</li>
+<li>A pairwise function f computes a scalar (representing relationship such as affinity) between i and all j</li>
+<li>The unary function g computes a representation of the input signal at the position j</li>
+<li>The response is normalized by a factor C(x)</li>
+</ul>
+<h3 id="Instantiations"><a href="#Instantiations" class="headerlink" title="Instantiations"></a>Instantiations</h3><p>Next we describe several versions of f and g</p>
+<p>Interestingly our non-local models are not sensitive to these choices</p>
+<p><img src="/assets/image/Non-localNeuralNetworks/2.png" alt="9280fc6fea94b8f8d99102f5755356df.png"></p>
+<p>For simplicity, we only consider g in the form of a linear embedding</p>
+<script type="math/tex; mode=display">g(x_j) = W_gx_j</script><p>Next we discuss choices for the pairwise function f</p>
+<h4 id="Gaussian"><a href="#Gaussian" class="headerlink" title="Gaussian"></a>Gaussian</h4><script type="math/tex; mode=display">f(x_i, x_j) = e^{x^T_ix_j}</script><script type="math/tex; mode=display">C(x) = \sum_{\forall j}f(x_i, x_j)</script><h4 id="Embedded-Gaussian"><a href="#Embedded-Gaussian" class="headerlink" title="Embedded Gaussian"></a>Embedded Gaussian</h4><script type="math/tex; mode=display">f(x_i, x_j) = e^{\theta(x_i)^T\phi(x_j)}</script><p>Here $\theta(x_i) = W_\theta x_i$ and $\phi(x_j) = W_\phi x_j$ are two embeddings</p>
+<script type="math/tex; mode=display">C(x) = \sum_{\forall j}f(x_i, x_j)</script><p>We note that the self-attention module for a given i, $\frac 1 {C(x)}f(x_i, x_j)$ becomes the softmax computation.<br>Therefore self-attention is a special case of non-local operations in Embedded Gaussian version.<br>The attentional behavior is not essential in the applications we study</p>
+<h4 id="Dot-puoduct"><a href="#Dot-puoduct" class="headerlink" title="Dot puoduct"></a>Dot puoduct</h4><script type="math/tex; mode=display">f(x_i, x_j) = \theta(x_i)^T\phi(x_j)</script><p>In this case, we set normalization factor as $C(x) = N$ where N is the number of positions in x, rather than the sum of f, because it simplifies gradient computation</p>
+<h4 id="Concatenation"><a href="#Concatenation" class="headerlink" title="Concatenation"></a>Concatenation</h4><script type="math/tex; mode=display">f(x_i, x_j) = ReLU(w_f^T[\theta(x_i), \phi(x_j)])</script><script type="math/tex; mode=display">C(x) = N</script><h3 id="Non-local-block"><a href="#Non-local-block" class="headerlink" title="Non-local block"></a>Non-local block</h3><p>We define a non-local block as:</p>
+<script type="math/tex; mode=display">z_i = W_zy_i + x_i</script><p>where $y_i$ is output of non-local operation and $+x_i$ denotes a residual connection</p>
+<p><img src="/assets/image/Non-localNeuralNetworks/3.png" alt="74d2295d3c10e97d08ee2f692fc65fa8.png"></p>
+<p>We further adopt the following implementations that make it more efficient</p>
+<h4 id="Implementation-of-Non-local-blocks"><a href="#Implementation-of-Non-local-blocks" class="headerlink" title="Implementation of Non-local blocks"></a>Implementation of Non-local blocks</h4><p>We set the number of channels represented by $W_g, W_\theta,W_\phi$ to be half of the number of channels in x</p>
+<p>We can change x to a subsampling version $\hat x$(e.g. by pooling)</p>
+<h2 id="Video-Classification-Models"><a href="#Video-Classification-Models" class="headerlink" title="Video Classification Models"></a>Video Classification Models</h2><p>First we describe our baseline network architectures for this task, and then extend them into 3D ConvNets and our proposed non-local nets</p>
+<h4 id="2D-ConvNet-baseline-C2D"><a href="#2D-ConvNet-baseline-C2D" class="headerlink" title="2D ConvNet baseline(C2D)"></a>2D ConvNet baseline(C2D)</h4><p><img src="/assets/image/Non-localNeuralNetworks/4.png" alt="6c621fec65df85f8072abc9027428aa4.png"></p>
+<p>The only operation involving the temporal domain are the pooling layers</p>
+<h4 id="Inflated-3D-ConvNet-I3D"><a href="#Inflated-3D-ConvNet-I3D" class="headerlink" title="Inflated 3D ConvNet (I3D)"></a>Inflated 3D ConvNet (I3D)</h4><p>2D k×k kernel can be inflated as a 3D t×k×k kernel</p>
+<p>Initialize: each of the t planes in the t×k×k kernel is initialized by the pre-trained k×k weights, rescaled by 1/t</p>
+<h4 id="Non-local-network"><a href="#Non-local-network" class="headerlink" title="Non-local network"></a>Non-local network</h4><p>We insert non-local blocks into C2D or I3D to turn them into non-local nets</p>
+<p>The implementation details are described in the next section</p>
+<h3 id="Implementation-Details"><a href="#Implementation-Details" class="headerlink" title="Implementation Details"></a>Implementation Details</h3><h4 id="Traning"><a href="#Traning" class="headerlink" title="Traning"></a>Traning</h4><ul>
+<li>pre-trained on ImageNet</li>
+<li>fine-tune our models using 32-frame input clips</li>
+<li>These clips are formed by randomly cropping out 64 consecutive frames from the original full-length video and then dropping every other frame</li>
+<li>We add a BN layer right after the last 1×1×1 layer that represents $W_z$ ; we do not add BN to other layers in a non-local block</li>
+</ul>
+<h4 id="Inference"><a href="#Inference" class="headerlink" title="Inference"></a>Inference</h4><p>For the temporal domain, in our practice we sample 10 clips evenly from a full-length video and compute the softmax scores on them individually. The final prediction is the averaged softmax scores of all clips</p>
+<h2 id="Experiments-on-Video-Classification"><a href="#Experiments-on-Video-Classification" class="headerlink" title="Experiments on Video Classification"></a>Experiments on Video Classification</h2><h3 id="Experiments-on-Kinetics"><a href="#Experiments-on-Kinetics" class="headerlink" title="Experiments on Kinetics"></a>Experiments on Kinetics</h3><p><img src="/assets/image/Non-localNeuralNetworks/5.png" alt="806541b0a703a4a7edd147032ca11198.png"></p>
+<h4 id="Instantiations-1"><a href="#Instantiations-1" class="headerlink" title="Instantiations"></a>Instantiations</h4><p>Interestingly, the embedded Gaussian, dot-product, and concatenation versions perform similarly</p>
+<p>Our experiments show that the attentional (softmax) behavior of this module is not the key to the improvement in our applications; instead, it is more likely that the non-local behavior is important, and it is insensitive to the instantiations</p>
+<p>In the rest of this paper, we use the embedded Gaussian version by default</p>
+<h4 id="Which-stage-to-add-non-local-blocks"><a href="#Which-stage-to-add-non-local-blocks" class="headerlink" title="Which stage to add non-local blocks?"></a>Which stage to add non-local blocks?</h4><p><img src="/assets/image/Non-localNeuralNetworks/6.png" alt="56366a357571bb165af1433fa17578ae.png"></p>
+<p>The improvement is similar</p>
+<h4 id="Going-deeper-with-non-local-blocks"><a href="#Going-deeper-with-non-local-blocks" class="headerlink" title="Going deeper with non-local blocks"></a>Going deeper with non-local blocks</h4><p>This table shows the result of more non-local blocks</p>
+<p><img src="/assets/image/Non-localNeuralNetworks/7.png" alt="3626927c2230cb6903235d604d628d7a.png"></p>
+<p>More non-local blocks in general lead to better results</p>
+<h4 id="Non-local-in-spacetime"><a href="#Non-local-in-spacetime" class="headerlink" title="Non-local in spacetime"></a>Non-local in spacetime</h4><p>This table we study the effect of non-local blocks applied along space, time or spacetime</p>
+<p><img src="/assets/image/Non-localNeuralNetworks/8.png" alt="a62de33b7a70fcabedf424abb381afaa.png"></p>
+<p>both the space-only and time-only versions improve over the C2D baseline, but are inferior to the spacetime version</p>
+<h4 id="Non-local-net-vs-3D-ConvNet"><a href="#Non-local-net-vs-3D-ConvNet" class="headerlink" title="Non-local net vs. 3D ConvNet"></a>Non-local net vs. 3D ConvNet</h4><p><img src="/assets/image/Non-localNeuralNetworks/9.png" alt="852cf2a7219a56a16db4458dc2402c02.png"></p>
+<p>This comparison shows that our method can be more effective than 3D convolutions when used alone</p>
+<h4 id="Non-local-3D-ConvNet"><a href="#Non-local-3D-ConvNet" class="headerlink" title="Non-local 3D ConvNet"></a>Non-local 3D ConvNet</h4><p>This table shows the results of inserting 5 blocks into I3D models</p>
+<p><img src="/assets/image/Non-localNeuralNetworks/10.png" alt="70a8c2fef66bf44dc79d23b1258702d8.png"></p>
+<p>Shows that non-local operations and 3D convolutions are complementary</p>
+<h4 id="Longer-sequences"><a href="#Longer-sequences" class="headerlink" title="Longer sequences"></a>Longer sequences</h4><p>Finally we investigate the generality of our models on longer input videos. We use input clips consisting of 128 consecutive frames without subsampling</p>
+<p><img src="/assets/image/Non-localNeuralNetworks/11.png" alt="b424af3af564c49b53378f4f42e438f1.png"></p>
+<p>We also find that our NL I3D can maintain its gain over the I3D counterparts</p>
+<h4 id="Comparisons-with-state-of-the-art-results"><a href="#Comparisons-with-state-of-the-art-results" class="headerlink" title="Comparisons with state-of-the-art results"></a>Comparisons with state-of-the-art results</h4><p><img src="/assets/image/Non-localNeuralNetworks/12.png" alt="9e511584c90c9c80210415af9398affe.png"></p>
+<h3 id="Experiments-on-Charades"><a href="#Experiments-on-Charades" class="headerlink" title="Experiments on Charades"></a>Experiments on Charades</h3><p><img src="/assets/image/Non-localNeuralNetworks/13.png" alt="327398c6f4211d3b524b8b7cb5b874ed.png"></p>
+<h2 id="Extension-Experiments-on-COCO"><a href="#Extension-Experiments-on-COCO" class="headerlink" title="Extension: Experiments on COCO"></a>Extension: Experiments on COCO</h2><h3 id="Object-detection-and-instance-segmentation"><a href="#Object-detection-and-instance-segmentation" class="headerlink" title="Object detection and instance segmentation"></a>Object detection and instance segmentation</h3><p>We modify the Mask R-CNN backbone by adding one non-local block</p>
+<p><img src="/assets/image/Non-localNeuralNetworks/14.png" alt="13d88324c791732f8944fd0cc80f94f4.png"></p>
+<p>This comparison suggests that non-local dependency has not been sufficiently captured by existing models despite increased depth/capacity</p>
+<h4 id="Keypoint-detection"><a href="#Keypoint-detection" class="headerlink" title="Keypoint detection"></a>Keypoint detection</h4><p><img src="/assets/image/Non-localNeuralNetworks/15.png" alt="e1b72eb200580bb51b51d153f1b4fa0e.png"></p>
+<h2 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h2><p>skip-over</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/machine-learning/" rel="tag"># machine_learning</a>
+              <a href="/tags/note/" rel="tag"># note</a>
+              <a href="/tags/2018/" rel="tag"># 2018</a>
+              <a href="/tags/video/" rel="tag"># video</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/08/23/CNN-Architectures-for-Large-Scale-Audio-Classification/" rel="prev" title="CNN Architectures for Large-Scale Audio Classification">
+      <i class="fa fa-chevron-left"></i> CNN Architectures for Large-Scale Audio Classification
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/11/11/Graph-Neural-Networks/" rel="next" title="Graph Neural Networks">
+      Graph Neural Networks <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">1.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Abstract"><span class="nav-number">2.</span> <span class="nav-text">Abstract</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Intorduction"><span class="nav-number">3.</span> <span class="nav-text">Intorduction</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Related-Work"><span class="nav-number">4.</span> <span class="nav-text">Related Work</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Non-local-Neural-Networks"><span class="nav-number">5.</span> <span class="nav-text">Non-local Neural Networks</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Formulation"><span class="nav-number">5.1.</span> <span class="nav-text">Formulation</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Instantiations"><span class="nav-number">5.2.</span> <span class="nav-text">Instantiations</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Gaussian"><span class="nav-number">5.2.1.</span> <span class="nav-text">Gaussian</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Embedded-Gaussian"><span class="nav-number">5.2.2.</span> <span class="nav-text">Embedded Gaussian</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Dot-puoduct"><span class="nav-number">5.2.3.</span> <span class="nav-text">Dot puoduct</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Concatenation"><span class="nav-number">5.2.4.</span> <span class="nav-text">Concatenation</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Non-local-block"><span class="nav-number">5.3.</span> <span class="nav-text">Non-local block</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Implementation-of-Non-local-blocks"><span class="nav-number">5.3.1.</span> <span class="nav-text">Implementation of Non-local blocks</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Video-Classification-Models"><span class="nav-number">6.</span> <span class="nav-text">Video Classification Models</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#2D-ConvNet-baseline-C2D"><span class="nav-number">6.0.1.</span> <span class="nav-text">2D ConvNet baseline(C2D)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Inflated-3D-ConvNet-I3D"><span class="nav-number">6.0.2.</span> <span class="nav-text">Inflated 3D ConvNet (I3D)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Non-local-network"><span class="nav-number">6.0.3.</span> <span class="nav-text">Non-local network</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Implementation-Details"><span class="nav-number">6.1.</span> <span class="nav-text">Implementation Details</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Traning"><span class="nav-number">6.1.1.</span> <span class="nav-text">Traning</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Inference"><span class="nav-number">6.1.2.</span> <span class="nav-text">Inference</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Experiments-on-Video-Classification"><span class="nav-number">7.</span> <span class="nav-text">Experiments on Video Classification</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Experiments-on-Kinetics"><span class="nav-number">7.1.</span> <span class="nav-text">Experiments on Kinetics</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Instantiations-1"><span class="nav-number">7.1.1.</span> <span class="nav-text">Instantiations</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Which-stage-to-add-non-local-blocks"><span class="nav-number">7.1.2.</span> <span class="nav-text">Which stage to add non-local blocks?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Going-deeper-with-non-local-blocks"><span class="nav-number">7.1.3.</span> <span class="nav-text">Going deeper with non-local blocks</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Non-local-in-spacetime"><span class="nav-number">7.1.4.</span> <span class="nav-text">Non-local in spacetime</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Non-local-net-vs-3D-ConvNet"><span class="nav-number">7.1.5.</span> <span class="nav-text">Non-local net vs. 3D ConvNet</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Non-local-3D-ConvNet"><span class="nav-number">7.1.6.</span> <span class="nav-text">Non-local 3D ConvNet</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Longer-sequences"><span class="nav-number">7.1.7.</span> <span class="nav-text">Longer sequences</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Comparisons-with-state-of-the-art-results"><span class="nav-number">7.1.8.</span> <span class="nav-text">Comparisons with state-of-the-art results</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Experiments-on-Charades"><span class="nav-number">7.2.</span> <span class="nav-text">Experiments on Charades</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Extension-Experiments-on-COCO"><span class="nav-number">8.</span> <span class="nav-text">Extension: Experiments on COCO</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Object-detection-and-instance-segmentation"><span class="nav-number">8.1.</span> <span class="nav-text">Object detection and instance segmentation</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Keypoint-detection"><span class="nav-number">8.1.1.</span> <span class="nav-text">Keypoint detection</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Conclusion"><span class="nav-number">9.</span> <span class="nav-text">Conclusion</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Berwyn Zhang</p>
+  <div class="site-description" itemprop="description">Learn & output</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">38</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-address-card"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Berwyn Zhang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+</body>
+</html>

@@ -162,6 +162,913 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2017/11/09/Faster%20R-CNN/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2017/11/09/Faster%20R-CNN/" class="post-title-link" itemprop="url">Faster R-CNN</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2017-11-09 00:00:00" itemprop="dateCreated datePublished" datetime="2017-11-09T00:00:00+08:00">2017-11-09</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-09 22:25:36" itemprop="dateModified" datetime="2021-01-09T22:25:36+08:00">2021-01-09</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>本文的主旨是将生成proposal的过程也使用神经网络处理，并且共享了classification的中间卷积结果，大大减少了proposal过程的用时</li>
+</ul>
+<h3 id="RPN网络结构"><a href="#RPN网络结构" class="headerlink" title="RPN网络结构"></a>RPN网络结构</h3><ul>
+<li>用一个n*n(本文用3)的卷积核在classification的最后一层卷积出来的feature map上滑动</li>
+<li>以每个feature为中心生成3(不同尺寸)*3(不同比例)的定长proposal 特征vector(在训练时与图片边界产生交叉的proposal丢弃)</li>
+<li>然后在这个vector后面接两个1*1卷积，得出两组结果<ul>
+<li>一组表示这个proposal有待检测物体的概率(2个数 softmax)</li>
+<li>一组表示边界框的位置(4个数)</li>
+</ul>
+</li>
+<li>根据有物体的概率做NMS(阈值0.7)</li>
+<li>这种生成proposal的方式具有平移不变性</li>
+</ul>
+<h3 id="网络训练"><a href="#网络训练" class="headerlink" title="网络训练"></a>网络训练</h3>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2017/11/09/Faster%20R-CNN/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2017/11/07/Fast%20R-CNN/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2017/11/07/Fast%20R-CNN/" class="post-title-link" itemprop="url">Fast R-CNN</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2017-11-07 00:00:00" itemprop="dateCreated datePublished" datetime="2017-11-07T00:00:00+08:00">2017-11-07</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-09 22:22:12" itemprop="dateModified" datetime="2021-01-09T22:22:12+08:00">2021-01-09</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>本文是结合RCNN和SPPnet的改进版本<ul>
+<li>大幅提成训练/测试速度</li>
+<li>实现端对端一体化训练</li>
+</ul>
+</li>
+</ul>
+<h3 id="对前作缺点分析"><a href="#对前作缺点分析" class="headerlink" title="对前作缺点分析"></a>对前作缺点分析</h3><ul>
+<li>RCNN<ul>
+<li>多阶段训练</li>
+<li>训练慢，也占用硬盘空间</li>
+<li>inference也慢</li>
+</ul>
+</li>
+<li>SPPnet<ul>
+<li>多阶段训练</li>
+<li>fine-tuning阶段无法更新conv网络参数</li>
+</ul>
+</li>
+</ul>
+<h3 id="网络结构"><a href="#网络结构" class="headerlink" title="网络结构"></a>网络结构</h3>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2017/11/07/Fast%20R-CNN/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2017/11/03/Rich%20Feature%20Hierarchies%20for%20Accurate%20Object%20Detection%20and%20Semantic%20Segmentation/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2017/11/03/Rich%20Feature%20Hierarchies%20for%20Accurate%20Object%20Detection%20and%20Semantic%20Segmentation/" class="post-title-link" itemprop="url">Rich Feature Hierarchies for Accurate Object Detection and Semantic Segmentation</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2017-11-03 00:00:00" itemprop="dateCreated datePublished" datetime="2017-11-03T00:00:00+08:00">2017-11-03</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-09 22:15:21" itemprop="dateModified" datetime="2021-01-09T22:15:21+08:00">2021-01-09</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>新的detection方法的特点<ul>
+<li>利用了高拟合能力的卷积神经网络</li>
+<li>缓解了训练detection任务数据量少的问题</li>
+</ul>
+</li>
+</ul>
+<h3 id="物体定位问题"><a href="#物体定位问题" class="headerlink" title="物体定位问题"></a>物体定位问题</h3><p>旧方案：</p>
+<ul>
+<li>当成回归问题做——效果不好</li>
+<li>用滑动窗口做——新的数据集图片比较大，不适合</li>
+</ul>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2017/11/03/Rich%20Feature%20Hierarchies%20for%20Accurate%20Object%20Detection%20and%20Semantic%20Segmentation/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2017/10/31/Inception%E6%80%BB%E7%BB%93/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2017/10/31/Inception%E6%80%BB%E7%BB%93/" class="post-title-link" itemprop="url">Inception总结</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2017-10-31 00:00:00" itemprop="dateCreated datePublished" datetime="2017-10-31T00:00:00+08:00">2017-10-31</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-09 22:11:34" itemprop="dateModified" datetime="2021-01-09T22:11:34+08:00">2021-01-09</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <div class="table-container">
+<table>
+<thead>
+<tr>
+<th style="text-align:center">论文</th>
+<th style="text-align:center">备注</th>
+<th style="text-align:center">top5 error</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center"><a href="/2017/05/19/Network%20In%20Network/">Network In Network</a></td>
+<td style="text-align:center">提出了1 x 1卷积核代替maxout 提供了更好的多filter聚合能力</td>
+<td style="text-align:center">CIFAR-100 数据集 1 model; 1 crop; top1 error: 35.68%</td>
+</tr>
+<tr>
+<td style="text-align:center"><a href="/2017/05/26/Going%20deeper%20with%20convolutions/">Going deeper with convolutions</a></td>
+<td style="text-align:center">将NIN中子网络的概念更加泛化利用多个不同大小的filter抽取信息利用1 X 1卷积增加信息稠密程度减少计算量</td>
+<td style="text-align:center">ILSVRC 2014 数据集1 model; 1 crop: 10.07%ensemble(7 models, 144 crops): 6.67%</td>
+</tr>
+<tr>
+<td style="text-align:center"><a href="/2017/06/04/Batch%20Normalization_%20Accelerating%20Deep%20Network%20Training%20by%20Reducing%20Internal%20Covariate%20Shift/">Batch Normalization Accelerating Deep Network Training by Reducing Internal Covariate Shift</a></td>
+<td style="text-align:center">提出并利用BN结构解决内部协变量漂移问题大幅提升网络训练速度</td>
+<td style="text-align:center">LSVRC 2012 数据集ensemble(6 models, 144 crops): 4.94%</td>
+</tr>
+<tr>
+<td style="text-align:center"><a href="/2017/06/11/Rethinking%20the%20Inception%20Architecture%20for%20Computer%20Vision/">Rethinking the Inception Architecture for Computer Vision</a></td>
+<td style="text-align:center">提出了4个设计网络的原则 <br>提出了用多个小卷积代替大卷积的方法<br> 提出了用非对称卷积<br> 提出了更高效的pooling方式——conv和pool并行计算然后concat到一起<br> 提出新的正则化方式——标签平滑</td>
+<td style="text-align:center">LSVRC 2012 数据集 1 model; 1 crop:5.6% ensemble(4 models, 144 crops): 3.58%</td>
+</tr>
+<tr>
+<td style="text-align:center"><a href="/2017/06/18/Inception-v4,%20Inception-ResNet%20and%20the%20Impact%20of%20Residual%20Connection%20on%20Learning/">Inception-v4, Inception-ResNet and the Impact of Residual Connection on Learning</a></td>
+<td style="text-align:center">在v3的基础上加了一些小改动提出v4与ResNet结合提出Inception-ResNet提出了当filter数量超过1000的时候防止训练崩溃的缩放残差方法</td>
+<td style="text-align:center">ILSVRC 2012 数据集 1 model; 1 crop: <br> Inception-v4: 5.0% <br>Inception-ResNet-v1: 5.5% <br> Inception-ResNet-v2: 4.9% <br> Inception-v4 + 3 * Inception-ResNet-v2: 3.1%</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2017/10/14/GAN%E6%80%BB%E7%BB%93/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2017/10/14/GAN%E6%80%BB%E7%BB%93/" class="post-title-link" itemprop="url">GAN总结</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2017-10-14 00:00:00" itemprop="dateCreated datePublished" datetime="2017-10-14T00:00:00+08:00">2017-10-14</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-09 21:25:27" itemprop="dateModified" datetime="2021-01-09T21:25:27+08:00">2021-01-09</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <div class="table-container">
+<table>
+<thead>
+<tr>
+<th style="text-align:center">论文</th>
+<th style="text-align:center">备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center"><a href="/2017/09/21/Generative%20Adversarial%20Nets/">Generative Adversarial Nets</a></td>
+<td style="text-align:center">GAN原始论文, 提出了对抗结构和原始优化目标函数 <script type="math/tex">\underset {G} {min} \underset {D} {max} V(D,G) = E_{x \sim p_{data}(x)}[log(D(x))] + E_{x \sim P_{g_z(z)}}[log(1 - D(g(z)))]</script></td>
+</tr>
+<tr>
+<td style="text-align:center"><a href="/2017/09/22/Conditional%20Generative%20Adversarial%20Nets/">Conditional Generative Adversarial Nets</a></td>
+<td style="text-align:center">加了条件作为额外的输入,可以用于给生成指定类别的图像和和图像打标签</td>
+</tr>
+<tr>
+<td style="text-align:center"><a href="/2017/09/27/Unsupervised%20representation%20learning%20with%20deep%20convolutional%20Generative%20Adersarial%20Networks/">Unsupervised representation learning with deep convolutional Generative Adersarial Networks</a></td>
+<td style="text-align:center">DCGAN, 提出一种新的生成器结构改善生成图像效果,并对训练出的模型的可视化做了探索</td>
+</tr>
+<tr>
+<td style="text-align:center"><a href="/2017/10/10/Towards%20Principled%20Methods%20for%20Training%20Generative%20Adversarial%20Networks/">Towards Principled Methods for Training Generative Adversarial Networks</a></td>
+<td style="text-align:center">首次从数学的角度聊GAN,分析了之前GAN中所存在的问题,提出了加噪声的解决方案</td>
+</tr>
+<tr>
+<td style="text-align:center"><a href="/2017/10/13/Wasserstein%20GAN/">Wasserstein GAN</a></td>
+<td style="text-align:center">提出了用Wasserstein距离代替JS散度的方案,解决了训练不稳定,模型坍塌的问题,并提供了一种模型训练进度的可量化指标</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2017/10/13/Wasserstein%20GAN/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2017/10/13/Wasserstein%20GAN/" class="post-title-link" itemprop="url">Wasserstein GAN</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2017-10-13 00:00:00" itemprop="dateCreated datePublished" datetime="2017-10-13T00:00:00+08:00">2017-10-13</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-09 20:55:13" itemprop="dateModified" datetime="2021-01-09T20:55:13+08:00">2021-01-09</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>文章首先说明了学习一个概率密度的传统方法使用KL散度</li>
+<li>但是KL散度在两个低维流形的概率分布中不好使，因为他们没有无法忽视的重叠，从而散度是一个常数。通过加噪声可以补救这个问题，但是并不是一个好方法（对于GAN来说会使生成的图片模糊不清）</li>
+<li>对于传统方法，目前的新方法是从一个固定分布$p(z)$随出一个随机变量$z$然后将$z$放入一个函数映射$g_\theta : z \rightarrow x$得到一个服从$P_\theta$分布的样本。<ul>
+<li>这样做有两个好处，一个是这种方式可以更合更低维度的分布</li>
+<li>另外这种方式可以更加方便的生成新样本</li>
+</ul>
+</li>
+<li>接下来作者开始分析WGAN中使用Wasserstein距离代替原来JS散度的原因，从这种距离的性质入手<ul>
+<li>如果$g_\theta$是连续的那么$W(P_r, P_\theta)$也是连续的</li>
+<li>如果$g$是K利普希茨连续，那么$W(P_r, P_\theta)$几乎在全部可导</li>
+<li>上述两条性质对于JS散度不成立，所以我们选用Wasserstein距离代替KL散度</li>
+</ul>
+</li>
+<li>为了让$g_\theta$保持利普希茨连续，我们将网络中所有参数控制在[-0.01, 0.01]区间内<ul>
+<li>这个数值不宜太大，否则会使收敛速度过慢</li>
+<li>不宜太小，否则可能会导致梯度消失</li>
+</ul>
+</li>
+<li>使用W距离后判别器损失函数为$-(f_w(x) - f_w(g_\theta(z)))$, 生成器损失函数为$-f_w(g_\theta(z))$</li>
+<li>因为W距离连续可导，所以在交替训练的过程中可以将分类器训练至收敛，不必向以往一样两步分类器一步生成器</li>
+<li>WGAN的显著优势：<ul>
+<li>不会模型坍塌——W距离连续得到的另外一个好处是不会导致模型坍塌；对于原始损失函数来说，判别器的输出是个二分类结果，那么对于最优的分类器来说，生成器的最终结果只能是坍塌即生成真实图像训练样本；换成W距离后，判别器输出的是距离，是回归问题，不会导致坍塌</li>
+<li>WGAN提升了稳定性——由于我们在交替训练过程中可以把判别器训练到局部最优，判别器越精确，梯度也就越精确，训练也就越稳定</li>
+<li>有实际意义的损失函数——WGAN的生成器损失函数可以当做模型训练进度的可量化指标，不用向以往一样人肉观察生成出来的样本来做判别模型好坏的标准；但是需要注意不能拿这个指标衡量不同结构的模型</li>
+</ul>
+</li>
+<li>optimizer的选择：训练的时候由于交替训练，损失函数不要使用基于动量的（如Adam）optimizer，改用RMSProp，一般在这种梯度不稳定的情况下表现的不错</li>
+</ul>
+<h2 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h2><ul>
+<li>when we learn a probability distribution, This is often done by defining a parametric family of densities $P_\theta (\theta \in R^d)$ and finding the one that maximized the likelihood on our data, this amounts to minimizing the Kullback-Leibler divergence $KL(P_r||P_g)$</li>
+<li>but It is then unlikely that the model manifold and the true distribution’s support have a non-negligible intersection</li>
+<li>the typical remedy is to add a noise term to the model distribution</li>
+<li>the added noise term is clearly incorrect for the problem, but is needed to make the maximum likelihood approach work</li>
+</ul>
+<p>now:</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2017/10/13/Wasserstein%20GAN/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2017/10/10/Towards%20Principled%20Methods%20for%20Training%20Generative%20Adversarial%20Networks/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2017/10/10/Towards%20Principled%20Methods%20for%20Training%20Generative%20Adversarial%20Networks/" class="post-title-link" itemprop="url">Towards Principled Methods for Training Generative Adversarial Networks</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2017-10-10 00:00:00" itemprop="dateCreated datePublished" datetime="2017-10-10T00:00:00+08:00">2017-10-10</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-09 18:53:06" itemprop="dateModified" datetime="2021-01-09T18:53:06+08:00">2021-01-09</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>本文主要是通过数学的方法分析现有GAN训练中存在的问题</li>
+<li>先从KL散度入手——散度不对称对于两种不同的损失（真实分布存在而生成分布不存在；真实分布不存在而生成分布存在）给予了两种截然不同的惩罚</li>
+<li>然后分析了训练过程不稳定的原因<ul>
+<li>当生成器的损失函数是$E_{x \sim P_r}[logD(x)] + E_{x \sim P_g}[log(1 - D(x))]$=$ 2JS(P_r||P_g) - 2log2$时，在分类器最优时，此损失函数是一个常数(低维流形理论JS散度一直为常数$log2$)，根本没有梯度，所以随着存在梯度消失的问题</li>
+<li>当生成器的损失函数是$-logD$ = $KL(P_g||P_r) - 2JS(P_r||P_g)$时有两个问题。第一个是两个散度的优化方向矛盾，一个是让两个分布尽量近一个是尽量远，导致训练方向不稳定；另外KL的散度加大了对于$P_r = 0 且 P_g = 1$的惩罚，导致模型坍塌</li>
+</ul>
+</li>
+<li>提出解决方案——给两个分布加噪音，使两个低维流形维度升高，产生重叠，从而使JS散度不为常数，之后慢慢将噪声去除</li>
+<li>提出Wasserstein距离，但是没有过多讨论，留到下一篇Wasserstein GAN再说</li>
+</ul>
+<h2 id="Abstract"><a href="#Abstract" class="headerlink" title="Abstract"></a>Abstract</h2><p>this paper is proposed to make theoretical steps towards fully understanding the training dynamics of GANs</p>
+<p>three sections:</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2017/10/10/Towards%20Principled%20Methods%20for%20Training%20Generative%20Adversarial%20Networks/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2017/09/27/Unsupervised%20representation%20learning%20with%20deep%20convolutional%20Generative%20Adersarial%20Networks/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2017/09/27/Unsupervised%20representation%20learning%20with%20deep%20convolutional%20Generative%20Adersarial%20Networks/" class="post-title-link" itemprop="url">Unsupervised representation learning with deep convolutional Generative Adersarial Networks</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2017-09-27 00:00:00" itemprop="dateCreated datePublished" datetime="2017-09-27T00:00:00+08:00">2017-09-27</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-05 00:40:56" itemprop="dateModified" datetime="2021-01-05T00:40:56+08:00">2021-01-05</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>本文提出了一个对于GAN的另外的应用场景——使用模型的中间结果作为特征</li>
+<li>首先提出了新的generator结构，在之前CNN的基础上做了优化；其中的trans_conv/deconv/反向卷积结构其实是等同于CNN中的反向传播求梯度过程，是在深层传来的梯度值得基础上左乘卷积核矩阵，详见<a target="_blank" rel="noopener" href="https://www.zhihu.com/question/43609045">此处</a></li>
+<li>在训练GAN的时候提出了解决generator记忆样本问题的方法：将训练样本降维然后建hash表，对于所有生成出来的在hash表中有碰撞的样本全都舍弃</li>
+<li>对于模型表达能力的证实<ul>
+<li>在无监督训练中，作为特征提取器超过了KNN的效果（CIFAR-10数据集）</li>
+<li>在有监督训练中，作为特征提取器达到了最好的效果（SVHN数据集）</li>
+</ul>
+</li>
+<li>对于模型可视化的探索：<ul>
+<li>在z中做差值，可以观察到生成图像的渐变</li>
+<li>对D中的filter做可视化</li>
+<li>操作z以达到特定目的：<ul>
+<li>指定取消某个物体</li>
+<li>通过z的向量运算，产生图像的运算</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="Abstract"><a href="#Abstract" class="headerlink" title="Abstract"></a>Abstract</h2><p>in this paper we hope to help bridge the gap between the success of CNNs for supervised learning and unsupervised learning </p>
+<h2 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h2>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2017/09/27/Unsupervised%20representation%20learning%20with%20deep%20convolutional%20Generative%20Adersarial%20Networks/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2017/09/22/Conditional%20Generative%20Adversarial%20Nets/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2017/09/22/Conditional%20Generative%20Adversarial%20Nets/" class="post-title-link" itemprop="url">Conditional Generative Adversarial Nets</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2017-09-22 00:00:00" itemprop="dateCreated datePublished" datetime="2017-09-22T00:00:00+08:00">2017-09-22</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-05 00:38:08" itemprop="dateModified" datetime="2021-01-05T00:38:08+08:00">2021-01-05</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>在GAN的基础上加上了条件输入（对于D和G同时加）</li>
+<li>目标函数改为$\underset {G} {min} \underset {D} {max}V(D,G) = E_{x \sim p_{data}(x)}[logD(x|y)] + E_{z \sim p_z(z)}[1 - log(D(G(z|y)))]$</li>
+<li>如果没有对于条件的需求在实验中有CGAN的效果并不比GAN的效果好</li>
+<li>CGAN可以按照条件输入输出特定的随机值<ul>
+<li>给定一个数字输出特定数字的手写图片</li>
+<li>给定一个图片输出该图片的tag 概率分布，取较大者作为图片的tag，实现自动化tagging</li>
+</ul>
+</li>
+</ul>
+<h2 id="Abstract"><a href="#Abstract" class="headerlink" title="Abstract"></a>Abstract</h2><p>this net can be constructed by adding condition information to both generator and discriminator</p>
+<h2 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h2>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2017/09/22/Conditional%20Generative%20Adversarial%20Nets/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
     <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2017/09/21/Generative%20Adversarial%20Nets/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -774,705 +1681,10 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2017/02/15/A%20Gradient%20Boosting%20Machine/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Berwyn Zhang">
-      <meta itemprop="description" content="Learn & output">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Berwyn's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2017/02/15/A%20Gradient%20Boosting%20Machine/" class="post-title-link" itemprop="url">A Gradient Boosting Machine</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2017-02-15 00:00:00" itemprop="dateCreated datePublished" datetime="2017-02-15T00:00:00+08:00">2017-02-15</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2021-01-04 23:50:03" itemprop="dateModified" datetime="2021-01-04T23:50:03+08:00">2021-01-04</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">In</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>GBDT = <code>Gradient Boosting</code> + <code>Decision Tree</code><br>another names:</p>
-<ul>
-<li>MART(Multiple Additive Regression Tree)</li>
-<li>GBRT(Gradient Boosting Regression Tree)</li>
-<li>Tree Net</li>
-</ul>
-<h2 id="Ensemble-learning"><a href="#Ensemble-learning" class="headerlink" title="Ensemble learning"></a>Ensemble learning</h2><h3 id="why-ensemble"><a href="#why-ensemble" class="headerlink" title="why ensemble?"></a>why ensemble?</h3><ul>
-<li>statistics<br><img src="/assets/image/AGradientBoostingMachine/1486544965885.png" alt="Alt text"></li>
-<li>calculation<br><img src="/assets/image/AGradientBoostingMachine/1486544993574.png" alt="Alt text"></li>
-<li>representation<br><img src="/assets/image/AGradientBoostingMachine/1486545080464.png" alt="Alt text"></li>
-</ul>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2017/02/15/A%20Gradient%20Boosting%20Machine/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2017/01/22/Factorization%20Machines/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Berwyn Zhang">
-      <meta itemprop="description" content="Learn & output">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Berwyn's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2017/01/22/Factorization%20Machines/" class="post-title-link" itemprop="url">Factorization Machines</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2017-01-22 00:00:00" itemprop="dateCreated datePublished" datetime="2017-01-22T00:00:00+08:00">2017-01-22</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2021-01-04 23:46:25" itemprop="dateModified" datetime="2021-01-04T23:46:25+08:00">2021-01-04</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">In</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <ul>
-<li>Factorization Machine are a new model class that combines the advantages of Support Vector Machines</li>
-<li>able to estimate interactions even in problems with huge sparsity</li>
-<li>dual form is not necessary, estimate model parameters directly</li>
-</ul>
-<h2 id="INTRODUCTION"><a href="#INTRODUCTION" class="headerlink" title="INTRODUCTION"></a>INTRODUCTION</h2><p>the advantages of FM:</p>
-<ul>
-<li>FMs allow parameter estimation under very sparse data where SVMs fail</li>
-<li>FMs have linear complexity, can be optimized in the primal and do not rely on support vectors like SVMs</li>
-<li>FMs are a general predictor that can work with any real valued feature vector. In contrast to this, other state-of-art factorization models work only on  very restricted input data</li>
-</ul>
-<h2 id="PREDICTION-UNDER-SPARSITY"><a href="#PREDICTION-UNDER-SPARSITY" class="headerlink" title="PREDICTION UNDER SPARSITY"></a>PREDICTION UNDER SPARSITY</h2>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2017/01/22/Factorization%20Machines/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2017/01/04/%E5%90%B4%E6%81%A9%E8%BE%BE%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Berwyn Zhang">
-      <meta itemprop="description" content="Learn & output">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Berwyn's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2017/01/04/%E5%90%B4%E6%81%A9%E8%BE%BE%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/" class="post-title-link" itemprop="url">吴恩达机器学习课程笔记</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2017-01-04 00:00:00" itemprop="dateCreated datePublished" datetime="2017-01-04T00:00:00+08:00">2017-01-04</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2021-01-04 23:43:55" itemprop="dateModified" datetime="2021-01-04T23:43:55+08:00">2021-01-04</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">In</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><h2 id="单变量的线性回归"><a href="#单变量的线性回归" class="headerlink" title="单变量的线性回归"></a>单变量的线性回归</h2><p>线性回归损失函数</p>
-<script type="math/tex; mode=display">Cost(x, y) = \sum_{i = 1}^{m}(f(x_i) - y_i)^2</script><script type="math/tex; mode=display">= \sum_{i = 1}^m(y_i - wx_i - b)^2</script><h3 id="梯度下降"><a href="#梯度下降" class="headerlink" title="梯度下降"></a>梯度下降</h3><p>求使得损失函数最小的参数$w, b$<br>梯度下降需要同时更新所有参数</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2017/01/04/%E5%90%B4%E6%81%A9%E8%BE%BE%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2016/12/09/Click-Through%20Rate%20Estimation%20for%20Rare%20Events%20in%20Online%20Advertising/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Berwyn Zhang">
-      <meta itemprop="description" content="Learn & output">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Berwyn's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2016/12/09/Click-Through%20Rate%20Estimation%20for%20Rare%20Events%20in%20Online%20Advertising/" class="post-title-link" itemprop="url">Click-Through Rate Estimation for Rare Events in Online Advertising</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2016-12-09 00:00:00" itemprop="dateCreated datePublished" datetime="2016-12-09T00:00:00+08:00">2016-12-09</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2021-01-04 23:36:31" itemprop="dateModified" datetime="2021-01-04T23:36:31+08:00">2021-01-04</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">In</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="ABSTRACT"><a href="#ABSTRACT" class="headerlink" title="ABSTRACT"></a>ABSTRACT</h2><p>CTR estimation for rare events is essential but challenging, often incurring with huge variance, due to the sparsity in data</p>
-<h2 id="INTRODUCTION"><a href="#INTRODUCTION" class="headerlink" title="INTRODUCTION"></a>INTRODUCTION</h2><p>large fraction of Internet traffic while the overwhelming counterparts are extremely rare events</p>
-<h2 id="BACKGROUND"><a href="#BACKGROUND" class="headerlink" title="BACKGROUND"></a>BACKGROUND</h2>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2016/12/09/Click-Through%20Rate%20Estimation%20for%20Rare%20Events%20in%20Online%20Advertising/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2016/07/19/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Berwyn Zhang">
-      <meta itemprop="description" content="Learn & output">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Berwyn's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2016/07/19/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" class="post-title-link" itemprop="url">循环神经网络总结</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2016-07-19 00:00:00" itemprop="dateCreated datePublished" datetime="2016-07-19T00:00:00+08:00">2016-07-19</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2021-01-04 23:30:19" itemprop="dateModified" datetime="2021-01-04T23:30:19+08:00">2021-01-04</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">In</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><ul>
-<li>Recurrent Neural Networks</li>
-<li>用来处理序列数据</li>
-<li>当前状态的输出与前面状态的输出也有关<br><img src="/assets/image/循环神经网络/1464689637852.png" alt="Alt text"></li>
-<li>目前在NLP上表现不错，目前的应用<ul>
-<li>文本生成</li>
-<li>机器翻译</li>
-<li>语音识别</li>
-</ul>
-</li>
-<li>使用最广泛的模型是LSTM——Long Short-Term Memory 长短时期记忆模型</li>
-</ul>
-<h2 id="模型举例"><a href="#模型举例" class="headerlink" title="模型举例"></a>模型举例</h2><h3 id="Simple-RNNs-SRNs循环网络"><a href="#Simple-RNNs-SRNs循环网络" class="headerlink" title="Simple RNNs(SRNs循环网络)"></a>Simple RNNs(SRNs循环网络)</h3><p>三层神经网络，并在隐藏层加了上下文单元<br>上下文单元与隐藏层之间的链接是固定的，并且权重也是固定的<br>前向反馈传播<br>上下文节点保存上文，即隐藏层接收输入层的输出和上一时刻自己的状态</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2016/07/19/%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2016/04/29/%E6%97%B6%E9%97%B4%E5%BA%8F%E5%88%97/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Berwyn Zhang">
-      <meta itemprop="description" content="Learn & output">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Berwyn's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2016/04/29/%E6%97%B6%E9%97%B4%E5%BA%8F%E5%88%97/" class="post-title-link" itemprop="url">时间序列总结</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2016-04-29 00:00:00" itemprop="dateCreated datePublished" datetime="2016-04-29T00:00:00+08:00">2016-04-29</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2021-01-05 00:33:54" itemprop="dateModified" datetime="2021-01-05T00:33:54+08:00">2021-01-05</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">In</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="自回归模型（AR）"><a href="#自回归模型（AR）" class="headerlink" title="自回归模型（AR）"></a>自回归模型（AR）</h2><h3 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h3><ul>
-<li>自回归模型一种时间序列预测模型，是若干随机数的集合。描述的是当前值与历史值得关系，是一种<a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Stochastic_process">随机过程</a></li>
-<li>对于指定值的预测是对于以往值的线性预测加上随机扰动项，所以这个模型的形式是一个随机差分方程</li>
-<li>是ARMA（Autoregressive–moving-average model）和VAR（Vector Autoregressive model）一种特殊形式</li>
-<li>p阶自回归模型记作AR(p)</li>
-</ul>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2016/04/29/%E6%97%B6%E9%97%B4%E5%BA%8F%E5%88%97/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2016/04/26/treenewbee/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Berwyn Zhang">
-      <meta itemprop="description" content="Learn & output">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Berwyn's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2016/04/26/treenewbee/" class="post-title-link" itemprop="url">如何正确的吹牛逼</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2016-04-26 23:19:27" itemprop="dateCreated datePublished" datetime="2016-04-26T23:19:27+08:00">2016-04-26</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2021-01-04 23:24:54" itemprop="dateModified" datetime="2021-01-04T23:24:54+08:00">2021-01-04</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">In</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/essay/" itemprop="url" rel="index"><span itemprop="name">essay</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <ul>
-<li>租的房子马上到期，最近有点大学临近毕业时的感觉</li>
-<li>晚上喝了点酒，聊了会游戏，从传奇聊到征途，再到魔兽世界</li>
-<li>依稀记得刚开始进入魔兽世界的时候，我坐在自己小卧室的拐角处，控制一个战士在艾尔文森林辛苦的杀狼。一个开网吧的叔叔来我家做客，来我屋子里随便聊聊。看我玩的这个游戏就问名字，答魔兽世界，问多少级了，答2级。然后便许诺给我一个高等级账号。“在我那上网的，我随便找个人要一下他们就得给”。</li>
-<li>说实话但是我还是信了，而且在很长一段时间里都对即将到来的账号有着一些期待。只怪我当时太年轻，13岁左右。</li>
-<li>这算不算失信于人，信口开河？是不是我们应该所唾弃所不齿的行为？应该也不算。因为一个背离社会主流价值观的人是当不了老板的。或许他只是能够分清什么时候该绷着那根弦什么时候不用。</li>
-<li>但这也不是我想要的状态。对于自己完全没把握的事情能做到张嘴就来，脸不红心不跳的做出许诺，好像是什么很多老板的必备技能。</li>
-<li>下午在公司碰巧听说了一个前同事的事迹——在面试过程中，敢于和面试官拍桌子，以面试题目不靠谱为由回避掉自己不会的题目。用这种独特的技巧实现了两次工资double。那么这么说起来这还真是个逆天的技能。就算是靠骗，但是目的达到了，话说回来，我们去掌握哪些货真价实的知识的目的又是什么呢？不就是这个么？</li>
-<li>意识到自己这方面技能的匮乏，甚至连简单的表达完整自己的观点都做不到。当别人在饭桌上滔滔不绝的讲起股市、篮球、理财、工作，我总是没有能够支撑话题走下去的谈资。我之前还以为是对这方面了解的不够多，但当别人谈论起DotA，我依旧能够讲述的东西寥寥的时候，才意识到问题的所在。善述者，就算一窍不通的东西也能滔滔不绝，我耳边不乏股市一定涨，骷髅王后期无敌之类的论断。会不会是次要的，能讲出来就是一种本事。</li>
-<li>是时候学习一下如何正确的吹牛逼了。</li>
-</ul>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2016/04/02/subject/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Berwyn Zhang">
-      <meta itemprop="description" content="Learn & output">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Berwyn's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2016/04/02/subject/" class="post-title-link" itemprop="url">这个博客的主题和一个早起的方法</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2016-04-02 23:19:27" itemprop="dateCreated datePublished" datetime="2016-04-02T23:19:27+08:00">2016-04-02</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2021-01-04 23:22:09" itemprop="dateModified" datetime="2021-01-04T23:22:09+08:00">2021-01-04</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">In</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/essay/" itemprop="url" rel="index"><span itemprop="name">essay</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="为啥要写"><a href="#为啥要写" class="headerlink" title="为啥要写"></a>为啥要写</h2><p>近期进步微乎其微，尤其是最近一年。</p>
-<p>反省了一下，自己时间上浪费特别严重。拖延症患者，懒癌晚期。</p>
-<p>感觉需要做点什么了。</p>
-<p>写博客这事情我都忘了从什么时候开始计划的了，这个想法从一开始有到现在至少一年。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2016/04/02/subject/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/"><i class="fa fa-angle-left" aria-label="Previous page"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span>
+    <a class="extend prev" rel="prev" href="/"><i class="fa fa-angle-left" aria-label="Previous page"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="extend next" rel="next" href="/page/3/"><i class="fa fa-angle-right" aria-label="Next page"></i></a>
   </nav>
 
 
@@ -1538,7 +1750,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">29</span>
+          <span class="site-state-item-count">38</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -1551,7 +1763,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">26</span>
+        <span class="site-state-item-count">32</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>

@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"berwynzhang.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="总结 这篇文章提出了一种新的解决detection的网络结构 不同于R-CNN系列的多阶段结构，YOLO只是用一个传统CNN结构就输出了所有的预测信息 YOLO的优势： 快，每秒45张图片（平均每张图片耗时22ms）同时还有一个不错的mAP: 63.4 处理整张图片而不是特定的一个proposal，有更少的背景误分类 特征更泛化（通过更高的艺术品人像识别率来证明）   YOLO的劣势： 每个框的b">
+<meta property="og:type" content="article">
+<meta property="og:title" content="You Only Look Once">
+<meta property="og:url" content="https://berwynzhang.com/2018/04/26/You%20Only%20Look%20Once/index.html">
+<meta property="og:site_name" content="Berwyn&#39;s Blog">
+<meta property="og:description" content="总结 这篇文章提出了一种新的解决detection的网络结构 不同于R-CNN系列的多阶段结构，YOLO只是用一个传统CNN结构就输出了所有的预测信息 YOLO的优势： 快，每秒45张图片（平均每张图片耗时22ms）同时还有一个不错的mAP: 63.4 处理整张图片而不是特定的一个proposal，有更少的背景误分类 特征更泛化（通过更高的艺术品人像识别率来证明）   YOLO的劣势： 每个框的b">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/YouOnlyLookOnce/1524732888039.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/YouOnlyLookOnce/1525672706039.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/YouOnlyLookOnce/1525773389554.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/YouOnlyLookOnce/1525775132332.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/YouOnlyLookOnce/1525776700369.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/YouOnlyLookOnce/1525783217387.png">
+<meta property="article:published_time" content="2018-04-25T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-01-09T15:50:05.268Z">
+<meta property="article:author" content="Berwyn Zhang">
+<meta property="article:tag" content="machine_learning">
+<meta property="article:tag" content="note">
+<meta property="article:tag" content="2015">
+<meta property="article:tag" content="detection">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://berwynzhang.com/assets/image/YouOnlyLookOnce/1524732888039.png">
+
+<link rel="canonical" href="https://berwynzhang.com/2018/04/26/You%20Only%20Look%20Once/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>You Only Look Once | Berwyn's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Berwyn's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2018/04/26/You%20Only%20Look%20Once/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          You Only Look Once
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-04-26 00:00:00" itemprop="dateCreated datePublished" datetime="2018-04-26T00:00:00+08:00">2018-04-26</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-09 23:50:05" itemprop="dateModified" datetime="2021-01-09T23:50:05+08:00">2021-01-09</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>这篇文章提出了一种新的解决detection的网络结构</li>
+<li>不同于R-CNN系列的多阶段结构，YOLO只是用一个传统CNN结构就输出了所有的预测信息</li>
+<li>YOLO的优势：<ul>
+<li>快，每秒45张图片（平均每张图片耗时22ms）同时还有一个不错的mAP: 63.4</li>
+<li>处理整张图片而不是特定的一个proposal，有更少的背景误分类</li>
+<li>特征更泛化（通过更高的艺术品人像识别率来证明）</li>
+</ul>
+</li>
+<li>YOLO的劣势：<ul>
+<li>每个框的bounding box数目受限</li>
+<li>每个框至多属于一类</li>
+<li>由于上述原因对于小物体的检测效果不好</li>
+</ul>
+</li>
+<li>Detection原理<ul>
+<li>把图像分为 S * S块</li>
+<li>每个块输出B个bounding box信息</li>
+<li>每个bounding box信息包含五项<ul>
+<li>bounding box的中心的x y坐标</li>
+<li>bounding box的长和宽</li>
+<li>这个bounding box包含物体的信心分</li>
+<li>共计五项</li>
+</ul>
+</li>
+<li>此外每个块还输出在包含物体的情况下，物体所属分类的概率</li>
+<li>模型就是CNN网络，综上模型最后一层的输出是S <em> S </em> (B * 5 + num of classes)的一个tensor</li>
+</ul>
+</li>
+<li>训练细节<ul>
+<li>使用ImageNet pre-train + fine-tune</li>
+<li>在fine-tune阶段，把input_size扩大一倍（detection任务需要更清晰的图片）</li>
+<li>对x,y,h,w进行归一化</li>
+<li>平衡大小bounding box对损失的影响，对h,w开平方处理</li>
+<li>对包含物体的块的损失部分做加权处理(*5)</li>
+<li>对不包含物体的块的损失部分做减小权重处理(*0.5)</li>
+<li>具体公式见loss function部分</li>
+</ul>
+</li>
+</ul>
+<h3 id="VOC测试结果"><a href="#VOC测试结果" class="headerlink" title="VOC测试结果"></a>VOC测试结果</h3><ul>
+<li>time: 22ms</li>
+<li>VOC 2007: 63.4%</li>
+<li>VOC 2012: 57.9%</li>
+</ul>
+<h2 id="Abstract"><a href="#Abstract" class="headerlink" title="Abstract"></a>Abstract</h2><p>We present YOLO, a new approach to object detection.</p>
+<p>We frame object detection as a regression problem instead of classification problem.</p>
+<p>less likely to predict false positives on background</p>
+<h2 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h2><p>YOLO’s structure is refreshingly simple:</p>
+<p><img src="/assets/image/YouOnlyLookOnce/1524732888039.png" alt="Alt text"></p>
+<p>This unified model has several benefits:</p>
+<ul>
+<li>extremely fast</li>
+<li>makes less background errors because of reasoning globally about image</li>
+<li>learns generalizable representations of objects</li>
+</ul>
+<h2 id="Unified-Detection"><a href="#Unified-Detection" class="headerlink" title="Unified Detection"></a>Unified Detection</h2><ul>
+<li>Our system divides the input image into an S × S grid.</li>
+<li>If the center of an object falls into a grid cell, that grid cell is responsible for detecting that object.</li>
+<li>Each grid cell predicts B bounding boxes and confidence scores for those boxes.<ul>
+<li>this confident scores reflect how confident the model is that the box contains an object</li>
+<li>and also how accurate it think the box is that it predicts</li>
+<li>We define confidence as $Pr(object) * IOU^{truth}_{pred}$:<ul>
+<li>if no object exists in this cell, score should be zero</li>
+<li>otherwise we want the confident score to equal the intersection over union between the predict box and ground truth</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Each bounding consists of 5 predictions: x, y, w, h, confidence<ul>
+<li>(x, y) represent the center of the box</li>
+<li>w and h represent wide and hight of the box</li>
+</ul>
+</li>
+<li>Each grid cell also predicts C conditional class probabilities, $Pr(Class_i| Object)$</li>
+<li>We can get class-specific confidence scores for each box by:<script type="math/tex">Pr(Class_i| Object) * Pr(object) * IOU^{truth}_{pred} = Pr(class_i) * IOU^{truth}_{pred}</script></li>
+</ul>
+<p>In this paper we use S = 7, B = 2, C = 20<br>So our final prediction is a 7 <em> 7 </em> 30 tensor</p>
+<h3 id="Network-Design"><a href="#Network-Design" class="headerlink" title="Network Design"></a>Network Design</h3><p><img src="/assets/image/YouOnlyLookOnce/1525672706039.png" alt="Alt text"></p>
+<p>Fast YOLO uses a neural network with fewer convolutional layers (9 instead of 24) and fewer filters in those layers</p>
+<h3 id="Training"><a href="#Training" class="headerlink" title="Training"></a>Training</h3><ul>
+<li>pretrain convolutional layers on the ImageNet 1000-class competition dataset<ul>
+<li>first 20 convolutional layers</li>
+<li>train for a week(amazing)</li>
+</ul>
+</li>
+<li>convert the model to perform detection<ul>
+<li>add four convolutional layers and two fully connected layers</li>
+<li>change input resolution from 224 <em> 224 to 448 </em> 448</li>
+</ul>
+</li>
+<li>normalize the bounding box width and height by the image width and height so that they fall between 0 and 1(x, y too)</li>
+<li>use leaky rectified linear activation</li>
+<li>use sum-squared error<ul>
+<li>easy to optimize</li>
+<li>weights localization error equally with classification error(flaw)</li>
+<li>the gradient from cells which have no object often overpowering the gradient from cells that do contain objects(flaw)</li>
+<li>equally weights errors in large boxes and small boxes(flaw)</li>
+</ul>
+</li>
+<li>to remedy these flaws of sum-squared error<ul>
+<li>increase the loss from bounding box coordinate predictions</li>
+<li>decrease the loss from confidence predictions for boxes that don’t contain objects</li>
+<li>set $\lambda_{coord} = 5$ and $\lambda_{noobj} = 0.5$ to accomplish this</li>
+<li>predict square root of the bounding box width and height instead of the width and height directly</li>
+</ul>
+</li>
+<li>assign one predictor to be “responsible” for predicting an object based on which prediction has the highest current IOU with the ground truth</li>
+</ul>
+<p>loss function:</p>
+<script type="math/tex; mode=display">\lambda_{coord}\sum_{i = 0}^{s^2}\sum_{j = 0}^B I_{i,j}^{obj}[(x_{i,j} - \hat {x}_{i,j})^2 + (y_{i, j} - \hat {y}_{i, j}) ^ 2]</script><script type="math/tex; mode=display">+ \lambda_{coord}\sum_{i = 0}^{s^2}\sum_{j = 0}^B I_{i,j}^{obj}[(\sqrt {w_{i,j}} - \sqrt {\hat {w}_{i,j}})^2 + (\sqrt {h_{i, j}} - \sqrt {\hat {h}_{i, j}}) ^ 2]</script><script type="math/tex; mode=display">+ \sum_{i = 0}^{s^2}\sum_{j = 0}^B I^{obj}_{i,j}(C_i - \hat C_i)^2</script><script type="math/tex; mode=display">+ \lambda_{noobj}\sum_{i = 0}^{s^2}\sum_{j = 0}^B I^{noobj}_{i,j}(C_i - \hat C_i)^2</script><script type="math/tex; mode=display">+ \sum_{i = 0}^{s^2}I^{obj}_i \sum_{c \in classes}(p_i(c) - \hat p_i(c))^2</script><ul>
+<li>only penalizes classification error if an object is present in that grid cell</li>
+<li>only penalizes bounding box coordinate error if that predictor is “responsible” for the ground truth box</li>
+</ul>
+<h3 id="Inference"><a href="#Inference" class="headerlink" title="Inference"></a>Inference</h3><ul>
+<li>very fast</li>
+<li>use Non-maximal suppression to fix multiple detections</li>
+</ul>
+<h3 id="Limitations-of-YOLO"><a href="#Limitations-of-YOLO" class="headerlink" title="Limitations of YOLO"></a>Limitations of YOLO</h3><ul>
+<li>only predicts two boxes </li>
+<li>only have one class</li>
+<li>struggle to generalize to objects in new or unusual aspect ratios or configurations</li>
+<li>treats errors the same in small bounding boxes versus large bounding boxes</li>
+</ul>
+<h2 id="Comparison-to-Other-Detection-Systems"><a href="#Comparison-to-Other-Detection-Systems" class="headerlink" title="Comparison to Other Detection Systems"></a>Comparison to Other Detection Systems</h2><p>skip</p>
+<h2 id="Experiments"><a href="#Experiments" class="headerlink" title="Experiments"></a>Experiments</h2><h3 id="Comparison-to-Other-Real-Time-Systems"><a href="#Comparison-to-Other-Real-Time-Systems" class="headerlink" title="Comparison to Other Real-Time Systems"></a>Comparison to Other Real-Time Systems</h3><p>skip</p>
+<h3 id="VOC-2007-Error-Analysis"><a href="#VOC-2007-Error-Analysis" class="headerlink" title="VOC 2007 Error Analysis"></a>VOC 2007 Error Analysis</h3><p><img src="/assets/image/YouOnlyLookOnce/1525773389554.png" alt="Alt text"></p>
+<ul>
+<li>YOLO struggles to localize objects correctly</li>
+<li>Fast R-CNN </li>
+</ul>
+<h3 id="Combining-Fast-R-CNN-and-YOLO"><a href="#Combining-Fast-R-CNN-and-YOLO" class="headerlink" title="Combining Fast R-CNN and YOLO"></a>Combining Fast R-CNN and YOLO</h3><p>By using YOLO to eliminate background detections from Fast R-CNN we get a significant boost in performance</p>
+<p><img src="/assets/image/YouOnlyLookOnce/1525775132332.png" alt="Alt text"></p>
+<h3 id="VOC-2012-Results"><a href="#VOC-2012-Results" class="headerlink" title="VOC 2012 Results"></a>VOC 2012 Results</h3><p><img src="/assets/image/YouOnlyLookOnce/1525776700369.png" alt="Alt text"></p>
+<h3 id="Generalizability-Person-Detection-in-Artwork"><a href="#Generalizability-Person-Detection-in-Artwork" class="headerlink" title="Generalizability: Person Detection in Artwork"></a>Generalizability: Person Detection in Artwork</h3><p><img src="/assets/image/YouOnlyLookOnce/1525783217387.png" alt="Alt text"></p>
+<p>YOLO models the size and shape of objects, as well as relationships between objects and where objects commonly appear</p>
+<h2 id="Real-Time-Detection-In-The-Wild"><a href="#Real-Time-Detection-In-The-Wild" class="headerlink" title="Real-Time Detection In The Wild"></a>Real-Time Detection In The Wild</h2><p>perform well on webcam</p>
+<h2 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h2><p>skip</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/machine-learning/" rel="tag"># machine_learning</a>
+              <a href="/tags/note/" rel="tag"># note</a>
+              <a href="/tags/2015/" rel="tag"># 2015</a>
+              <a href="/tags/detection/" rel="tag"># detection</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/04/04/Learning%20to%20Rank%20using%20Gradient%20Descent/" rel="prev" title="Learning to Rank using Gradient Descent">
+      <i class="fa fa-chevron-left"></i> Learning to Rank using Gradient Descent
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/05/21/YOLO%209000/" rel="next" title="YOLO 9000">
+      YOLO 9000 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">1.</span> <span class="nav-text">总结</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#VOC%E6%B5%8B%E8%AF%95%E7%BB%93%E6%9E%9C"><span class="nav-number">1.1.</span> <span class="nav-text">VOC测试结果</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Abstract"><span class="nav-number">2.</span> <span class="nav-text">Abstract</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Introduction"><span class="nav-number">3.</span> <span class="nav-text">Introduction</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Unified-Detection"><span class="nav-number">4.</span> <span class="nav-text">Unified Detection</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Network-Design"><span class="nav-number">4.1.</span> <span class="nav-text">Network Design</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Training"><span class="nav-number">4.2.</span> <span class="nav-text">Training</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Inference"><span class="nav-number">4.3.</span> <span class="nav-text">Inference</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Limitations-of-YOLO"><span class="nav-number">4.4.</span> <span class="nav-text">Limitations of YOLO</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Comparison-to-Other-Detection-Systems"><span class="nav-number">5.</span> <span class="nav-text">Comparison to Other Detection Systems</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Experiments"><span class="nav-number">6.</span> <span class="nav-text">Experiments</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Comparison-to-Other-Real-Time-Systems"><span class="nav-number">6.1.</span> <span class="nav-text">Comparison to Other Real-Time Systems</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#VOC-2007-Error-Analysis"><span class="nav-number">6.2.</span> <span class="nav-text">VOC 2007 Error Analysis</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Combining-Fast-R-CNN-and-YOLO"><span class="nav-number">6.3.</span> <span class="nav-text">Combining Fast R-CNN and YOLO</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#VOC-2012-Results"><span class="nav-number">6.4.</span> <span class="nav-text">VOC 2012 Results</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Generalizability-Person-Detection-in-Artwork"><span class="nav-number">6.5.</span> <span class="nav-text">Generalizability: Person Detection in Artwork</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Real-Time-Detection-In-The-Wild"><span class="nav-number">7.</span> <span class="nav-text">Real-Time Detection In The Wild</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Conclusion"><span class="nav-number">8.</span> <span class="nav-text">Conclusion</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Berwyn Zhang</p>
+  <div class="site-description" itemprop="description">Learn & output</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">38</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-address-card"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Berwyn Zhang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+</body>
+</html>

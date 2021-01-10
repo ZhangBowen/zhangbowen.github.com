@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"berwynzhang.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="总结 这篇文章提出了用CNN处理特征代替之前抽取MFCCs + 分类器的方式，获得了比较好的效果 比较关注将一段音频处理为音频输入的方法 将音频按照960ms切段 960ms的音频每10ms用短时傅里叶变换处理（25ms）的窗口 将生成的光谱图分到64个mel-spaced frequency bins里面 每个桶的结果取log 就生成96 * 64的二维向量然后用CNN的方式搞   后面文章对比">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CNN Architectures for Large-Scale Audio Classification">
+<meta property="og:url" content="https://berwynzhang.com/2018/08/23/CNN-Architectures-for-Large-Scale-Audio-Classification/index.html">
+<meta property="og:site_name" content="Berwyn&#39;s Blog">
+<meta property="og:description" content="总结 这篇文章提出了用CNN处理特征代替之前抽取MFCCs + 分类器的方式，获得了比较好的效果 比较关注将一段音频处理为音频输入的方法 将音频按照960ms切段 960ms的音频每10ms用短时傅里叶变换处理（25ms）的窗口 将生成的光谱图分到64个mel-spaced frequency bins里面 每个桶的结果取log 就生成96 * 64的二维向量然后用CNN的方式搞   后面文章对比">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/CNNArchitecturesforLarge-ScaleAudioClassification/1.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/CNNArchitecturesforLarge-ScaleAudioClassification/2.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/CNNArchitecturesforLarge-ScaleAudioClassification/3.png">
+<meta property="article:published_time" content="2018-08-22T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-01-10T14:56:17.789Z">
+<meta property="article:author" content="Berwyn Zhang">
+<meta property="article:tag" content="machine_learning">
+<meta property="article:tag" content="note">
+<meta property="article:tag" content="google">
+<meta property="article:tag" content="2016">
+<meta property="article:tag" content="audio">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://berwynzhang.com/assets/image/CNNArchitecturesforLarge-ScaleAudioClassification/1.png">
+
+<link rel="canonical" href="https://berwynzhang.com/2018/08/23/CNN-Architectures-for-Large-Scale-Audio-Classification/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>CNN Architectures for Large-Scale Audio Classification | Berwyn's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Berwyn's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2018/08/23/CNN-Architectures-for-Large-Scale-Audio-Classification/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          CNN Architectures for Large-Scale Audio Classification
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-08-23 00:00:00" itemprop="dateCreated datePublished" datetime="2018-08-23T00:00:00+08:00">2018-08-23</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-10 22:56:17" itemprop="dateModified" datetime="2021-01-10T22:56:17+08:00">2021-01-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>这篇文章提出了用CNN处理特征代替之前抽取MFCCs + 分类器的方式，获得了比较好的效果</li>
+<li>比较关注将一段音频处理为音频输入的方法<ul>
+<li>将音频按照960ms切段</li>
+<li>960ms的音频每10ms用短时傅里叶变换处理（25ms）的窗口</li>
+<li>将生成的光谱图分到64个mel-spaced frequency bins里面</li>
+<li>每个桶的结果取log</li>
+<li>就生成96 * 64的二维向量然后用CNN的方式搞</li>
+</ul>
+</li>
+<li>后面文章对比了多种模型和数据集大小的结果基本上越深的模型越好，数据集越大越好</li>
+</ul>
+<h2 id="Abstract"><a href="#Abstract" class="headerlink" title="Abstract"></a>Abstract</h2><p>Finding that analogs of the CNNs used in image classification do well on our audio classification task</p>
+<h2 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h2><p>Our labels apply to entire videos without any changes in time, so we have yet to try such recurrent models</p>
+<p>By computing log-mel spectrograms of multiple frames, we create 2D image-like patches to present to the classifiers</p>
+<h2 id="Dataset"><a href="#Dataset" class="headerlink" title="Dataset"></a>Dataset</h2><ul>
+<li>YouTube-100M</li>
+<li>4.6 min per video on average</li>
+<li>1 or more topic identifiers from 30871 labels</li>
+<li>5 labels per video on average</li>
+</ul>
+<h2 id="Experimental-Framework"><a href="#Experimental-Framework" class="headerlink" title="Experimental Framework"></a>Experimental Framework</h2><h3 id="Training"><a href="#Training" class="headerlink" title="Training"></a>Training</h3><p>sample generation:</p>
+<ul>
+<li>The audio is divided into non-overlapping 960 ms frames</li>
+<li>The 960 ms frames are decomposed with a short-time Fourier transform applying 25 ms windows every 10 ms</li>
+<li>The resulting spectrogram is integrated into 64 mel-spaced frequency bins</li>
+<li>The magnitude of each bin is log-transformed after adding a small  offset to avoid numerical issues</li>
+<li>This gives log-mel spectrogram patches of 96 × 64 bins that form the input to all classifiers</li>
+</ul>
+<h3 id="Evaluation"><a href="#Evaluation" class="headerlink" title="Evaluation"></a>Evaluation</h3><p>We passed each 960 ms frame from each evaluation video through the classifier. We then averaged the classifier output scores across all segments in a video.</p>
+<h3 id="Architectures"><a href="#Architectures" class="headerlink" title="Architectures"></a>Architectures</h3><h4 id="fully-Connected"><a href="#fully-Connected" class="headerlink" title="fully Connected"></a>fully Connected</h4><p>Our best performing model had N = 3 layers, M = 1000 units</p>
+<h4 id="AlexNet"><a href="#AlexNet" class="headerlink" title="AlexNet"></a>AlexNet</h4><p>Because our inputs are 96 × 64, we use a stride of 2 × 1 so that the number of activations are similar after the initial layer</p>
+<h4 id="VGG"><a href="#VGG" class="headerlink" title="VGG"></a>VGG</h4><p>We tried another variant that reduced the initial strides (as we did with AlexNet), but found that not modifying the strides resulted in faster training and better performance</p>
+<h4 id="Incepiton-V3"><a href="#Incepiton-V3" class="headerlink" title="Incepiton V3"></a>Incepiton V3</h4><p>We modified the inception V3 by removing the first four layers of the stem, up to and including the MaxPool, as well as removing the auxiliary network</p>
+<p>We tried including the stem and removing the first stride of 2 and MaxPool but found that it performed worse than the variant with the truncated stem</p>
+<h4 id="ResNet-50"><a href="#ResNet-50" class="headerlink" title="ResNet-50"></a>ResNet-50</h4><p>We modified ResNet-50 by removing the stride of 2 from the first 7×7 convolution</p>
+<h2 id="Experiments"><a href="#Experiments" class="headerlink" title="Experiments"></a>Experiments</h2><h3 id="Architecture-Comparison"><a href="#Architecture-Comparison" class="headerlink" title="Architecture Comparison"></a>Architecture Comparison</h3><p><img src="/assets/image/CNNArchitecturesforLarge-ScaleAudioClassification/1.png" alt="68494f43d948070b20fd6d31e073a6d1.png"></p>
+<p>Inception and ResNet achieve the best performance</p>
+<h3 id="Label-Set-Size"><a href="#Label-Set-Size" class="headerlink" title="Label Set Size"></a>Label Set Size</h3><p>Using a 400 label subset of the 30K labels, we investigated how training with different subsets of classes can affect performance</p>
+<p><img src="/assets/image/CNNArchitecturesforLarge-ScaleAudioClassification/2.png" alt="818a282435cddd58181adff7dbd16775.png"></p>
+<h3 id="Traning-Set-Size"><a href="#Traning-Set-Size" class="headerlink" title="Traning Set Size"></a>Traning Set Size</h3><p>Having a very large training set available allows us to investigate how training set size affects performance</p>
+<p><img src="/assets/image/CNNArchitecturesforLarge-ScaleAudioClassification/3.png" alt="f4bbe1a062a7f62202347480702015f2.png"></p>
+<h3 id="AED-with-the-Audio-Set-Dataset"><a href="#AED-with-the-Audio-Set-Dataset" class="headerlink" title="AED with the Audio Set Dataset"></a>AED with the Audio Set Dataset</h3><p>The log-mel baseline achieves a balanced mAP of 0.137 and AUC of 0.904</p>
+<h2 id="Conclusions"><a href="#Conclusions" class="headerlink" title="Conclusions"></a>Conclusions</h2><p>skip over</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/machine-learning/" rel="tag"># machine_learning</a>
+              <a href="/tags/note/" rel="tag"># note</a>
+              <a href="/tags/google/" rel="tag"># google</a>
+              <a href="/tags/2016/" rel="tag"># 2016</a>
+              <a href="/tags/audio/" rel="tag"># audio</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/08/16/Temporal%20Segment%20Networks/" rel="prev" title="Temporal Segment Networks">
+      <i class="fa fa-chevron-left"></i> Temporal Segment Networks
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/09/11/Non-local-Neural-Networks/" rel="next" title="Non-local Neural Networks">
+      Non-local Neural Networks <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">1.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Abstract"><span class="nav-number">2.</span> <span class="nav-text">Abstract</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Introduction"><span class="nav-number">3.</span> <span class="nav-text">Introduction</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Dataset"><span class="nav-number">4.</span> <span class="nav-text">Dataset</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Experimental-Framework"><span class="nav-number">5.</span> <span class="nav-text">Experimental Framework</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Training"><span class="nav-number">5.1.</span> <span class="nav-text">Training</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Evaluation"><span class="nav-number">5.2.</span> <span class="nav-text">Evaluation</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Architectures"><span class="nav-number">5.3.</span> <span class="nav-text">Architectures</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#fully-Connected"><span class="nav-number">5.3.1.</span> <span class="nav-text">fully Connected</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AlexNet"><span class="nav-number">5.3.2.</span> <span class="nav-text">AlexNet</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#VGG"><span class="nav-number">5.3.3.</span> <span class="nav-text">VGG</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Incepiton-V3"><span class="nav-number">5.3.4.</span> <span class="nav-text">Incepiton V3</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#ResNet-50"><span class="nav-number">5.3.5.</span> <span class="nav-text">ResNet-50</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Experiments"><span class="nav-number">6.</span> <span class="nav-text">Experiments</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Architecture-Comparison"><span class="nav-number">6.1.</span> <span class="nav-text">Architecture Comparison</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Label-Set-Size"><span class="nav-number">6.2.</span> <span class="nav-text">Label Set Size</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Traning-Set-Size"><span class="nav-number">6.3.</span> <span class="nav-text">Traning Set Size</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AED-with-the-Audio-Set-Dataset"><span class="nav-number">6.4.</span> <span class="nav-text">AED with the Audio Set Dataset</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Conclusions"><span class="nav-number">7.</span> <span class="nav-text">Conclusions</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Berwyn Zhang</p>
+  <div class="site-description" itemprop="description">Learn & output</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">38</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-address-card"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Berwyn Zhang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+</body>
+</html>

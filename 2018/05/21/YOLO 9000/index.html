@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"berwynzhang.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="总结 这篇文章主要是在YOLO的基础上加以改进提出了更好的YOLO V2 此外还提出了一种合并classification和detection数据集的方式，从而大大拓展了训练数据集的规模和分类目标数 具体改进的点 BN：加了BN之后有2%的mAP提升 用更高清的图片来fine-tune图片分类网络：有4% mAP提升 使用Anchor来预测物体范围代替直接预测：准确率下降，召回率上升 下面又使用了">
+<meta property="og:type" content="article">
+<meta property="og:title" content="YOLO 9000">
+<meta property="og:url" content="https://berwynzhang.com/2018/05/21/YOLO%209000/index.html">
+<meta property="og:site_name" content="Berwyn&#39;s Blog">
+<meta property="og:description" content="总结 这篇文章主要是在YOLO的基础上加以改进提出了更好的YOLO V2 此外还提出了一种合并classification和detection数据集的方式，从而大大拓展了训练数据集的规模和分类目标数 具体改进的点 BN：加了BN之后有2%的mAP提升 用更高清的图片来fine-tune图片分类网络：有4% mAP提升 使用Anchor来预测物体范围代替直接预测：准确率下降，召回率上升 下面又使用了">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/YOLO9000/1526906717972.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/YOLO9000/1526980953786.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/YOLO9000/1526993898442.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/YOLO9000/1527071097106.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/YOLO9000/1527145859015.png">
+<meta property="article:published_time" content="2018-05-20T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-01-09T15:55:43.189Z">
+<meta property="article:author" content="Berwyn Zhang">
+<meta property="article:tag" content="machine_learning">
+<meta property="article:tag" content="note">
+<meta property="article:tag" content="2016">
+<meta property="article:tag" content="detection">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://berwynzhang.com/assets/image/YOLO9000/1526906717972.png">
+
+<link rel="canonical" href="https://berwynzhang.com/2018/05/21/YOLO%209000/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>YOLO 9000 | Berwyn's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Berwyn's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2018/05/21/YOLO%209000/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          YOLO 9000
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-05-21 00:00:00" itemprop="dateCreated datePublished" datetime="2018-05-21T00:00:00+08:00">2018-05-21</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-09 23:55:43" itemprop="dateModified" datetime="2021-01-09T23:55:43+08:00">2021-01-09</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>这篇文章主要是在YOLO的基础上加以改进提出了更好的YOLO V2</li>
+<li>此外还提出了一种合并classification和detection数据集的方式，从而大大拓展了训练数据集的规模和分类目标数</li>
+<li>具体改进的点<ul>
+<li>BN：加了BN之后有2%的mAP提升</li>
+<li>用更高清的图片来fine-tune图片分类网络：有4% mAP提升</li>
+<li>使用Anchor来预测物体范围代替直接预测：准确率下降，召回率上升<ul>
+<li>下面又使用了两个改进方式来改进使用Anchor的版本</li>
+<li>用K-means的方法学习数据集中的标注来选取物体范围的初始框，而不是使用Anchor尝试；为了平衡模型的复杂度和recall选定了K = 5</li>
+<li>来修正bounding-box的阶段，模型的可选择范围较大，造成模型在初始训练阶段不稳定，修改了修正的方式——使用sigmod把回归预测值固定在0~1范围内，表示在格子内的比例：相较于Anchor box版本有接近5%左右的提升</li>
+</ul>
+</li>
+<li>加入高清特征<ul>
+<li>模型最终的输出是13*13</li>
+<li>我们直接把上一层的26<em>26的特征拿过来，将filter数量翻四倍，把维度变为13</em>13</li>
+<li>将新的layer与之前的输出层stack到一起成为新的feature map</li>
+<li>有1%的提升</li>
+</ul>
+</li>
+<li>多尺度训练<ul>
+<li>每隔10个batch随机改变input的size大小让网络可以应对不同尺度大小的图片</li>
+<li>小图片的inference时间短，用这种方法可以方便的在mAP和测试时间之间做trade off</li>
+</ul>
+</li>
+<li>加入了这些新的特性后诞生了YOLO v2</li>
+</ul>
+</li>
+<li>文章中还提出了一个混合分类数据集的方式<ul>
+<li>在训练过程中如果遇到了分类数据（无detection标注）那么只进行分类部分损失函数的反向传播</li>
+<li>还有一个标签不统一的问题，往往因为分类数据更加丰富所以，分类数据的标签会更细一些，文章针对这个问题建立了一颗标签语义树，不同粒度的标签可以都可以在语义树中找到正确的位置</li>
+<li>同时模型在分类预测的时候也依照语义树进行不同粒度的softmax</li>
+</ul>
+</li>
+</ul>
+<h3 id="VOC测试结果"><a href="#VOC测试结果" class="headerlink" title="VOC测试结果"></a>VOC测试结果</h3><ul>
+<li>time: 15ms</li>
+<li>VOC 2007: 76.8%</li>
+</ul>
+<h2 id="Abstract"><a href="#Abstract" class="headerlink" title="Abstract"></a>Abstract</h2><ul>
+<li>propose various improvements to the YOLO detection method——YOLO v2</li>
+<li>propose a method to jointly train on object detection and classification——YOLO9000</li>
+</ul>
+<h2 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h2><ul>
+<li>We propose a new method to harness the large amount of classification data we already have and use it to expand the scope of current detection systems</li>
+<li>We also propose a joint training algorithm that allows us to train object detectors on both detection and</li>
+</ul>
+<h2 id="Better"><a href="#Better" class="headerlink" title="Better"></a>Better</h2><p>Flaws:</p>
+<ul>
+<li>YOLO makes a significant number of localization errors</li>
+<li>YOLO has relatively low recall compared to region proposal-based methods</li>
+</ul>
+<h3 id="Batch-Normalization"><a href="#Batch-Normalization" class="headerlink" title="Batch Normalization"></a>Batch Normalization</h3><p>By adding batch normalization on all of the convolutional layers in YOLO we get more than <strong>2%</strong> improvement in mAP</p>
+<h3 id="High-Resolution-Classifier"><a href="#High-Resolution-Classifier" class="headerlink" title="High Resolution Classifier"></a>High Resolution Classifier</h3><p> We first fine tune the classification network at the full 448 × 448 resolution for 10 epochs on ImageNet.</p>
+<p>Gives us an increase of almost 4% mAP</p>
+<h3 id="Convolutional-With-Anchor-Boxes"><a href="#Convolutional-With-Anchor-Boxes" class="headerlink" title="Convolutional With Anchor Boxes"></a>Convolutional With Anchor Boxes</h3><p>Predicting offsets instead of coordinates simplifies the problem and makes it easier for the network to learn</p>
+<ul>
+<li>we get an output feature map of 13 × 13</li>
+<li>decouple the class prediction mechanism from spatial location</li>
+</ul>
+<p>We get a small decrease in accuracy but increase in recall rate</p>
+<h3 id="Dimension-Clusters"><a href="#Dimension-Clusters" class="headerlink" title="Dimension Clusters"></a>Dimension Clusters</h3><ul>
+<li>We run k-means clustering on the training set bounding box to automatically find good priors<br>we redefine distance metric by:</li>
+</ul>
+<script type="math/tex; mode=display">d(box, centroid) = 1 - IOU(box, centroid)</script><ul>
+<li>We choose <strong>k = 5</strong> as a good tradeoff between model complexity and high recall</li>
+<li>There are fewer short, wide boxes and more tall, thin boxes</li>
+</ul>
+<p><img src="/assets/image/YOLO9000/1526906717972.png" alt="Alt text"></p>
+<h3 id="Direct-location-prediction"><a href="#Direct-location-prediction" class="headerlink" title="Direct location prediction"></a>Direct location prediction</h3><ul>
+<li>The location prediction is unconstrained so any anchor box can end up at any point in the image</li>
+<li>to fix this problem we predict location coordinates relative to the location of the grid cell</li>
+</ul>
+<p><img src="/assets/image/YOLO9000/1526980953786.png" alt="Alt text"></p>
+<ul>
+<li>this operation makes network more stable</li>
+<li>improves almost 5% over the version with anchor boxes</li>
+</ul>
+<h3 id="Fine-Grained-Features"><a href="#Fine-Grained-Features" class="headerlink" title="Fine-Grained Features"></a>Fine-Grained Features</h3><p>Turns the 26 <em> 26 </em> 256 feature map into a 13 <em> 13 </em> 2048 feature map to use fine-grained picture</p>
+<p>Improves 1% performance </p>
+<h3 id="Multi-Scale-Training"><a href="#Multi-Scale-Training" class="headerlink" title="Multi-Scale Training"></a>Multi-Scale Training</h3><ul>
+<li>Every 10 batches our network randomly chooses a new image dimension size</li>
+<li>offers an easy tradeoff between speed and accuracy</li>
+</ul>
+<h2 id="Faster"><a href="#Faster" class="headerlink" title="Faster"></a>Faster</h2><p>The YOLO framework uses a custom network based on the Google-net architecture</p>
+<h3 id="Darknet-19"><a href="#Darknet-19" class="headerlink" title="Darknet-19"></a>Darknet-19</h3><p><img src="/assets/image/YOLO9000/1526993898442.png" alt="Alt text"></p>
+<h3 id="Training-for-classification"><a href="#Training-for-classification" class="headerlink" title="Training for classification"></a>Training for classification</h3><p>After our initial training on images at 224 × 224 we fine tune our network at a larger size, 448.</p>
+<h3 id="Training-for-detection"><a href="#Training-for-detection" class="headerlink" title="Training for detection"></a>Training for detection</h3><p>Removing the last convolutional layer and instead adding on three 3 × 3 convolutional layers with 1024 filters each followed by a final 1 × 1 convolutional layer with the number of outputs we need for detection</p>
+<p>Add a passthrough layer to use fine grain features</p>
+<h2 id="Stronger"><a href="#Stronger" class="headerlink" title="Stronger"></a>Stronger</h2><p>We propose a mechanism for jointly training on classification and detection data:</p>
+<ul>
+<li>mix images from both detection and classification datasets<ul>
+<li>detection data: backpropagate based on the full YOLOv2 loss function</li>
+<li>classification data: only backpropagate loss from classification part</li>
+</ul>
+</li>
+</ul>
+<p><code>Flaw</code>:</p>
+<ul>
+<li>labels are not mutual exclusion(“Norfolk terrier” and “dog”) so we can’t use softmax</li>
+</ul>
+<p><code>Solution</code>:</p>
+<ul>
+<li>use multi-label model</li>
+</ul>
+<h3 id="Hierarchical-classification"><a href="#Hierarchical-classification" class="headerlink" title="Hierarchical classification"></a>Hierarchical classification</h3><ul>
+<li>Get structure from WordNet</li>
+<li>Simplify graph structure into tree</li>
+<li>Calculate probability by multiply conditional probabilities on the path of tree</li>
+</ul>
+<p><img src="/assets/image/YOLO9000/1527071097106.png" alt="Alt text"></p>
+<p>we compute the softmax over all sysnsets that are hyponyms of the same concept</p>
+<h3 id="Dataset-combination-with-WordTree"><a href="#Dataset-combination-with-WordTree" class="headerlink" title="Dataset combination with WordTree"></a>Dataset combination with WordTree</h3><p>Combine multiple datasets together</p>
+<p><img src="/assets/image/YOLO9000/1527145859015.png" alt="Alt text"></p>
+<h3 id="Joint-classification-and-detection"><a href="#Joint-classification-and-detection" class="headerlink" title="Joint classification and detection"></a>Joint classification and detection</h3><p>Using this dataset we train YOLO9000<br>YOLO9000 gets 19.7 mAP overall</p>
+<ul>
+<li>learn new species of animals well</li>
+<li>struggles with learning categories like clothing and equipment</li>
+</ul>
+<h2 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h2><p>skip</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/machine-learning/" rel="tag"># machine_learning</a>
+              <a href="/tags/note/" rel="tag"># note</a>
+              <a href="/tags/2016/" rel="tag"># 2016</a>
+              <a href="/tags/detection/" rel="tag"># detection</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/04/26/You%20Only%20Look%20Once/" rel="prev" title="You Only Look Once">
+      <i class="fa fa-chevron-left"></i> You Only Look Once
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/05/24/YOLOv3/" rel="next" title="YOLOv3">
+      YOLOv3 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">1.</span> <span class="nav-text">总结</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#VOC%E6%B5%8B%E8%AF%95%E7%BB%93%E6%9E%9C"><span class="nav-number">1.1.</span> <span class="nav-text">VOC测试结果</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Abstract"><span class="nav-number">2.</span> <span class="nav-text">Abstract</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Introduction"><span class="nav-number">3.</span> <span class="nav-text">Introduction</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Better"><span class="nav-number">4.</span> <span class="nav-text">Better</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Batch-Normalization"><span class="nav-number">4.1.</span> <span class="nav-text">Batch Normalization</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#High-Resolution-Classifier"><span class="nav-number">4.2.</span> <span class="nav-text">High Resolution Classifier</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Convolutional-With-Anchor-Boxes"><span class="nav-number">4.3.</span> <span class="nav-text">Convolutional With Anchor Boxes</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Dimension-Clusters"><span class="nav-number">4.4.</span> <span class="nav-text">Dimension Clusters</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Direct-location-prediction"><span class="nav-number">4.5.</span> <span class="nav-text">Direct location prediction</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Fine-Grained-Features"><span class="nav-number">4.6.</span> <span class="nav-text">Fine-Grained Features</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Multi-Scale-Training"><span class="nav-number">4.7.</span> <span class="nav-text">Multi-Scale Training</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Faster"><span class="nav-number">5.</span> <span class="nav-text">Faster</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Darknet-19"><span class="nav-number">5.1.</span> <span class="nav-text">Darknet-19</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Training-for-classification"><span class="nav-number">5.2.</span> <span class="nav-text">Training for classification</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Training-for-detection"><span class="nav-number">5.3.</span> <span class="nav-text">Training for detection</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Stronger"><span class="nav-number">6.</span> <span class="nav-text">Stronger</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Hierarchical-classification"><span class="nav-number">6.1.</span> <span class="nav-text">Hierarchical classification</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Dataset-combination-with-WordTree"><span class="nav-number">6.2.</span> <span class="nav-text">Dataset combination with WordTree</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Joint-classification-and-detection"><span class="nav-number">6.3.</span> <span class="nav-text">Joint classification and detection</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Conclusion"><span class="nav-number">7.</span> <span class="nav-text">Conclusion</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Berwyn Zhang</p>
+  <div class="site-description" itemprop="description">Learn & output</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">38</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-address-card"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Berwyn Zhang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+</body>
+</html>
