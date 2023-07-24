@@ -162,6 +162,278 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2023/07/22/Learning%20transferable%20visual%20models%20from%20natural%20language%20supervision/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2023/07/22/Learning%20transferable%20visual%20models%20from%20natural%20language%20supervision/" class="post-title-link" itemprop="url">Learning transferable visual models from natural language supervision</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2023-07-22 00:00:00" itemprop="dateCreated datePublished" datetime="2023-07-22T00:00:00+08:00">2023-07-22</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-07-24 23:27:14" itemprop="dateModified" datetime="2023-07-24T23:27:14+08:00">2023-07-24</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>提出CLIP, for Contrastive Language-Image Pre-training</li>
+<li>在imagenet上，无监督训练打平Res50，堪比alexnet</li>
+<li>训练流程如下，使用已有图片、文本对的数据集进行pairwise训练。<strong>4亿条清洗过</strong>的数据</li>
+</ul>
+<p><img src="/assets/image/Learning transferable visual models from natural language supervision/1.png" alt="6862b5ea521a83ee846c2eb8a9714e7f.png"></p>
+<ul>
+<li>这种方式训练是没有分类头的无法直接落地应用。作者引入prompt template机制，也是pair wise的去做分类。用句子效果比用直接裸的单词效果更好，因为训练的时候看到的都是划分好的句子么。这个template也是有一些讲究的，所以后面还提到了prompt engineering和prompt ensemble</li>
+<li>这种方式可以很好的拓展，不局限于训练中所使用的的类别，拜托了categorical label的限制</li>
+<li>迁移效果非常好，在<a target="_blank" rel="noopener" href="https://openai.com/research/clip">OpenAI官网</a>上列举了各个不同数据集的效果。但是这块有点存疑的是数据量级的差别4亿对100万</li>
+</ul>
+<p><img src="/assets/image/Learning transferable visual models from natural language supervision/2.png" alt="2d40348cd2792782c86a6f1798005067.png"></p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2023/07/22/Learning%20transferable%20visual%20models%20from%20natural%20language%20supervision/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2023/07/17/Deep%20Residual%20Learning%20for%20Image%20Recognition/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2023/07/17/Deep%20Residual%20Learning%20for%20Image%20Recognition/" class="post-title-link" itemprop="url">Deep Residual Learning for Image Recognition</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2023-07-17 00:00:00" itemprop="dateCreated datePublished" datetime="2023-07-17T00:00:00+08:00">2023-07-17</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-07-24 23:19:09" itemprop="dateModified" datetime="2023-07-24T23:19:09+08:00">2023-07-24</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h2><ul>
+<li>现状：深的神经网络很难训练，本文提出了一种残差结构可以构建152层深的网络</li>
+<li>训练的“退化”现象：层数变深了，误差反而更高</li>
+</ul>
+<p><img src="/assets/image/Deep Residual Learning for Image Recognition/1.png" alt="ec6a0486522e130df0f0f87e3a2fc7eb.png"></p>
+<ul>
+<li>解决方案：加shortcut，优势是没有引入额外的参数</li>
+</ul>
+<p><img src="/assets/image/Deep Residual Learning for Image Recognition/2.png" alt="d5b03ee9f385bcc65fb4d5a3bd6eb388.png"></p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2023/07/17/Deep%20Residual%20Learning%20for%20Image%20Recognition/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2023/06/15/ImageNet%20Classification%20with%20Deep%20Convolutional%20Neural%20Networks/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2023/06/15/ImageNet%20Classification%20with%20Deep%20Convolutional%20Neural%20Networks/" class="post-title-link" itemprop="url">ImageNet Classification with Deep Convolutional Neural Networks</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2023-06-15 00:00:00" itemprop="dateCreated datePublished" datetime="2023-06-15T00:00:00+08:00">2023-06-15</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-07-24 22:26:43" itemprop="dateModified" datetime="2023-07-24T22:26:43+08:00">2023-07-24</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h2><ul>
+<li>这个文章花了很多的篇幅&amp;作者花了很多的精力去做把网络切开放在两块卡上这个事情，现在看来反而不是那么重要。近些年BERT等大模型越出越多，要回到切模型的方式上来</li>
+<li>深度很重要，去掉之后有掉点2%（但其实这个结论并不是很置信）</li>
+<li>有标注数据很重要，这使得以后很长一段时间的深度学习都比较关注有监督学习。一直到BERT的出现才把研究的视角拉回到无监督学习上面来</li>
+<li>已经开始用神经网络里面的向量来搜索图片了。神经网络里面的向量在语义空间里面的表现很好</li>
+</ul>
+<p><img src="/assets/image/ImageNet Classification with Deep Convolutional Neural Networks/1.png" alt="3f2d579a485844bb6c1ffae257a04db9.png"></p>
+<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><ul>
+<li>因为受限于显存大小，是把网络切开来放到里面，有很多工程上的工作，这个对于最终的结果不太重要</li>
+<li>不抽低阶特征（SIFT之类的），直接在原始的pixel上面做，是一个end to end模型</li>
+</ul>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2023/06/15/ImageNet%20Classification%20with%20Deep%20Convolutional%20Neural%20Networks/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
     <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2023/05/11/%E5%AF%B9%E6%AF%94%E5%AD%A6%E4%B9%A0/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1339,289 +1611,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2018/03/09/%E3%80%8A%E5%8C%BA%E5%9D%97%E9%93%BE%E6%BC%94%E4%B9%89%E3%80%8B%E7%AC%94%E8%AE%B0/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Berwyn Zhang">
-      <meta itemprop="description" content="Learn & output">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Berwyn's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2018/03/09/%E3%80%8A%E5%8C%BA%E5%9D%97%E9%93%BE%E6%BC%94%E4%B9%89%E3%80%8B%E7%AC%94%E8%AE%B0/" class="post-title-link" itemprop="url">《区块链演义》笔记</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2018-03-09 00:00:00" itemprop="dateCreated datePublished" datetime="2018-03-09T00:00:00+08:00">2018-03-09</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2021-01-09 23:16:01" itemprop="dateModified" datetime="2021-01-09T23:16:01+08:00">2021-01-09</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">In</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%8C%BA%E5%9D%97%E9%93%BE/" itemprop="url" rel="index"><span itemprop="name">区块链</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>最近区块链火的不行，各种创业公司，虽然不知道在做什么业务，不过可以先把技术了解下，本文是对知乎专栏<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/27419657">《区块链演义》</a>的总结，写一遍加深印象，特此说明。</p>
-<h2 id="到底，什么是比特币"><a href="#到底，什么是比特币" class="headerlink" title="到底，什么是比特币"></a>到底，什么是比特币</h2><p>比特币是人类在数字世界中复制最原始的货币交易的所有尝试中，到目前为止，第一个接近成功的，也是唯一接近成功的一个。</p>
-<h3 id="交易方式"><a href="#交易方式" class="headerlink" title="交易方式"></a>交易方式</h3><p>在有中心的情况下用余额的方式记账比较方便，但是没有中心的情况下，对方需要对你的所有交易记录做校验才能证明余额的正确性，所以去中心的交易方式是——<code>未使用的收入作为支出</code>，比特币是用<code>交易记录来表示的货币形式</code></p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2018/03/09/%E3%80%8A%E5%8C%BA%E5%9D%97%E9%93%BE%E6%BC%94%E4%B9%89%E3%80%8B%E7%AC%94%E8%AE%B0/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2017/12/21/XGBoost/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Berwyn Zhang">
-      <meta itemprop="description" content="Learn & output">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Berwyn's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2017/12/21/XGBoost/" class="post-title-link" itemprop="url">XGBoost</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2017-12-21 00:00:00" itemprop="dateCreated datePublished" datetime="2017-12-21T00:00:00+08:00">2017-12-21</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2021-01-09 23:12:13" itemprop="dateModified" datetime="2021-01-09T23:12:13+08:00">2021-01-09</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">In</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
-<li>在GBDT的基础上加了诸多创新点和工程化的东西达到了可以快速、分布式训练的目的</li>
-<li>首先通过层层推导，利用泰勒展开的二阶项信息得到了一个判断分割点收益的方程：<script type="math/tex; mode=display">L_{split} = \frac {1} 2 [\frac {\sum_{i \in I_L}g_i^2} {\sum_{i \in {I_L}}(h_i + \lambda)} + \frac {\sum_{i \in I_R}g_i^2} {\sum_{i \in {I_R}}(h_i + \lambda)} - \frac {\sum_{i \in I}g_i^2} {\sum_{i \in {I}}(h_i + \lambda)}] - \gamma</script></li>
-<li>提出了两个防止过拟合的方法<ul>
-<li>新训练出的树所给出的预测结果需要乘上shrinkage因子再加到森林中去</li>
-<li>对于特征（列）做采样（等同于RF中的方法）</li>
-</ul>
-</li>
-<li>介绍了两种找最佳分割点的方法<ul>
-<li>枚举所有分割点，然后找出最佳</li>
-<li>利用二阶导数信息当做权重，然后根据权重值来进行等权重划分，划分点即为分割点的候选点，然后依次遍历，此种方法可以应用于分布式计算</li>
-</ul>
-</li>
-<li>针对于稀疏数据，提出了学习default路径的思路，在枚举分割点的时候，将缺失的信息归到两个分支的其中一个，比较效果后决定default路径的方向</li>
-<li>文章的工程化创新思路也非常多<ul>
-<li>针对树训练中所需的大量排序操作设计了Block结构，把每个特征按照特征值排序，存成索引。这样可以在计算前完成排序工作</li>
-<li>文章还针对CPU的cache机制进行了存储优化，主要是使CPU的访问地址尽量连续</li>
-<li>在内存不足时，设计了Out-of-core机制，过多的数据先写在硬盘上，在要用的时候由一个独立的线程预先加载进来，加大了训练数据的最大规模。在此基础上加入了，内容压缩，存储块共享技术，对训练过程提速</li>
-</ul>
-</li>
-<li><strong>补充一些与传统GBM的区别</strong><ul>
-<li>使用了泰勒展开二阶项信息（牛顿法）计算下降方向</li>
-<li>不搜索步长</li>
-<li>加入正则项</li>
-<li>可以并行处理</li>
-<li>内置缺失值处理规则</li>
-<li>使用后剪枝而非预剪枝（GBM）</li>
-</ul>
-</li>
-</ul>
-<h2 id="ABSTRACT"><a href="#ABSTRACT" class="headerlink" title="ABSTRACT"></a>ABSTRACT</h2><p>We propose a novel sparsity-aware algorithm for sparse data and weighted quantile sketch for approximate tree learning.</p>
-<h2 id="INTRODUCTION"><a href="#INTRODUCTION" class="headerlink" title="INTRODUCTION"></a>INTRODUCTION</h2>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2017/12/21/XGBoost/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2017/11/19/%E5%90%8E%E7%BC%80%E6%95%B0%E7%BB%84/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Berwyn Zhang">
-      <meta itemprop="description" content="Learn & output">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Berwyn's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2017/11/19/%E5%90%8E%E7%BC%80%E6%95%B0%E7%BB%84/" class="post-title-link" itemprop="url">后缀数组</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2017-11-19 00:00:00" itemprop="dateCreated datePublished" datetime="2017-11-19T00:00:00+08:00">2017-11-19</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2021-01-09 23:05:02" itemprop="dateModified" datetime="2021-01-09T23:05:02+08:00">2021-01-09</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">In</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/ACM/" itemprop="url" rel="index"><span itemprop="name">ACM</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h2><p>本文介绍后缀数组的基本概念、方法以及应用</p>
-<p>概念：</p>
-<ul>
-<li>构造后缀数组的倍增算法——$O(nlogn)$</li>
-<li>最长公共前缀LCP(Longest Common Prefix)</li>
-<li>height数组——$O(n)$</li>
-</ul>
-<p>应用：</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2017/11/19/%E5%90%8E%E7%BC%80%E6%95%B0%E7%BB%84/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1691,7 +1680,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">39</span>
+          <span class="site-state-item-count">42</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -1704,7 +1693,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">33</span>
+        <span class="site-state-item-count">36</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
