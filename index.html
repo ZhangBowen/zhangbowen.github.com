@@ -162,6 +162,102 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2023/08/22/Attention%20Is%20All%20You%20Need/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2023/08/22/Attention%20Is%20All%20You%20Need/" class="post-title-link" itemprop="url">Attention Is All You Need</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2023-08-22 00:00:00" itemprop="dateCreated datePublished" datetime="2023-08-22T00:00:00+08:00">2023-08-22</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2024-02-17 00:56:59" itemprop="dateModified" datetime="2024-02-17T00:56:59+08:00">2024-02-17</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>作者都来自Google，均等贡献，比较少见</li>
+<li>在seq2seq问题中，没有用循环和卷积的架构，而只依赖注意力机制，在一些机器翻译的工作中取得了很好的结果（后来这个工作出圈了，在包括CV在内的所有任务都可以用）。训练也不太费事，在8个GPU上训练了3.5天。</li>
+<li>在结论部分有源码（应该放在摘要部分？）</li>
+<li>虽然文章标题强调了Attention，但是在后面的消融实验中验证其实其他部分也是很重要的，有个文章叫做Attention is not all you need专门讨论这个事情，也是Google的</li>
+<li>在CNN和RNN之外提出了一个新的模型架构，并且几乎可以用这个架构处理所有模态的事情，堪称深度学习界的秦始皇</li>
+</ul>
+<h2 id="概述-amp-背景"><a href="#概述-amp-背景" class="headerlink" title="概述&amp;背景"></a>概述&amp;背景</h2><ul>
+<li>现有方式的缺点<ul>
+<li>传统RNN的缺点是只能把输入从左往右挨个遍历，通过隐藏状态去传递信息，难以并行（虽然做了一些改进但是没有根本解决这个问题）</li>
+<li>卷积方式对于离的比较远的像素的相关性处理的不好（需要多层卷积）；但是也提到了卷积好的一面：可以做多个输出通道，所以也就引出了多头注意力机制</li>
+</ul>
+</li>
+<li>自注意力机制之前已经有人提出，并不是创新</li>
+</ul>
+<h2 id="模型"><a href="#模型" class="headerlink" title="模型"></a>模型</h2>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2023/08/22/Attention%20Is%20All%20You%20Need/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
     <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2023/07/22/Learning%20transferable%20visual%20models%20from%20natural%20language%20supervision/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1527,90 +1623,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2018/03/11/%E4%BB%A5%E5%A4%AA%E5%9D%8A%E4%B8%8E%E9%BB%91%E7%9B%92%E5%AD%90/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Berwyn Zhang">
-      <meta itemprop="description" content="Learn & output">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Berwyn's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2018/03/11/%E4%BB%A5%E5%A4%AA%E5%9D%8A%E4%B8%8E%E9%BB%91%E7%9B%92%E5%AD%90/" class="post-title-link" itemprop="url">以太坊与黑盒子</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2018-03-11 00:00:00" itemprop="dateCreated datePublished" datetime="2018-03-11T00:00:00+08:00">2018-03-11</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2021-01-09 23:19:27" itemprop="dateModified" datetime="2021-01-09T23:19:27+08:00">2021-01-09</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">In</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%8C%BA%E5%9D%97%E9%93%BE/" itemprop="url" rel="index"><span itemprop="name">区块链</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/28930323">知乎同名文章</a>笔记，特此说明</p>
-<h2 id="智能合约"><a href="#智能合约" class="headerlink" title="智能合约"></a>智能合约</h2><p>之前提到的一些技术，是支撑比特币正常运转的技术，使用同样的技术可以产生其他不同的应用，接下来我们来讨论一下整个区块链领域最热门，被认为能够改变世界的应用——智能合约</p>
-<p>智能合约并不是合约电子化，而是——双方达成协议并签署后，无需第三方就可以强制执行合约上的内容，无法单方面撤销或者反悔的合约</p>
-<p><img src="/assets/image/以太坊与黑盒子/1520747033875.png" alt="Alt text"></p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2018/03/11/%E4%BB%A5%E5%A4%AA%E5%9D%8A%E4%B8%8E%E9%BB%91%E7%9B%92%E5%AD%90/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1680,7 +1692,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">42</span>
+          <span class="site-state-item-count">43</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -1693,7 +1705,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">36</span>
+        <span class="site-state-item-count">37</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
@@ -1720,7 +1732,7 @@
 <div class="copyright">
   
   &copy; 
-  <span itemprop="copyrightYear">2023</span>
+  <span itemprop="copyrightYear">2024</span>
   <span class="with-love">
     <i class="fa fa-address-card"></i>
   </span>

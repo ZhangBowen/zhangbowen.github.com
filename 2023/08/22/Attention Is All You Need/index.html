@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"berwynzhang.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="总结 作者都来自Google，均等贡献，比较少见 在seq2seq问题中，没有用循环和卷积的架构，而只依赖注意力机制，在一些机器翻译的工作中取得了很好的结果（后来这个工作出圈了，在包括CV在内的所有任务都可以用）。训练也不太费事，在8个GPU上训练了3.5天。 在结论部分有源码（应该放在摘要部分？） 虽然文章标题强调了Attention，但是在后面的消融实验中验证其实其他部分也是很重要的，有个文章">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Attention Is All You Need">
+<meta property="og:url" content="https://berwynzhang.com/2023/08/22/Attention%20Is%20All%20You%20Need/index.html">
+<meta property="og:site_name" content="Berwyn&#39;s Blog">
+<meta property="og:description" content="总结 作者都来自Google，均等贡献，比较少见 在seq2seq问题中，没有用循环和卷积的架构，而只依赖注意力机制，在一些机器翻译的工作中取得了很好的结果（后来这个工作出圈了，在包括CV在内的所有任务都可以用）。训练也不太费事，在8个GPU上训练了3.5天。 在结论部分有源码（应该放在摘要部分？） 虽然文章标题强调了Attention，但是在后面的消融实验中验证其实其他部分也是很重要的，有个文章">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/Attention%20Is%20All%20You%20Need/1.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/Attention%20Is%20All%20You%20Need/2.png">
+<meta property="article:published_time" content="2023-08-21T16:00:00.000Z">
+<meta property="article:modified_time" content="2024-02-16T16:56:59.161Z">
+<meta property="article:author" content="Berwyn Zhang">
+<meta property="article:tag" content="machine_learning">
+<meta property="article:tag" content="note">
+<meta property="article:tag" content="transformer">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://berwynzhang.com/assets/image/Attention%20Is%20All%20You%20Need/1.png">
+
+<link rel="canonical" href="https://berwynzhang.com/2023/08/22/Attention%20Is%20All%20You%20Need/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Attention Is All You Need | Berwyn's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Berwyn's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2023/08/22/Attention%20Is%20All%20You%20Need/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Attention Is All You Need
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2023-08-22 00:00:00" itemprop="dateCreated datePublished" datetime="2023-08-22T00:00:00+08:00">2023-08-22</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2024-02-17 00:56:59" itemprop="dateModified" datetime="2024-02-17T00:56:59+08:00">2024-02-17</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>作者都来自Google，均等贡献，比较少见</li>
+<li>在seq2seq问题中，没有用循环和卷积的架构，而只依赖注意力机制，在一些机器翻译的工作中取得了很好的结果（后来这个工作出圈了，在包括CV在内的所有任务都可以用）。训练也不太费事，在8个GPU上训练了3.5天。</li>
+<li>在结论部分有源码（应该放在摘要部分？）</li>
+<li>虽然文章标题强调了Attention，但是在后面的消融实验中验证其实其他部分也是很重要的，有个文章叫做Attention is not all you need专门讨论这个事情，也是Google的</li>
+<li>在CNN和RNN之外提出了一个新的模型架构，并且几乎可以用这个架构处理所有模态的事情，堪称深度学习界的秦始皇</li>
+</ul>
+<h2 id="概述-amp-背景"><a href="#概述-amp-背景" class="headerlink" title="概述&amp;背景"></a>概述&amp;背景</h2><ul>
+<li>现有方式的缺点<ul>
+<li>传统RNN的缺点是只能把输入从左往右挨个遍历，通过隐藏状态去传递信息，难以并行（虽然做了一些改进但是没有根本解决这个问题）</li>
+<li>卷积方式对于离的比较远的像素的相关性处理的不好（需要多层卷积）；但是也提到了卷积好的一面：可以做多个输出通道，所以也就引出了多头注意力机制</li>
+</ul>
+</li>
+<li>自注意力机制之前已经有人提出，并不是创新</li>
+</ul>
+<h2 id="模型"><a href="#模型" class="headerlink" title="模型"></a>模型</h2><ul>
+<li>目前所使用的是encoder-decoder架构：encoder将原始输入变为n维向量，decoder再从n维向量变为m维向量。其中encoder是一次看一整个句子，decoder是one by one的生成（自回归）</li>
+<li>Transformer也是用的这个架构：<ul>
+<li>先把输入embedding化</li>
+<li>加positional bias</li>
+<li>过N个Encoder模块，本文N = 6，维度512<ul>
+<li>过注意力机制和MLP</li>
+<li>带残差</li>
+<li>过Layer Norm</li>
+</ul>
+</li>
+<li>再过N个Decoder模块<ul>
+<li>过Masked注意力 + 注意力 + MLP，其中注意力层的输入混合了Encoder的输出</li>
+<li>带残差</li>
+<li>过Layer Norm</li>
+</ul>
+</li>
+<li>最后过一层Linear然后softmax获得输出</li>
+</ul>
+</li>
+</ul>
+<p><img src="/assets/image/Attention Is All You Need/1.png" alt="0df6f42a563cb4fe8df1be1021dcf108.png"></p>
+<ul>
+<li>为啥用LN不用BN？<ul>
+<li>BN是Batch维度对每一维特征进行归一化，即减去均值除以标准差。预测的时候用的是全局值。通过两个变量$\lambda$和$\beta$来控制归一化的程度</li>
+<li>LN是对每个样本做，而不是对每个特征做</li>
+<li>主要的原因是在一个时序的样本里面，样本的长度可能会发生变化</li>
+<li>BN是有多少组特征就有多少组结果，LN是有多少的样本就有多少组结果</li>
+</ul>
+</li>
+<li>Decoder为啥要用带Masked的注意力层？<ul>
+<li>因为解码器在使用的时候是不能看到完整的输入的，在预测t时刻的词的时候只能看到t时刻之前的输入，所以要加上掩码（将QK的值置为一个非常大的负数），使得训练和预测的时候用起来是一致的</li>
+</ul>
+</li>
+<li>关于注意力机制<ul>
+<li>注意力机制是通过QKV矩阵去通过QK的相似度去计算V的加权和，本文所使用的的注意力机制是Multi Head的Scaled Dot-Product Attention。</li>
+<li>Scaled Dot-Product Attention其实是最简单的一种attention机制，$Attention(Q,K,V) = softmax(\frac {QK^T} {\sqrt {d_k}})V$。</li>
+<li>multihead其实就是多组这样的注意力函数的叠加，借用了CNN中通道的思想，具体实现是先把QKV都映射到一个比较低的维度（等于原始维度除以头的数量），这个投影的层是可以学的，最终的结果是所有头结果的concat到一起。本文用的头的数量时8个</li>
+</ul>
+</li>
+</ul>
+<p><img src="/assets/image/Attention Is All You Need/2.png" alt="c803bda363472fdcc7835df581c97931.png"></p>
+<ul>
+<li>常用的注意力机制还有一种是加项注意力机制，用以处理Q和K维度不等的情况</li>
+<li>除以$\sqrt {d_k}$作为温度变量，当$d_k$比较大的时候算出来的$QK^T$结果通常也比较大，softmax容易向头部集中，梯度也比较小，不利于网络的训练</li>
+<li>注意力层的应用<ul>
+<li>Encoder中的注意力机制：三个输入，QKV，这三个是同样的东西复制过来的，即所谓自注意力</li>
+<li>Decoder中的Masked注意力：和Encoder中的一样，只是加了时间掩码</li>
+<li>Decoder中的第二层注意力：KV来自于Encoder的输出（KV是一样的），Q是Masked注意力层的输出</li>
+</ul>
+</li>
+<li>前馈层是单隐层MLP，中间维度把512变为2048，然后再变回去，维度的伸缩是在最后一个维度即词的维度进行，因为给到MLP的输入已经是经过注意力层的有整个序列信息的数据。</li>
+<li>input embedding、output embedding和softmax前面的embedding层是共享权重的，方便训练。并且把embedding都乘上了一个$\sqrt {d_k}$，为了后面和position embedding相加的时候在一个量级上</li>
+<li>position embedding是一个融合sin和cos函数的一个embedding，维度也是512</li>
+</ul>
+<h2 id="训练细节"><a href="#训练细节" class="headerlink" title="训练细节"></a>训练细节</h2><ul>
+<li>优化器使用Adam</li>
+<li>学习率是通过策略固定（Adam对于学习率不敏感）</li>
+<li>大量使用了Dropout（10%）</li>
+<li>使用了label smooth（0.9）</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/machine-learning/" rel="tag"># machine_learning</a>
+              <a href="/tags/note/" rel="tag"># note</a>
+              <a href="/tags/transformer/" rel="tag"># transformer</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2023/07/22/Learning%20transferable%20visual%20models%20from%20natural%20language%20supervision/" rel="prev" title="Learning transferable visual models from natural language supervision">
+      <i class="fa fa-chevron-left"></i> Learning transferable visual models from natural language supervision
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">1.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A6%82%E8%BF%B0-amp-%E8%83%8C%E6%99%AF"><span class="nav-number">2.</span> <span class="nav-text">概述&amp;背景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B"><span class="nav-number">3.</span> <span class="nav-text">模型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%AD%E7%BB%83%E7%BB%86%E8%8A%82"><span class="nav-number">4.</span> <span class="nav-text">训练细节</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Berwyn Zhang</p>
+  <div class="site-description" itemprop="description">Learn & output</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">43</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">37</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-address-card"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Berwyn Zhang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+</body>
+</html>

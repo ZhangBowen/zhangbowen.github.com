@@ -162,6 +162,110 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2017/06/18/Inception-v4,%20Inception-ResNet%20and%20the%20Impact%20of%20Residual%20Connection%20on%20Learning/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2017/06/18/Inception-v4,%20Inception-ResNet%20and%20the%20Impact%20of%20Residual%20Connection%20on%20Learning/" class="post-title-link" itemprop="url">Inception-v4, Inception-ResNet and the Impact of Residual Connection on Learning</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2017-06-18 00:00:00" itemprop="dateCreated datePublished" datetime="2017-06-18T00:00:00+08:00">2017-06-18</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-05 00:13:15" itemprop="dateModified" datetime="2021-01-05T00:13:15+08:00">2021-01-05</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>本文主要是受微软残差网络<sup><a href="#fn_5" id="reffn_5">5</a></sup>的启发，提出新的结构</li>
+<li>首先讨论了残差的作用<ul>
+<li>微软的文章<sup><a href="#fn_5" id="reffn_5">5</a></sup>认为残差是组成“深”且“宽”的网络的关键</li>
+<li>本文觉得不对，残差的效果主要体现在提高训练稳定性上</li>
+</ul>
+</li>
+<li>在v3<sup><a href="#fn_15" id="reffn_15">15</a></sup>的基础上，提出了一些改进方案，并没有说明改进的思路，只是说换了TensorFlow之后可以不做之前的妥协，所以有了v4</li>
+<li>然后结合了Residual搞出了Inception-ResNet-v1（计算复杂度与v3相近）和其加强版Inception-ResNet-v2（计算复杂度与v4相近）</li>
+<li>实践表明当网络filter数量超过1000的时候，训练会炸，即使调小学习率也不行，提出了减小残差传播的方法，因子在0.1~0.3左右</li>
+</ul>
+<h3 id="实验结果"><a href="#实验结果" class="headerlink" title="实验结果"></a>实验结果</h3><p>ILSVRC 2012 数据集</p>
+<ul>
+<li>1 model; 1 crop; top-5 error: <ul>
+<li>Inception-v4: 5.0%</li>
+<li>Inception-ResNet-v1: 5.5%</li>
+<li>Inception-ResNet-v2: 4.9%</li>
+</ul>
+</li>
+<li>ensemble(4 models; 144 crops); top-5 error:<ul>
+<li>Inception-v4 + 3 * Inception-ResNet-v2: 3.1%</li>
+</ul>
+</li>
+</ul>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2017/06/18/Inception-v4,%20Inception-ResNet%20and%20the%20Impact%20of%20Residual%20Connection%20on%20Learning/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
     <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2017/06/11/Rethinking%20the%20Inception%20Architecture%20for%20Computer%20Vision/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1327,7 +1431,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">42</span>
+          <span class="site-state-item-count">43</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -1340,7 +1444,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">36</span>
+        <span class="site-state-item-count">37</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
@@ -1367,7 +1471,7 @@
 <div class="copyright">
   
   &copy; 
-  <span itemprop="copyrightYear">2023</span>
+  <span itemprop="copyrightYear">2024</span>
   <span class="with-love">
     <i class="fa fa-address-card"></i>
   </span>
