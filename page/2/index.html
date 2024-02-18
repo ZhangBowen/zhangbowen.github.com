@@ -162,6 +162,184 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2018/04/04/Learning%20to%20Rank%20using%20Gradient%20Descent/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2018/04/04/Learning%20to%20Rank%20using%20Gradient%20Descent/" class="post-title-link" itemprop="url">Learning to Rank using Gradient Descent</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-04-04 00:00:00" itemprop="dateCreated datePublished" datetime="2018-04-04T00:00:00+08:00">2018-04-04</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-09 23:50:39" itemprop="dateModified" datetime="2021-01-09T23:50:39+08:00">2021-01-09</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>通过本篇文章，笔者第一次接触到Pair-wise训练<br>其实总体来看实现思路非常简单，就是通过两个point分别过模型inference然后对结果做差，将diff当做一个样本在另外一个样本之前（记$ahead_{ij}$）的对数几率，将这个几率再过一遍Sigmod函数，就得到了概率值(记$P(ahead_{ij})$)<br>文章很大的篇幅，证明了做差之后结果是可导的，这对模型训练至关重要，但被我可耻的跳过了……<br>大篇幅的证明 + 只改动几行代码的实现（对于自动求导的神经网络来说是这样的）和之前读的W-GAN感觉很像<br>不管怎么说Pair-wise训练算是摸到点门道了</p>
+<h2 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h2><p>cast the ranking problem as an ordinal regression problem is to solve an unnecessarily hard problem, we don’t need to do this</p>
+<p>we call the resulting algorithm, together with the probabilistic cost function we describe below —— RankNet</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2018/04/04/Learning%20to%20Rank%20using%20Gradient%20Descent/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2018/03/13/Bitcoin%20A%20Peer-to-Peer%20Electronic%20Cash%20System/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2018/03/13/Bitcoin%20A%20Peer-to-Peer%20Electronic%20Cash%20System/" class="post-title-link" itemprop="url">Bitcoin A Peer-to-Peer Electronic Cash System</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-03-13 00:00:00" itemprop="dateCreated datePublished" datetime="2018-03-13T00:00:00+08:00">2018-03-13</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-09 23:22:07" itemprop="dateModified" datetime="2021-01-09T23:22:07+08:00">2021-01-09</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%8C%BA%E5%9D%97%E9%93%BE/" itemprop="url" rel="index"><span itemprop="name">区块链</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>中本聪比特币原始论文笔记</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>本文提出了一个去中心的分布式交易系统<ul>
+<li>首先通过私钥公钥的验证方式来确保发出货币者的货币所有权</li>
+<li>通过网络广播的方式来解决双重支付问题</li>
+<li>然后我们通过工作证明（挖矿）加链式结构的方式使得作弊的成本大大增加</li>
+</ul>
+</li>
+<li>网络整体去中心，全体匿名</li>
+<li>所有节点都可以自由离开并加入，在加入时只要同步最长区块链就可以了解整个交易历史</li>
+<li>记录交易的权利按照算力随机</li>
+<li>对挖矿奖励，以激励节点记录交易</li>
+<li>网络用符合各方利益的机制，在去中心的情况下保证可以正常运行</li>
+</ul>
+<h2 id="综述"><a href="#综述" class="headerlink" title="综述"></a>综述</h2><p>目前的网上交易大多数是通过权威的第三方担保达成，但是由于要保证交易不被篡改、欺诈等问题，第三方机构需要花费额外的成本去维护整个系统</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2018/03/13/Bitcoin%20A%20Peer-to-Peer%20Electronic%20Cash%20System/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
     <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2018/03/11/%E4%BB%A5%E5%A4%AA%E5%9D%8A%E4%B8%8E%E9%BB%91%E7%9B%92%E5%AD%90/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1445,205 +1623,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2017/09/22/Conditional%20Generative%20Adversarial%20Nets/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Berwyn Zhang">
-      <meta itemprop="description" content="Learn & output">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Berwyn's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2017/09/22/Conditional%20Generative%20Adversarial%20Nets/" class="post-title-link" itemprop="url">Conditional Generative Adversarial Nets</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2017-09-22 00:00:00" itemprop="dateCreated datePublished" datetime="2017-09-22T00:00:00+08:00">2017-09-22</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2021-01-05 00:38:08" itemprop="dateModified" datetime="2021-01-05T00:38:08+08:00">2021-01-05</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">In</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
-<li>在GAN的基础上加上了条件输入（对于D和G同时加）</li>
-<li>目标函数改为$\underset {G} {min} \underset {D} {max}V(D,G) = E_{x \sim p_{data}(x)}[logD(x|y)] + E_{z \sim p_z(z)}[1 - log(D(G(z|y)))]$</li>
-<li>如果没有对于条件的需求在实验中有CGAN的效果并不比GAN的效果好</li>
-<li>CGAN可以按照条件输入输出特定的随机值<ul>
-<li>给定一个数字输出特定数字的手写图片</li>
-<li>给定一个图片输出该图片的tag 概率分布，取较大者作为图片的tag，实现自动化tagging</li>
-</ul>
-</li>
-</ul>
-<h2 id="Abstract"><a href="#Abstract" class="headerlink" title="Abstract"></a>Abstract</h2><p>this net can be constructed by adding condition information to both generator and discriminator</p>
-<h2 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h2>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2017/09/22/Conditional%20Generative%20Adversarial%20Nets/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2017/09/21/Generative%20Adversarial%20Nets/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Berwyn Zhang">
-      <meta itemprop="description" content="Learn & output">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Berwyn's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2017/09/21/Generative%20Adversarial%20Nets/" class="post-title-link" itemprop="url">Generative Adversarial Nets</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2017-09-21 00:00:00" itemprop="dateCreated datePublished" datetime="2017-09-21T00:00:00+08:00">2017-09-21</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2021-01-05 00:35:13" itemprop="dateModified" datetime="2021-01-05T00:35:13+08:00">2021-01-05</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">In</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
-<li>生成对抗网络由生成器G和分类器D组成，生成器G接受噪音生成样本，D负责区分这些样本是否是由D生成出来的</li>
-<li>D和G共同优化目标函数$\underset {G} {min} \underset {D} {max} V(D,G) = E_{x \sim p_{data}(x)}[log(D(x))] + E_{x \sim P_{g_z(z)}}[log(1 - D(g(z)))]$ 一个是让值尽量大，一个是让值尽量小，即所谓“对抗”</li>
-<li>该目标函数会在$p_g = p_{data}$处收敛到最优，即生成分布与训练数据分布完全一致函数值为$-log4$</li>
-<li>关于收敛性的证明：一个凸函数集合的上界的次梯度（可导的时候等于梯度）完全包含最后函数的梯度，所以在求导做梯度下降的时候整体仍然按照凸函数的性质收敛</li>
-<li>使用<a target="_blank" rel="noopener" href="http://blog.sina.com.cn/s/blog_679e13290101cpr1.html">Gaussian Parzen window</a>(<a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=UPXIdi_aTEg">youtube视频</a>)方法对模型进行评估, Parzen Window 其实是用已有数据到待测数据点的“距离”平均值来表示待测点出现在已有数据表示的分布上的概率（或者说在已有数据拟合出的概率密度函数上的值）<ul>
-<li>通用概率密度函数$P(x) = \frac {1} {n}\sum_{i = 1}^{n}\frac {1} {h^d}K(\frac {x - x_i} {h})$</li>
-<li>Parzen window中的核函数可以有多种，使用Gaussian核的就叫做Gaussian Parzen window$P(x) = \frac {1} {n} \sum^n_{i = 1}\frac {1} {h\sqrt {2\pi}^d}exp(-\frac  1 2(\frac {x - x_i} {h})^2 )$</li>
-<li>算出概率之后再过一遍$score = -log(1 - P(x))$(猜测)</li>
-</ul>
-</li>
-<li>优点<ul>
-<li>不使用马尔科夫链</li>
-<li>训练模型的时候不需要inference</li>
-<li>可拟合sharp的分布</li>
-<li>训练样本并不直接作用于G的训练，保证参数独立</li>
-<li>可使用多种模型拟合G和D</li>
-</ul>
-</li>
-<li>缺点<ul>
-<li>G和D需要同步训练（两次D一次G）</li>
-<li>没有$p_g(z)$分布的显示表示</li>
-</ul>
-</li>
-</ul>
-<h2 id="Abstract"><a href="#Abstract" class="headerlink" title="Abstract"></a>Abstract</h2><p>propose a new framework for estimating generative models via adversarial process</p>
-<p>simultaneously train two models:</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2017/09/21/Generative%20Adversarial%20Nets/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1713,7 +1692,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">43</span>
+          <span class="site-state-item-count">45</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -1726,7 +1705,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">37</span>
+        <span class="site-state-item-count">38</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>

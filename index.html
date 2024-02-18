@@ -162,6 +162,224 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2023/09/04/%E5%A4%A7%E6%A8%A1%E5%9E%8B%E7%A7%91%E7%A0%94%E6%80%9D%E8%B7%AF/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2023/09/04/%E5%A4%A7%E6%A8%A1%E5%9E%8B%E7%A7%91%E7%A0%94%E6%80%9D%E8%B7%AF/" class="post-title-link" itemprop="url">大模型科研思路</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2023-09-04 00:00:00" itemprop="dateCreated datePublished" datetime="2023-09-04T00:00:00+08:00">2023-09-04</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2024-02-19 00:06:59" itemprop="dateModified" datetime="2024-02-19T00:06:59+08:00">2024-02-19</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>Facebook的Meta.ai 开源了大模型LLaMA，是一组模型分别有7，13，33，65B参数，和GPT3的165B、Google的PaLM的540B参数比算是小模型。Bigger Than Bigger，Google的ViT也推出了22B的版本</li>
+<li>四个方向<ul>
+<li>Efficiency，在大模型中追求效率（PEFT，parameter efficient fine tuning）</li>
+<li>直接引用已有模型，在这个基础上做研究</li>
+<li>plug and play 即插即用模块，比如数据增强方式</li>
+<li>数据集、分析、综述文章</li>
+</ul>
+</li>
+</ul>
+<h2 id="效率方向"><a href="#效率方向" class="headerlink" title="效率方向"></a>效率方向</h2><h3 id="AIM"><a href="#AIM" class="headerlink" title="AIM"></a>AIM</h3><ul>
+<li>Adaptive Image Models，视频理解的工作</li>
+<li>以往的工作大体分类两类，时空在一起处理和分开处理。分开处理的比方说光流，time transformer。在一起的比如说各种3D卷积。在一起的模型训练成本非常高，不过总体他们都有预训练模型所以还好。</li>
+<li>我们能不能在做时空分开训练的模型的时候将空间部分冻结？<ul>
+<li>Clip已经验证zero shot的效果，即不去finetune模型直接在下游任务去应用，效果也非常好。</li>
+<li>模型的泛化性在逐步的增强</li>
+<li>可以避免灾难性遗忘的问题（在数据量比较小的情况下去finetune大模型）</li>
+</ul>
+</li>
+<li>冻住大模型微调周边的方式有两种一种是Adapter另一种是prompt tuning</li>
+</ul>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2023/09/04/%E5%A4%A7%E6%A8%A1%E5%9E%8B%E7%A7%91%E7%A0%94%E6%80%9D%E8%B7%AF/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2023/08/23/Training%20language%20models%20to%20follow%20instructions%20with%20human%20feedback/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2023/08/23/Training%20language%20models%20to%20follow%20instructions%20with%20human%20feedback/" class="post-title-link" itemprop="url">Training language models to follow instructions with human feedback</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2023-08-23 00:00:00" itemprop="dateCreated datePublished" datetime="2023-08-23T00:00:00+08:00">2023-08-23</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2024-02-18 23:37:12" itemprop="dateModified" datetime="2024-02-18T23:37:12+08:00">2024-02-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>这个文章提出instructGPT模型，instructGPT是ChatGPT的前身，OpenAI的所有工作基本都有连续性</li>
+<li>instructGPT官方博客的四个例子<ul>
+<li>改代码</li>
+<li>问合法建议（有危险的问题不会回答）</li>
+<li>跨学科回答问题，密码学和文学结合，对上下文的理解很好（8000词左右）</li>
+<li>可以理解自己的局限性</li>
+</ul>
+</li>
+<li>数据格式是多轮对话</li>
+<li>过往大模型可能存在的问题：<ul>
+<li>不真实</li>
+<li>有政治、法律风险</li>
+<li>没有价值（一本正经的胡说）</li>
+<li>总的来说就是没有和人的观念对齐，对于大公司来说是不可接受的</li>
+</ul>
+</li>
+<li>为了解决上面说的问题引入人工标注，总体流程分为三块：<ul>
+<li>人工做了问答数据集，以GPT3为基础fintue了一个模型（SFT，有监督模型）</li>
+<li>人工对问答模型的多个结果（beam search）进行排序，训练了一个打分模型(RM reward model 奖励模型)。因为排序比生成简单</li>
+<li>使用打分模型和强化学习的方式finetune问答模型</li>
+</ul>
+</li>
+<li>结果instructGPT 1.3B的参数好过175B的GPT3，这个也还好毕竟使用了标注数据集信噪比高</li>
+<li>instructGPT虽然在各个任务上表现很好，但是对于细分领域还是不如专业模型</li>
+</ul>
+<h2 id="方法"><a href="#方法" class="headerlink" title="方法"></a>方法</h2><ul>
+<li>从19和20年的两篇文章来的方法</li>
+<li>需要对标注的人员进行测试</li>
+<li>SFT模型训练<ul>
+<li>训练了16个epoch，虽然1个epoch就过拟合了，但是发现虽然过拟合也会对后面RM打分和人工打分有帮助</li>
+</ul>
+</li>
+<li>RM训练<ul>
+<li>去掉softmax预测词的部分，改为线性层映射为一个分数</li>
+<li>用6B参数版本，不用175B因为训练会飞掉</li>
+<li>pairwise训练，从top9里面取两个配对，共计36个样本对。感觉给9个答案排序，标注的人也很辛苦</li>
+<li>学习的方式是PPO，在强化学习中模型被称为policy，策略</li>
+<li>在初始阶段RM模型的参数和SFT是一致的，分批取数据训练，因为训练完成后模型给的值会发生变化，所以采用这种方式称为在线学习</li>
+<li>在学习目标中加入了KL散度约束RM模型和SFT模型不要离得太远（训练跑偏）</li>
+<li>在学习目标中又把训练GPT3的目标拿了过来，相当于不要遗忘</li>
+</ul>
+</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
     <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2023/08/22/Attention%20Is%20All%20You%20Need/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1445,184 +1663,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2018/04/04/Learning%20to%20Rank%20using%20Gradient%20Descent/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Berwyn Zhang">
-      <meta itemprop="description" content="Learn & output">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Berwyn's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2018/04/04/Learning%20to%20Rank%20using%20Gradient%20Descent/" class="post-title-link" itemprop="url">Learning to Rank using Gradient Descent</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2018-04-04 00:00:00" itemprop="dateCreated datePublished" datetime="2018-04-04T00:00:00+08:00">2018-04-04</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2021-01-09 23:50:39" itemprop="dateModified" datetime="2021-01-09T23:50:39+08:00">2021-01-09</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">In</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>通过本篇文章，笔者第一次接触到Pair-wise训练<br>其实总体来看实现思路非常简单，就是通过两个point分别过模型inference然后对结果做差，将diff当做一个样本在另外一个样本之前（记$ahead_{ij}$）的对数几率，将这个几率再过一遍Sigmod函数，就得到了概率值(记$P(ahead_{ij})$)<br>文章很大的篇幅，证明了做差之后结果是可导的，这对模型训练至关重要，但被我可耻的跳过了……<br>大篇幅的证明 + 只改动几行代码的实现（对于自动求导的神经网络来说是这样的）和之前读的W-GAN感觉很像<br>不管怎么说Pair-wise训练算是摸到点门道了</p>
-<h2 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h2><p>cast the ranking problem as an ordinal regression problem is to solve an unnecessarily hard problem, we don’t need to do this</p>
-<p>we call the resulting algorithm, together with the probabilistic cost function we describe below —— RankNet</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2018/04/04/Learning%20to%20Rank%20using%20Gradient%20Descent/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2018/03/13/Bitcoin%20A%20Peer-to-Peer%20Electronic%20Cash%20System/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Berwyn Zhang">
-      <meta itemprop="description" content="Learn & output">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Berwyn's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2018/03/13/Bitcoin%20A%20Peer-to-Peer%20Electronic%20Cash%20System/" class="post-title-link" itemprop="url">Bitcoin A Peer-to-Peer Electronic Cash System</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2018-03-13 00:00:00" itemprop="dateCreated datePublished" datetime="2018-03-13T00:00:00+08:00">2018-03-13</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2021-01-09 23:22:07" itemprop="dateModified" datetime="2021-01-09T23:22:07+08:00">2021-01-09</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">In</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%8C%BA%E5%9D%97%E9%93%BE/" itemprop="url" rel="index"><span itemprop="name">区块链</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>中本聪比特币原始论文笔记</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
-<li>本文提出了一个去中心的分布式交易系统<ul>
-<li>首先通过私钥公钥的验证方式来确保发出货币者的货币所有权</li>
-<li>通过网络广播的方式来解决双重支付问题</li>
-<li>然后我们通过工作证明（挖矿）加链式结构的方式使得作弊的成本大大增加</li>
-</ul>
-</li>
-<li>网络整体去中心，全体匿名</li>
-<li>所有节点都可以自由离开并加入，在加入时只要同步最长区块链就可以了解整个交易历史</li>
-<li>记录交易的权利按照算力随机</li>
-<li>对挖矿奖励，以激励节点记录交易</li>
-<li>网络用符合各方利益的机制，在去中心的情况下保证可以正常运行</li>
-</ul>
-<h2 id="综述"><a href="#综述" class="headerlink" title="综述"></a>综述</h2><p>目前的网上交易大多数是通过权威的第三方担保达成，但是由于要保证交易不被篡改、欺诈等问题，第三方机构需要花费额外的成本去维护整个系统</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2018/03/13/Bitcoin%20A%20Peer-to-Peer%20Electronic%20Cash%20System/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1692,7 +1732,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">43</span>
+          <span class="site-state-item-count">45</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -1705,7 +1745,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">37</span>
+        <span class="site-state-item-count">38</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
