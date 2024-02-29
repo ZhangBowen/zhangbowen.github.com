@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"berwynzhang.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="之前工作回顾ViLT 把目标检测从视觉端拿掉，因为预训练的效果不好 将目标检测器换为patch embedding，大大降低运算复杂度，改成了目前这种轻Encoder重模态融合的形式（先tokenized然后传给transformer）    VILT的缺点 性能不如C类方法(VilBert)，经验来看视觉模型要比文本模型要大。另外一个原因是图片模态的初始化比较随机 推理快但是训练很慢（使用WPA">
+<meta property="og:type" content="article">
+<meta property="og:title" content="多模态串讲">
+<meta property="og:url" content="https://berwynzhang.com/2023/09/06/%E5%A4%9A%E6%A8%A1%E6%80%81%E4%B8%B2%E8%AE%B2/index.html">
+<meta property="og:site_name" content="Berwyn&#39;s Blog">
+<meta property="og:description" content="之前工作回顾ViLT 把目标检测从视觉端拿掉，因为预训练的效果不好 将目标检测器换为patch embedding，大大降低运算复杂度，改成了目前这种轻Encoder重模态融合的形式（先tokenized然后传给transformer）    VILT的缺点 性能不如C类方法(VilBert)，经验来看视觉模型要比文本模型要大。另外一个原因是图片模态的初始化比较随机 推理快但是训练很慢（使用WPA">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/多模态串讲/0.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/多模态串讲/1.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/多模态串讲/2.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/多模态串讲/3.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/多模态串讲/4.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/多模态串讲/5.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/多模态串讲/6.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/多模态串讲/7.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/多模态串讲/8.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/多模态串讲/9.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/多模态串讲/10.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/多模态串讲/11.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/多模态串讲/12.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/多模态串讲/13.png">
+<meta property="article:published_time" content="2023-09-05T16:00:00.000Z">
+<meta property="article:modified_time" content="2024-02-29T16:25:20.353Z">
+<meta property="article:author" content="Berwyn Zhang">
+<meta property="article:tag" content="machine_learning">
+<meta property="article:tag" content="note">
+<meta property="article:tag" content="多模态">
+<meta property="article:tag" content="transformer">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://berwynzhang.com/assets/image/多模态串讲/0.png">
+
+<link rel="canonical" href="https://berwynzhang.com/2023/09/06/%E5%A4%9A%E6%A8%A1%E6%80%81%E4%B8%B2%E8%AE%B2/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>多模态串讲 | Berwyn's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Berwyn's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2023/09/06/%E5%A4%9A%E6%A8%A1%E6%80%81%E4%B8%B2%E8%AE%B2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          多模态串讲
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2023-09-06 00:00:00" itemprop="dateCreated datePublished" datetime="2023-09-06T00:00:00+08:00">2023-09-06</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2024-03-01 00:25:20" itemprop="dateModified" datetime="2024-03-01T00:25:20+08:00">2024-03-01</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="之前工作回顾"><a href="#之前工作回顾" class="headerlink" title="之前工作回顾"></a>之前工作回顾</h2><h3 id="ViLT"><a href="#ViLT" class="headerlink" title="ViLT"></a>ViLT</h3><ul>
+<li>把目标检测从视觉端拿掉，因为预训练的效果不好</li>
+<li>将目标检测器换为patch embedding，大大降低运算复杂度，改成了目前这种轻Encoder重模态融合的形式（先tokenized然后传给transformer）</li>
+</ul>
+<p><img src="/assets/image/多模态串讲/0.png" alt="ed6052441d4c1e3adf4e30c968f77caa.png"></p>
+<ul>
+<li>VILT的缺点<ul>
+<li>性能不如C类方法(VilBert)，经验来看视觉模型要比文本模型要大。另外一个原因是图片模态的初始化比较随机</li>
+<li>推理快但是训练很慢（使用WPA Loss）</li>
+<li>ALBEF就是解决上面的问题</li>
+</ul>
+</li>
+</ul>
+<h3 id="CLIP"><a href="#CLIP" class="headerlink" title="CLIP"></a>CLIP</h3><ul>
+<li>CLIP属于B类模型，双塔结构，后面交叉是通过点乘交叉，很高效但是只擅长图文匹配的任务，对于其他任务的处理就没有那么好了</li>
+</ul>
+<h2 id="ALBEF"><a href="#ALBEF" class="headerlink" title="ALBEF"></a>ALBEF</h2><ul>
+<li>图像模态应该大点&amp;Fusion很重要，所以大体长成C类的样子</li>
+<li>损失函数ITC + MLM + ITM的融合，这几个损失函数都是之前效果比较好的</li>
+<li>ALBEF模型结构<ul>
+<li>图像编码器是12层的encoder</li>
+<li>文本的编码器是2个6层encoder，前6层是文本编码器，后面6层是作为融合编码器</li>
+<li>这样设计就达到了图像比文本复杂且融合模态也较为复杂这两个需求</li>
+</ul>
+</li>
+</ul>
+<p><img src="/assets/image/多模态串讲/1.png" alt="8d5cff7e252d5456280aa4a6293916ab.png"></p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><ul>
+<li>以往的多模态工作图像侧的特征都是通过一个预训练好的目标检测器抽取的，没有经过e2e的训练，导致交叉部分不太好学，所以想在fuse之前就做align，具体的方法是通过一个对比学习的方式</li>
+<li>抛弃目标检测器和对图像高清的要求（和CLIP，VILT一样）</li>
+<li>通过momentum distillation的方式去学习网上noisy的样本（网上的内容通常文本并没有很精确的去描述图像，而是偏向于搜索属性），具体方法是训练momentum model去生成pseudo label使用，从而达到自训练的目的</li>
+<li>用多种损失函数其实是对同一个图像文本对生成不同的视角，也可以算作是一种data augmentation</li>
+<li>训练代价低，8卡机三四天的训练量</li>
+<li>momentum model其实就是基础模型通过moving average不断更新的结果，机制类似于MoCo</li>
+</ul>
+<h3 id="损失函数"><a href="#损失函数" class="headerlink" title="损失函数"></a>损失函数</h3><ul>
+<li>损失函数是ITC、ITM、MLM的加和</li>
+</ul>
+<h4 id="ITC"><a href="#ITC" class="headerlink" title="ITC"></a>ITC</h4><ul>
+<li>以图像侧为例，过ViT之后得到embedding取其中CLS部分（768 <em> 1）作为全局特征，然后downsample（256 </em> 1）并且normalization。文本也一样。</li>
+<li>负样本存在queue里面，很大（6w+），不算梯度</li>
+<li>正负样本算cross entropy loss</li>
+</ul>
+<h4 id="ITM"><a href="#ITM" class="headerlink" title="ITM"></a>ITM</h4><ul>
+<li>二分类任务，把融合特征过FC层判断两个模态是不是一个对</li>
+<li>判断负样本难度比较低，所以加了负样本的筛选逻辑即使用ITC的相似度高的当做负样本，使得分类难度大大增高</li>
+</ul>
+<h4 id="MLM"><a href="#MLM" class="headerlink" title="MLM"></a>MLM</h4><ul>
+<li>文本部分Mask一部分，然后过融合模型得到结果去预测，和bert不一样的是借助了图像的信息</li>
+<li>用了这个loss意味着对于每个样本要过两次模型，一次是原始图像文本对，另一次是图像和mask之后的文本的配对，这也是多模态的方法普遍训练时间比较长的原因</li>
+</ul>
+<h3 id="动量蒸馏"><a href="#动量蒸馏" class="headerlink" title="动量蒸馏"></a>动量蒸馏</h3><ul>
+<li>网上爬的数据总体噪音比较多，直接用简单的one hot label对ITC和MLM很不友好。通过self training去解决这个问题，构建momentum model，生成pseudo label（score）给主网络学习（KL散度）。改进后的损失函数是两者的加权融合</li>
+</ul>
+<h3 id="常见多模态任务"><a href="#常见多模态任务" class="headerlink" title="常见多模态任务"></a>常见多模态任务</h3><ul>
+<li>Image-Text Retrieval，图片文本检索任务</li>
+<li>Visual Entailment，判定图文关系，三分类：entailment蕴含，neutral中立，contradictory矛盾</li>
+<li>Visual Question Answering，视觉问答，给定一个图片给定一个问题（文本），看是否能够回答这个问题</li>
+<li>Natural Language for Visual Reasoning，视觉推理，判定一个文本能否用来描述一对图片</li>
+</ul>
+<h3 id="实验"><a href="#实验" class="headerlink" title="实验"></a>实验</h3><p><img src="/assets/image/多模态串讲/2.png" alt="b89fb213d9218ce9dffdf3a13fc3a4f7.png"></p>
+<ul>
+<li>ITC提升巨大而且全面</li>
+<li>hard negative也比较有用</li>
+<li>momentum distillation的作用不是很大</li>
+</ul>
+<h2 id="VLMo"><a href="#VLMo" class="headerlink" title="VLMo"></a>VLMo</h2><ul>
+<li>模型结构改进：<ul>
+<li>以往的方式比如双塔（dual-encoder，例如CLIP），直接在最后算cos similarity，适合检索任务。但由于交叉较浅，在一些比较难的任务上表现不好</li>
+<li>相对应的就有单塔(fusion-encoder)的工作，性能好但是在检索场景推理时间很慢</li>
+<li>Mixture of Modality Expert应运而生，取两者的优点进行应用</li>
+</ul>
+</li>
+<li>训练方式改进：<ul>
+<li>视觉和图像都有各自比较大的数据集，但是多模态的数据集当时还比较小</li>
+<li>所以打算分阶段各自模态去训练，然后放在一起多模态训练</li>
+</ul>
+</li>
+</ul>
+<h3 id="模型"><a href="#模型" class="headerlink" title="模型"></a>模型</h3><p><img src="/assets/image/多模态串讲/3.png" alt="72a32f4ff2358f8f72cd3004de3e8342.png"></p>
+<ul>
+<li>将原始transformer里面的Feed Forward Network按照模态分成了三份：V、L、VL</li>
+<li>但是需要注意的事前面的MSA层是各个模态共享参数的，可以看到自注意力这个机制还是很泛化的</li>
+<li>loss和ALBEF一样是三部分组成，其中ITM也是用了ITC的negative优化。在算不同的loss的时候最后的FFN用不同的模态版本，使得整个网络来回变形</li>
+<li>相应训练的成本会高，64张V100训练两天，慢于ALBEF</li>
+</ul>
+<h3 id="训练流程"><a href="#训练流程" class="headerlink" title="训练流程"></a>训练流程</h3><p><img src="/assets/image/多模态串讲/4.png" alt="f1e3dfc50a937a855ca3b38dcab6c5c6.png"></p>
+<ul>
+<li>三阶段训练<ul>
+<li>Mask Image Modeling训练图像</li>
+<li>Mask Language Modeling训练文本，值得注意的是在做这一步训练的时候MSA是冻结不训练的，这样效果很好（但是反过来不行）当做经验记下来就行</li>
+<li>三个损失函数一起联合训练图像和文本</li>
+</ul>
+</li>
+</ul>
+<h3 id="实验-1"><a href="#实验-1" class="headerlink" title="实验"></a>实验</h3><p><img src="/assets/image/多模态串讲/5.png" alt="22ac6ba94fc829b5d24a02eb66eeab66.png"></p>
+<ul>
+<li>全线超越ALBEF</li>
+</ul>
+<h2 id="BLIP"><a href="#BLIP" class="headerlink" title="BLIP"></a>BLIP</h2><ul>
+<li>两个主要的贡献点：<ul>
+<li>Bootstrapping，从数据集角度出发，用有噪声的数据两阶段训练模型，类似于蒸馏</li>
+<li>Unified，从模型角度出发，统一内容理解和生成</li>
+</ul>
+</li>
+<li>也是salesforce的文章之前写过ALBEF</li>
+</ul>
+<h3 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h3><ul>
+<li>以往的模型要么是encoder结构要么是encoder加decoder的结构，如果只有encoder的话是没办法做生成任务的（图像生成字幕）；反之如果是encoder加decoder的架构那么他又没办法直接做理解的任务（图文检索）。这个有点像VLMo的意思，想用一个模型干所有事。</li>
+<li>以往的模型大多数用网络上的数据训练，噪音很大，只是数据集的大小掩盖了这个问题。<ul>
+<li>设计一个captioner，即给网上图片生成描述</li>
+<li>设计一个filter，给网上图文数据（其中也包括我们生成出来的数据）判定相关性，只有相关性比较强的才能用于模型训练</li>
+</ul>
+</li>
+</ul>
+<h3 id="模型-1"><a href="#模型-1" class="headerlink" title="模型"></a>模型</h3><p><img src="/assets/image/多模态串讲/6.png" alt="dc5c0060346a51b503b4ae530e40b34d.png"></p>
+<ul>
+<li>总体的框架是结合了ALBEF和VLMo，模型分为四个部分<ul>
+<li>图像模态是一个标准的N层ViT模型</li>
+<li>文本模态是分为三个模型<ul>
+<li>第一个是N层encoder</li>
+<li>第二个是一个加了cross attention的encoder。至此基本和ALBEF就很像了，主要的区别是通过共享参数而不是分割文本模态塔的方式去减小计算量</li>
+<li>第三个是一个加了cross attention的decoder 去做生成任务（LM任务），self attention层也有了变化，是causal的self attention，用于因果推理，没法和之前的模型共享参数</li>
+<li>三个文本模型的前面加不同的token</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>和VLMo相比就是把mixture of experts换成了mixture of encoder and decoder，所以也可以称为MED模型</li>
+</ul>
+<p><img src="/assets/image/多模态串讲/7.png" alt="f5ea04da677624766f565d3784d8c200.png"></p>
+<ul>
+<li>cap filter model<ul>
+<li>目前训练模型所使用的数据集通常是网络上的数据集和人工标注的高质量的数据集的混合，网络数据不干净对训练有影响，需要改进</li>
+<li>所使用的的方案是把混合训练好的MED拿过来再用人工标注的数据finetune一下，分别用作filter和captioner</li>
+<li>用captioner生成图片对应文本交给filter一并去清洗</li>
+<li>最后的数据集是由清洗过后的网络数据、人工标注数据、清洗过后的生成数据三部分组成</li>
+<li>模型提升非常显著</li>
+</ul>
+</li>
+</ul>
+<h3 id="实验-2"><a href="#实验-2" class="headerlink" title="实验"></a>实验</h3><p><img src="/assets/image/多模态串讲/8.png" alt="723e0b1a4183358aa2a345b822bf3cd9.png"></p>
+<ul>
+<li>分别把模型和数据冻住做控制变量的观察</li>
+<li>capfilter模块可以单独拿出来用，用不同大小的模型，应用到不同的下游任务，效果很好，这个有很多应用（比如Laion超大规模数据集），可以当做一个思考的范式。</li>
+</ul>
+<h2 id="CoCa"><a href="#CoCa" class="headerlink" title="CoCa"></a>CoCa</h2><ul>
+<li>从题目中可以看出，CoCa主要是由两部分组成<ul>
+<li>Contrastive Loss</li>
+<li>Captioner Loss</li>
+</ul>
+</li>
+<li>模型大（2.1B参数量，在多模态模型里面算很大的），数据多（几B的训练数据），效果强</li>
+</ul>
+<h3 id="模型-2"><a href="#模型-2" class="headerlink" title="模型"></a>模型</h3><p><img src="/assets/image/多模态串讲/9.png" alt="6b003ee72a0efc0e69407f311a1ec8dd.png"></p>
+<ul>
+<li>和ALBEF长得很像，主要区别：<ul>
+<li>用attentional pooling，这种pooling方式可学习</li>
+<li>文本端都用decoder，主要是由于之前ALBEF设计的时候引入MLM需要计算多次，所以作者使用了另外的一个不需要计算多次的Loss。具体方案是舍弃全文本的输入，一开始就是masked输入。这样整个网络训练一个样本就只需要做一次forward。同时因为所使用的数据集比较大，所以用masked输入的副作用会小一些</li>
+</ul>
+</li>
+</ul>
+<h3 id="实验-3"><a href="#实验-3" class="headerlink" title="实验"></a>实验</h3><p><img src="/assets/image/多模态串讲/10.png" alt="ebb0913aa163d27f1aad98e749c8aea5.png"></p>
+<ul>
+<li>视觉效果和实际效果都非常炸裂</li>
+</ul>
+<h2 id="BeiTv3"><a href="#BeiTv3" class="headerlink" title="BeiTv3"></a>BeiTv3</h2><ul>
+<li>做大一统框架<ul>
+<li>Loss统一：使用Mask Language Modeling去做</li>
+<li>模型统一：基于之前VLMo中提出的MoME（Mixture of Multi Experts），提出新的Multi Way Transformers</li>
+</ul>
+</li>
+<li>这个模型训练用的数据集都是公开数据集，总数据量比CoCa小很多，质量很关键</li>
+</ul>
+<h3 id="实验-4"><a href="#实验-4" class="headerlink" title="实验"></a>实验</h3><p><img src="/assets/image/多模态串讲/11.png" alt="9cb34607f695e0256e1bf43623c63c15.png"></p>
+<ul>
+<li>比MoCa强了一圈</li>
+</ul>
+<h3 id="模型-3"><a href="#模型-3" class="headerlink" title="模型"></a>模型</h3><p><img src="/assets/image/多模态串讲/12.png" alt="14c2d237947e4b24c3898e8f28eceb03.png"></p>
+<ul>
+<li>和VLMo是一样的，只不过损失函数只有一个Mask Language Modeling</li>
+</ul>
+<p><img src="/assets/image/多模态串讲/13.png" alt="49ebc205e5eb435ec93e7a03e1e6d876.png"></p>
+<ul>
+<li>使用起来非常灵活</li>
+</ul>
+<h2 id="整体迭代路径"><a href="#整体迭代路径" class="headerlink" title="整体迭代路径"></a>整体迭代路径</h2><ul>
+<li><strong>Base</strong>：用detection去处理图像侧的模态</li>
+<li><strong>ViLT</strong>：将原本<strong>Base</strong>中detection部分替换为<strong>ViT</strong>中的transformer部分，大大简化了模型结构</li>
+<li><strong>ALBEF</strong>：<ul>
+<li>基于<strong>Base</strong>、<strong>ViLT</strong>、<strong>CLIP</strong></li>
+<li>吸收了CLIP的高效、Base的fusion性能优点、VilT中transformer的简单结构</li>
+<li>提出了ITC、ITM、MLM三种Loss混合使用</li>
+<li>双塔Encoder，把文本塔切为两部分，后一部分用于fusion建模</li>
+<li>动量蒸馏，做pseudo label</li>
+</ul>
+</li>
+<li><strong>VLMo</strong>:<ul>
+<li>基于<strong>VILT</strong>、<strong>ALBEF</strong></li>
+<li>设计了多重FC去灵活切换，用于不同任务</li>
+<li>分阶段训练各个FC，以应用更多的数据集</li>
+</ul>
+</li>
+<li><strong>BLIP</strong><ul>
+<li>基于<strong>VLMo</strong>、<strong>ALBEF</strong></li>
+<li>在attention层去分多类处理数据；参数共享</li>
+<li>提出capfilter训练范式，生成、蒸馏数据</li>
+</ul>
+</li>
+<li><strong>CoCa</strong>:<ul>
+<li>基于<strong>SimVLM</strong>、<strong>ALBEF</strong></li>
+<li>使用contract和caption loss训练，使得每次训练网络只推理一次，高效</li>
+</ul>
+</li>
+<li><strong>BEiT</strong><ul>
+<li>基于<strong>ViT</strong>、<strong>BERT</strong></li>
+<li>继续探索mask modeling在图像模态的应用</li>
+</ul>
+</li>
+<li><strong>VL-BEiT</strong><ul>
+<li>基于<strong>BEiT</strong>、<strong>BERT</strong></li>
+<li>将视觉、文本模态融合</li>
+</ul>
+</li>
+<li><strong>BEiTv3</strong><ul>
+<li>基于<strong>VL-BEiT</strong>、<strong>VLMo</strong>、<strong>BEiTv2</strong>（纯视觉）</li>
+<li>融合前面的工作，效果最强</li>
+</ul>
+</li>
+<li><strong>MAE</strong><ul>
+<li>基于<strong>ViT</strong>、<strong>BEiT</strong></li>
+<li>mask对象由patch换为pixel</li>
+<li>只用没有mask的部分进行训练，加快训练速度</li>
+</ul>
+</li>
+<li><strong>FLIP</strong><ul>
+<li>基于<strong>CLIP</strong>、<strong>MAE</strong></li>
+<li>把MAE中只用没有mask部分数据的思想应用到CLIP上</li>
+</ul>
+</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/machine-learning/" rel="tag"># machine_learning</a>
+              <a href="/tags/note/" rel="tag"># note</a>
+              <a href="/tags/%E5%A4%9A%E6%A8%A1%E6%80%81/" rel="tag"># 多模态</a>
+              <a href="/tags/transformer/" rel="tag"># transformer</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2023/09/04/%E5%A4%A7%E6%A8%A1%E5%9E%8B%E7%A7%91%E7%A0%94%E6%80%9D%E8%B7%AF/" rel="prev" title="大模型科研思路">
+      <i class="fa fa-chevron-left"></i> 大模型科研思路
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B9%8B%E5%89%8D%E5%B7%A5%E4%BD%9C%E5%9B%9E%E9%A1%BE"><span class="nav-number">1.</span> <span class="nav-text">之前工作回顾</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ViLT"><span class="nav-number">1.1.</span> <span class="nav-text">ViLT</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CLIP"><span class="nav-number">1.2.</span> <span class="nav-text">CLIP</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ALBEF"><span class="nav-number">2.</span> <span class="nav-text">ALBEF</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">2.1.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0"><span class="nav-number">2.2.</span> <span class="nav-text">损失函数</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#ITC"><span class="nav-number">2.2.1.</span> <span class="nav-text">ITC</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#ITM"><span class="nav-number">2.2.2.</span> <span class="nav-text">ITM</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#MLM"><span class="nav-number">2.2.3.</span> <span class="nav-text">MLM</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8A%A8%E9%87%8F%E8%92%B8%E9%A6%8F"><span class="nav-number">2.3.</span> <span class="nav-text">动量蒸馏</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B8%B8%E8%A7%81%E5%A4%9A%E6%A8%A1%E6%80%81%E4%BB%BB%E5%8A%A1"><span class="nav-number">2.4.</span> <span class="nav-text">常见多模态任务</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C"><span class="nav-number">2.5.</span> <span class="nav-text">实验</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#VLMo"><span class="nav-number">3.</span> <span class="nav-text">VLMo</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B"><span class="nav-number">3.1.</span> <span class="nav-text">模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%AD%E7%BB%83%E6%B5%81%E7%A8%8B"><span class="nav-number">3.2.</span> <span class="nav-text">训练流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C-1"><span class="nav-number">3.3.</span> <span class="nav-text">实验</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#BLIP"><span class="nav-number">4.</span> <span class="nav-text">BLIP</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BC%95%E8%A8%80"><span class="nav-number">4.1.</span> <span class="nav-text">引言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B-1"><span class="nav-number">4.2.</span> <span class="nav-text">模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C-2"><span class="nav-number">4.3.</span> <span class="nav-text">实验</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CoCa"><span class="nav-number">5.</span> <span class="nav-text">CoCa</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B-2"><span class="nav-number">5.1.</span> <span class="nav-text">模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C-3"><span class="nav-number">5.2.</span> <span class="nav-text">实验</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#BeiTv3"><span class="nav-number">6.</span> <span class="nav-text">BeiTv3</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C-4"><span class="nav-number">6.1.</span> <span class="nav-text">实验</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B-3"><span class="nav-number">6.2.</span> <span class="nav-text">模型</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B4%E4%BD%93%E8%BF%AD%E4%BB%A3%E8%B7%AF%E5%BE%84"><span class="nav-number">7.</span> <span class="nav-text">整体迭代路径</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Berwyn Zhang</p>
+  <div class="site-description" itemprop="description">Learn & output</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">46</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">38</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-address-card"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Berwyn Zhang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+</body>
+</html>

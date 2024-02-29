@@ -162,6 +162,99 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2023/09/06/%E5%A4%9A%E6%A8%A1%E6%80%81%E4%B8%B2%E8%AE%B2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2023/09/06/%E5%A4%9A%E6%A8%A1%E6%80%81%E4%B8%B2%E8%AE%B2/" class="post-title-link" itemprop="url">多模态串讲</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2023-09-06 00:00:00" itemprop="dateCreated datePublished" datetime="2023-09-06T00:00:00+08:00">2023-09-06</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2024-03-01 00:25:20" itemprop="dateModified" datetime="2024-03-01T00:25:20+08:00">2024-03-01</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="之前工作回顾"><a href="#之前工作回顾" class="headerlink" title="之前工作回顾"></a>之前工作回顾</h2><h3 id="ViLT"><a href="#ViLT" class="headerlink" title="ViLT"></a>ViLT</h3><ul>
+<li>把目标检测从视觉端拿掉，因为预训练的效果不好</li>
+<li>将目标检测器换为patch embedding，大大降低运算复杂度，改成了目前这种轻Encoder重模态融合的形式（先tokenized然后传给transformer）</li>
+</ul>
+<p><img src="/assets/image/多模态串讲/0.png" alt="ed6052441d4c1e3adf4e30c968f77caa.png"></p>
+<ul>
+<li>VILT的缺点<ul>
+<li>性能不如C类方法(VilBert)，经验来看视觉模型要比文本模型要大。另外一个原因是图片模态的初始化比较随机</li>
+<li>推理快但是训练很慢（使用WPA Loss）</li>
+<li>ALBEF就是解决上面的问题</li>
+</ul>
+</li>
+</ul>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2023/09/06/%E5%A4%9A%E6%A8%A1%E6%80%81%E4%B8%B2%E8%AE%B2/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
     <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2023/09/04/%E5%A4%A7%E6%A8%A1%E5%9E%8B%E7%A7%91%E7%A0%94%E6%80%9D%E8%B7%AF/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1537,136 +1630,10 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2018/04/26/You%20Only%20Look%20Once/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Berwyn Zhang">
-      <meta itemprop="description" content="Learn & output">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Berwyn's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2018/04/26/You%20Only%20Look%20Once/" class="post-title-link" itemprop="url">You Only Look Once</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2018-04-26 00:00:00" itemprop="dateCreated datePublished" datetime="2018-04-26T00:00:00+08:00">2018-04-26</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2021-01-09 23:50:05" itemprop="dateModified" datetime="2021-01-09T23:50:05+08:00">2021-01-09</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">In</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
-<li>这篇文章提出了一种新的解决detection的网络结构</li>
-<li>不同于R-CNN系列的多阶段结构，YOLO只是用一个传统CNN结构就输出了所有的预测信息</li>
-<li>YOLO的优势：<ul>
-<li>快，每秒45张图片（平均每张图片耗时22ms）同时还有一个不错的mAP: 63.4</li>
-<li>处理整张图片而不是特定的一个proposal，有更少的背景误分类</li>
-<li>特征更泛化（通过更高的艺术品人像识别率来证明）</li>
-</ul>
-</li>
-<li>YOLO的劣势：<ul>
-<li>每个框的bounding box数目受限</li>
-<li>每个框至多属于一类</li>
-<li>由于上述原因对于小物体的检测效果不好</li>
-</ul>
-</li>
-<li>Detection原理<ul>
-<li>把图像分为 S * S块</li>
-<li>每个块输出B个bounding box信息</li>
-<li>每个bounding box信息包含五项<ul>
-<li>bounding box的中心的x y坐标</li>
-<li>bounding box的长和宽</li>
-<li>这个bounding box包含物体的信心分</li>
-<li>共计五项</li>
-</ul>
-</li>
-<li>此外每个块还输出在包含物体的情况下，物体所属分类的概率</li>
-<li>模型就是CNN网络，综上模型最后一层的输出是S <em> S </em> (B * 5 + num of classes)的一个tensor</li>
-</ul>
-</li>
-<li>训练细节<ul>
-<li>使用ImageNet pre-train + fine-tune</li>
-<li>在fine-tune阶段，把input_size扩大一倍（detection任务需要更清晰的图片）</li>
-<li>对x,y,h,w进行归一化</li>
-<li>平衡大小bounding box对损失的影响，对h,w开平方处理</li>
-<li>对包含物体的块的损失部分做加权处理(*5)</li>
-<li>对不包含物体的块的损失部分做减小权重处理(*0.5)</li>
-<li>具体公式见loss function部分</li>
-</ul>
-</li>
-</ul>
-<h3 id="VOC测试结果"><a href="#VOC测试结果" class="headerlink" title="VOC测试结果"></a>VOC测试结果</h3><ul>
-<li>time: 22ms</li>
-<li>VOC 2007: 63.4%</li>
-<li>VOC 2012: 57.9%</li>
-</ul>
-<h2 id="Abstract"><a href="#Abstract" class="headerlink" title="Abstract"></a>Abstract</h2>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2018/04/26/You%20Only%20Look%20Once/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right" aria-label="Next page"></i></a>
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right" aria-label="Next page"></i></a>
   </nav>
 
 
@@ -1732,7 +1699,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">45</span>
+          <span class="site-state-item-count">46</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
