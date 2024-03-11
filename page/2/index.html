@@ -162,6 +162,125 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2018/05/21/YOLO%209000/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2018/05/21/YOLO%209000/" class="post-title-link" itemprop="url">YOLO 9000</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-05-21 00:00:00" itemprop="dateCreated datePublished" datetime="2018-05-21T00:00:00+08:00">2018-05-21</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-09 23:55:43" itemprop="dateModified" datetime="2021-01-09T23:55:43+08:00">2021-01-09</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>这篇文章主要是在YOLO的基础上加以改进提出了更好的YOLO V2</li>
+<li>此外还提出了一种合并classification和detection数据集的方式，从而大大拓展了训练数据集的规模和分类目标数</li>
+<li>具体改进的点<ul>
+<li>BN：加了BN之后有2%的mAP提升</li>
+<li>用更高清的图片来fine-tune图片分类网络：有4% mAP提升</li>
+<li>使用Anchor来预测物体范围代替直接预测：准确率下降，召回率上升<ul>
+<li>下面又使用了两个改进方式来改进使用Anchor的版本</li>
+<li>用K-means的方法学习数据集中的标注来选取物体范围的初始框，而不是使用Anchor尝试；为了平衡模型的复杂度和recall选定了K = 5</li>
+<li>来修正bounding-box的阶段，模型的可选择范围较大，造成模型在初始训练阶段不稳定，修改了修正的方式——使用sigmod把回归预测值固定在0~1范围内，表示在格子内的比例：相较于Anchor box版本有接近5%左右的提升</li>
+</ul>
+</li>
+<li>加入高清特征<ul>
+<li>模型最终的输出是13*13</li>
+<li>我们直接把上一层的26<em>26的特征拿过来，将filter数量翻四倍，把维度变为13</em>13</li>
+<li>将新的layer与之前的输出层stack到一起成为新的feature map</li>
+<li>有1%的提升</li>
+</ul>
+</li>
+<li>多尺度训练<ul>
+<li>每隔10个batch随机改变input的size大小让网络可以应对不同尺度大小的图片</li>
+<li>小图片的inference时间短，用这种方法可以方便的在mAP和测试时间之间做trade off</li>
+</ul>
+</li>
+<li>加入了这些新的特性后诞生了YOLO v2</li>
+</ul>
+</li>
+<li>文章中还提出了一个混合分类数据集的方式<ul>
+<li>在训练过程中如果遇到了分类数据（无detection标注）那么只进行分类部分损失函数的反向传播</li>
+<li>还有一个标签不统一的问题，往往因为分类数据更加丰富所以，分类数据的标签会更细一些，文章针对这个问题建立了一颗标签语义树，不同粒度的标签可以都可以在语义树中找到正确的位置</li>
+<li>同时模型在分类预测的时候也依照语义树进行不同粒度的softmax</li>
+</ul>
+</li>
+</ul>
+<h3 id="VOC测试结果"><a href="#VOC测试结果" class="headerlink" title="VOC测试结果"></a>VOC测试结果</h3><ul>
+<li>time: 15ms</li>
+<li>VOC 2007: 76.8%</li>
+</ul>
+<h2 id="Abstract"><a href="#Abstract" class="headerlink" title="Abstract"></a>Abstract</h2>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2018/05/21/YOLO%209000/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
     <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2018/04/26/You%20Only%20Look%20Once/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1554,99 +1673,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2017/10/10/Towards%20Principled%20Methods%20for%20Training%20Generative%20Adversarial%20Networks/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Berwyn Zhang">
-      <meta itemprop="description" content="Learn & output">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Berwyn's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2017/10/10/Towards%20Principled%20Methods%20for%20Training%20Generative%20Adversarial%20Networks/" class="post-title-link" itemprop="url">Towards Principled Methods for Training Generative Adversarial Networks</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2017-10-10 00:00:00" itemprop="dateCreated datePublished" datetime="2017-10-10T00:00:00+08:00">2017-10-10</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2021-01-09 18:53:06" itemprop="dateModified" datetime="2021-01-09T18:53:06+08:00">2021-01-09</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">In</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
-<li>本文主要是通过数学的方法分析现有GAN训练中存在的问题</li>
-<li>先从KL散度入手——散度不对称对于两种不同的损失（真实分布存在而生成分布不存在；真实分布不存在而生成分布存在）给予了两种截然不同的惩罚</li>
-<li>然后分析了训练过程不稳定的原因<ul>
-<li>当生成器的损失函数是$E_{x \sim P_r}[logD(x)] + E_{x \sim P_g}[log(1 - D(x))]$=$ 2JS(P_r||P_g) - 2log2$时，在分类器最优时，此损失函数是一个常数(低维流形理论JS散度一直为常数$log2$)，根本没有梯度，所以随着存在梯度消失的问题</li>
-<li>当生成器的损失函数是$-logD$ = $KL(P_g||P_r) - 2JS(P_r||P_g)$时有两个问题。第一个是两个散度的优化方向矛盾，一个是让两个分布尽量近一个是尽量远，导致训练方向不稳定；另外KL的散度加大了对于$P_r = 0 且 P_g = 1$的惩罚，导致模型坍塌</li>
-</ul>
-</li>
-<li>提出解决方案——给两个分布加噪音，使两个低维流形维度升高，产生重叠，从而使JS散度不为常数，之后慢慢将噪声去除</li>
-<li>提出Wasserstein距离，但是没有过多讨论，留到下一篇Wasserstein GAN再说</li>
-</ul>
-<h2 id="Abstract"><a href="#Abstract" class="headerlink" title="Abstract"></a>Abstract</h2><p>this paper is proposed to make theoretical steps towards fully understanding the training dynamics of GANs</p>
-<p>three sections:</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2017/10/10/Towards%20Principled%20Methods%20for%20Training%20Generative%20Adversarial%20Networks/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1716,7 +1742,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">46</span>
+          <span class="site-state-item-count">47</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>

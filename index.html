@@ -162,6 +162,108 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2023/09/12/BERT/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2023/09/12/BERT/" class="post-title-link" itemprop="url">BERT</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2023-09-12 00:00:00" itemprop="dateCreated datePublished" datetime="2023-09-12T00:00:00+08:00">2023-09-12</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2024-03-12 00:06:47" itemprop="dateModified" datetime="2024-03-12T00:06:47+08:00">2024-03-12</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>名字有点说法，Bidirectional Encoder Representations from Transformers，简称BERT和之前所引用的ELMo都是芝麻街主人公的名字……</li>
+<li>和前作对比：<ul>
+<li>相比较于ELMo的RNN架构，BERT迁移到下游任务相对简单。ELMo这种方式属于基于特征的下游任务应用方式，将预训练好的模型输出当做额外的特征应用到下游任务中去</li>
+<li>相比较于GPT，BERT是双向信息建模。GPT的应用下游任务方式属于微调，在不同的任务上重新训练已有的模型。</li>
+</ul>
+</li>
+<li>训练目标<ul>
+<li>单向信息建模在语义表征任务上其实有一定局限性所以作者想要加入双向信息去做建模，使用了MLM目标去建模，这个东西是一个叫做Cloze的1953年的文章提出来的</li>
+<li>还使用了预测下一个句子的任务。因为有些任务比如问答都是要处理两个句子的</li>
+</ul>
+</li>
+<li>在挺多（11个）的任务上表现良好，这里其实证明了两个事情<ul>
+<li>双向信息很有用</li>
+<li>大量的没有label的数据比少量labeled的数据效果更好，这个思想也应用在了视觉领域</li>
+</ul>
+</li>
+</ul>
+<h2 id="模型"><a href="#模型" class="headerlink" title="模型"></a>模型</h2><ul>
+<li>模型训练分为两个步骤：预训练（无监督）和微调（下游有监督数据）</li>
+</ul>
+<p><img src="/assets/image/BERT/0.png" alt="93f090d277afbe9597447100391e76f4.png"></p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2023/09/12/BERT/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
     <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2023/09/06/%E5%A4%9A%E6%A8%A1%E6%80%81%E4%B8%B2%E8%AE%B2/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1511,125 +1613,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2018/05/21/YOLO%209000/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Berwyn Zhang">
-      <meta itemprop="description" content="Learn & output">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Berwyn's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2018/05/21/YOLO%209000/" class="post-title-link" itemprop="url">YOLO 9000</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2018-05-21 00:00:00" itemprop="dateCreated datePublished" datetime="2018-05-21T00:00:00+08:00">2018-05-21</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2021-01-09 23:55:43" itemprop="dateModified" datetime="2021-01-09T23:55:43+08:00">2021-01-09</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">In</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
-<li>这篇文章主要是在YOLO的基础上加以改进提出了更好的YOLO V2</li>
-<li>此外还提出了一种合并classification和detection数据集的方式，从而大大拓展了训练数据集的规模和分类目标数</li>
-<li>具体改进的点<ul>
-<li>BN：加了BN之后有2%的mAP提升</li>
-<li>用更高清的图片来fine-tune图片分类网络：有4% mAP提升</li>
-<li>使用Anchor来预测物体范围代替直接预测：准确率下降，召回率上升<ul>
-<li>下面又使用了两个改进方式来改进使用Anchor的版本</li>
-<li>用K-means的方法学习数据集中的标注来选取物体范围的初始框，而不是使用Anchor尝试；为了平衡模型的复杂度和recall选定了K = 5</li>
-<li>来修正bounding-box的阶段，模型的可选择范围较大，造成模型在初始训练阶段不稳定，修改了修正的方式——使用sigmod把回归预测值固定在0~1范围内，表示在格子内的比例：相较于Anchor box版本有接近5%左右的提升</li>
-</ul>
-</li>
-<li>加入高清特征<ul>
-<li>模型最终的输出是13*13</li>
-<li>我们直接把上一层的26<em>26的特征拿过来，将filter数量翻四倍，把维度变为13</em>13</li>
-<li>将新的layer与之前的输出层stack到一起成为新的feature map</li>
-<li>有1%的提升</li>
-</ul>
-</li>
-<li>多尺度训练<ul>
-<li>每隔10个batch随机改变input的size大小让网络可以应对不同尺度大小的图片</li>
-<li>小图片的inference时间短，用这种方法可以方便的在mAP和测试时间之间做trade off</li>
-</ul>
-</li>
-<li>加入了这些新的特性后诞生了YOLO v2</li>
-</ul>
-</li>
-<li>文章中还提出了一个混合分类数据集的方式<ul>
-<li>在训练过程中如果遇到了分类数据（无detection标注）那么只进行分类部分损失函数的反向传播</li>
-<li>还有一个标签不统一的问题，往往因为分类数据更加丰富所以，分类数据的标签会更细一些，文章针对这个问题建立了一颗标签语义树，不同粒度的标签可以都可以在语义树中找到正确的位置</li>
-<li>同时模型在分类预测的时候也依照语义树进行不同粒度的softmax</li>
-</ul>
-</li>
-</ul>
-<h3 id="VOC测试结果"><a href="#VOC测试结果" class="headerlink" title="VOC测试结果"></a>VOC测试结果</h3><ul>
-<li>time: 15ms</li>
-<li>VOC 2007: 76.8%</li>
-</ul>
-<h2 id="Abstract"><a href="#Abstract" class="headerlink" title="Abstract"></a>Abstract</h2>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2018/05/21/YOLO%209000/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1699,7 +1682,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">46</span>
+          <span class="site-state-item-count">47</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
