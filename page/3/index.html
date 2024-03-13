@@ -162,6 +162,122 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2017/10/13/Wasserstein%20GAN/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2017/10/13/Wasserstein%20GAN/" class="post-title-link" itemprop="url">Wasserstein GAN</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2017-10-13 00:00:00" itemprop="dateCreated datePublished" datetime="2017-10-13T00:00:00+08:00">2017-10-13</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-09 20:55:13" itemprop="dateModified" datetime="2021-01-09T20:55:13+08:00">2021-01-09</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>文章首先说明了学习一个概率密度的传统方法使用KL散度</li>
+<li>但是KL散度在两个低维流形的概率分布中不好使，因为他们没有无法忽视的重叠，从而散度是一个常数。通过加噪声可以补救这个问题，但是并不是一个好方法（对于GAN来说会使生成的图片模糊不清）</li>
+<li>对于传统方法，目前的新方法是从一个固定分布$p(z)$随出一个随机变量$z$然后将$z$放入一个函数映射$g_\theta : z \rightarrow x$得到一个服从$P_\theta$分布的样本。<ul>
+<li>这样做有两个好处，一个是这种方式可以更合更低维度的分布</li>
+<li>另外这种方式可以更加方便的生成新样本</li>
+</ul>
+</li>
+<li>接下来作者开始分析WGAN中使用Wasserstein距离代替原来JS散度的原因，从这种距离的性质入手<ul>
+<li>如果$g_\theta$是连续的那么$W(P_r, P_\theta)$也是连续的</li>
+<li>如果$g$是K利普希茨连续，那么$W(P_r, P_\theta)$几乎在全部可导</li>
+<li>上述两条性质对于JS散度不成立，所以我们选用Wasserstein距离代替KL散度</li>
+</ul>
+</li>
+<li>为了让$g_\theta$保持利普希茨连续，我们将网络中所有参数控制在[-0.01, 0.01]区间内<ul>
+<li>这个数值不宜太大，否则会使收敛速度过慢</li>
+<li>不宜太小，否则可能会导致梯度消失</li>
+</ul>
+</li>
+<li>使用W距离后判别器损失函数为$-(f_w(x) - f_w(g_\theta(z)))$, 生成器损失函数为$-f_w(g_\theta(z))$</li>
+<li>因为W距离连续可导，所以在交替训练的过程中可以将分类器训练至收敛，不必向以往一样两步分类器一步生成器</li>
+<li>WGAN的显著优势：<ul>
+<li>不会模型坍塌——W距离连续得到的另外一个好处是不会导致模型坍塌；对于原始损失函数来说，判别器的输出是个二分类结果，那么对于最优的分类器来说，生成器的最终结果只能是坍塌即生成真实图像训练样本；换成W距离后，判别器输出的是距离，是回归问题，不会导致坍塌</li>
+<li>WGAN提升了稳定性——由于我们在交替训练过程中可以把判别器训练到局部最优，判别器越精确，梯度也就越精确，训练也就越稳定</li>
+<li>有实际意义的损失函数——WGAN的生成器损失函数可以当做模型训练进度的可量化指标，不用向以往一样人肉观察生成出来的样本来做判别模型好坏的标准；但是需要注意不能拿这个指标衡量不同结构的模型</li>
+</ul>
+</li>
+<li>optimizer的选择：训练的时候由于交替训练，损失函数不要使用基于动量的（如Adam）optimizer，改用RMSProp，一般在这种梯度不稳定的情况下表现的不错</li>
+</ul>
+<h2 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h2><ul>
+<li>when we learn a probability distribution, This is often done by defining a parametric family of densities $P_\theta (\theta \in R^d)$ and finding the one that maximized the likelihood on our data, this amounts to minimizing the Kullback-Leibler divergence $KL(P_r||P_g)$</li>
+<li>but It is then unlikely that the model manifold and the true distribution’s support have a non-negligible intersection</li>
+<li>the typical remedy is to add a noise term to the model distribution</li>
+<li>the added noise term is clearly incorrect for the problem, but is needed to make the maximum likelihood approach work</li>
+</ul>
+<p>now:</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2017/10/13/Wasserstein%20GAN/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
     <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2017/10/10/Towards%20Principled%20Methods%20for%20Training%20Generative%20Adversarial%20Networks/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1502,92 +1618,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2016/04/29/%E6%97%B6%E9%97%B4%E5%BA%8F%E5%88%97/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Berwyn Zhang">
-      <meta itemprop="description" content="Learn & output">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Berwyn's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2016/04/29/%E6%97%B6%E9%97%B4%E5%BA%8F%E5%88%97/" class="post-title-link" itemprop="url">时间序列总结</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2016-04-29 00:00:00" itemprop="dateCreated datePublished" datetime="2016-04-29T00:00:00+08:00">2016-04-29</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2021-01-05 00:33:54" itemprop="dateModified" datetime="2021-01-05T00:33:54+08:00">2021-01-05</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">In</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="自回归模型（AR）"><a href="#自回归模型（AR）" class="headerlink" title="自回归模型（AR）"></a>自回归模型（AR）</h2><h3 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h3><ul>
-<li>自回归模型一种时间序列预测模型，是若干随机数的集合。描述的是当前值与历史值得关系，是一种<a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Stochastic_process">随机过程</a></li>
-<li>对于指定值的预测是对于以往值的线性预测加上随机扰动项，所以这个模型的形式是一个随机差分方程</li>
-<li>是ARMA（Autoregressive–moving-average model）和VAR（Vector Autoregressive model）一种特殊形式</li>
-<li>p阶自回归模型记作AR(p)</li>
-</ul>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2016/04/29/%E6%97%B6%E9%97%B4%E5%BA%8F%E5%88%97/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1657,7 +1687,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">47</span>
+          <span class="site-state-item-count">48</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
