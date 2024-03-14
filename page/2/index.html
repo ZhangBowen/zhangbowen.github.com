@@ -162,6 +162,105 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2018/07/27/Large-scale%20Video%20Classification%20with%20Convolutional%20Neural%20Networks/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2018/07/27/Large-scale%20Video%20Classification%20with%20Convolutional%20Neural%20Networks/" class="post-title-link" itemprop="url">Large-scale Video Classification with Convolutional Neural Networks</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-07-27 00:00:00" itemprop="dateCreated datePublished" datetime="2018-07-27T00:00:00+08:00">2018-07-27</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-10 00:00:19" itemprop="dateModified" datetime="2021-01-10T00:00:19+08:00">2021-01-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>这篇文章提出了几种CNN结构用于处理视频<ul>
+<li>single frame</li>
+<li>early fusion：将CNN的input做改造一次接收多张图片</li>
+<li>late fusion：两个CNN同时跑，在FC层做合并</li>
+<li>slow fusion：两者融合，在这篇paper中获得best performance，但计算更慢</li>
+</ul>
+</li>
+<li>类比于图像处理，视频处理更加耗时，在文章中提出了双流结构用于对计算速度进行优化<ul>
+<li>context stream: 处理整张图片，输入的大小将为原来的一半</li>
+<li>fovea stream: 处理图像的中间部分，大小为原图的一半，不过分辨率更高</li>
+<li>然后在FC层附近将两个流的结果融合</li>
+<li>总体来看运算时间得以降低，但是精度却没有太多下降</li>
+</ul>
+</li>
+<li>作者探讨了这个网络的迁移学习能力，又拿UCF-101做了实验，fine-tune 前三层的网络的效果最好</li>
+</ul>
+<h2 id="Abstract"><a href="#Abstract" class="headerlink" title="Abstract"></a>Abstract</h2><p>We provide an extensive empirical evaluation of CNNs on large-scale video classification</p>
+<h2 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h2>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2018/07/27/Large-scale%20Video%20Classification%20with%20Convolutional%20Neural%20Networks/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
     <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2018/05/24/YOLOv3/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1543,111 +1642,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2017/10/14/GAN%E6%80%BB%E7%BB%93/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Berwyn Zhang">
-      <meta itemprop="description" content="Learn & output">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Berwyn's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2017/10/14/GAN%E6%80%BB%E7%BB%93/" class="post-title-link" itemprop="url">GAN总结</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2017-10-14 00:00:00" itemprop="dateCreated datePublished" datetime="2017-10-14T00:00:00+08:00">2017-10-14</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2021-01-09 21:25:27" itemprop="dateModified" datetime="2021-01-09T21:25:27+08:00">2021-01-09</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">In</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <div class="table-container">
-<table>
-<thead>
-<tr>
-<th style="text-align:center">论文</th>
-<th style="text-align:center">备注</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:center"><a href="/2017/09/21/Generative%20Adversarial%20Nets/">Generative Adversarial Nets</a></td>
-<td style="text-align:center">GAN原始论文, 提出了对抗结构和原始优化目标函数 <script type="math/tex">\underset {G} {min} \underset {D} {max} V(D,G) = E_{x \sim p_{data}(x)}[log(D(x))] + E_{x \sim P_{g_z(z)}}[log(1 - D(g(z)))]</script></td>
-</tr>
-<tr>
-<td style="text-align:center"><a href="/2017/09/22/Conditional%20Generative%20Adversarial%20Nets/">Conditional Generative Adversarial Nets</a></td>
-<td style="text-align:center">加了条件作为额外的输入,可以用于给生成指定类别的图像和和图像打标签</td>
-</tr>
-<tr>
-<td style="text-align:center"><a href="/2017/09/27/Unsupervised%20representation%20learning%20with%20deep%20convolutional%20Generative%20Adersarial%20Networks/">Unsupervised representation learning with deep convolutional Generative Adersarial Networks</a></td>
-<td style="text-align:center">DCGAN, 提出一种新的生成器结构改善生成图像效果,并对训练出的模型的可视化做了探索</td>
-</tr>
-<tr>
-<td style="text-align:center"><a href="/2017/10/10/Towards%20Principled%20Methods%20for%20Training%20Generative%20Adversarial%20Networks/">Towards Principled Methods for Training Generative Adversarial Networks</a></td>
-<td style="text-align:center">首次从数学的角度聊GAN,分析了之前GAN中所存在的问题,提出了加噪声的解决方案</td>
-</tr>
-<tr>
-<td style="text-align:center"><a href="/2017/10/13/Wasserstein%20GAN/">Wasserstein GAN</a></td>
-<td style="text-align:center">提出了用Wasserstein距离代替JS散度的方案,解决了训练不稳定,模型坍塌的问题,并提供了一种模型训练进度的可量化指标</td>
-</tr>
-</tbody>
-</table>
-</div>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1717,7 +1711,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">48</span>
+          <span class="site-state-item-count">49</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>

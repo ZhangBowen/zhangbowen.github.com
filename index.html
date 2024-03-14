@@ -162,6 +162,105 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2023/12/04/Swin%20Transformer/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2023/12/04/Swin%20Transformer/" class="post-title-link" itemprop="url">Swin Transformer</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2023-12-04 00:00:00" itemprop="dateCreated datePublished" datetime="2023-12-04T00:00:00+08:00">2023-12-04</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2024-03-15 00:19:40" itemprop="dateModified" datetime="2024-03-15T00:19:40+08:00">2024-03-15</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>相对于ViT只能应用于分类，Swin Transformer可以在更多的下游任务上应用，但是直接用会有点问题<ul>
+<li>尺度上的问题</li>
+<li>原始数据分辨率过大</li>
+</ul>
+</li>
+<li>本文引入滑动窗口机制解决上述问题。<ul>
+<li>计算复杂度降低</li>
+<li>相邻窗口之间的数据可以交互</li>
+<li>有分层、多尺度的特征</li>
+</ul>
+</li>
+</ul>
+<p><img src="/assets/image/Swin Transformer/0.png" alt="c45b3cd1bfc4203b07d5fc5699875706.png"></p>
+<ul>
+<li>相对于卷积的池化操作，Swin Transformer使用的操作是Patch Merging</li>
+<li>另外就是shift window机制，让不同window里的patch信息可以相互交互，让局部注意力变为全局注意力</li>
+</ul>
+<p><img src="/assets/image/Swin Transformer/1.png" alt="a71ce71320c1777b114ec66bb873fd8a.png"></p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2023/12/04/Swin%20Transformer/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
     <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2023/12/03/Vision%20Transformer/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1512,105 +1611,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2018/07/27/Large-scale%20Video%20Classification%20with%20Convolutional%20Neural%20Networks/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Berwyn Zhang">
-      <meta itemprop="description" content="Learn & output">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Berwyn's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2018/07/27/Large-scale%20Video%20Classification%20with%20Convolutional%20Neural%20Networks/" class="post-title-link" itemprop="url">Large-scale Video Classification with Convolutional Neural Networks</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2018-07-27 00:00:00" itemprop="dateCreated datePublished" datetime="2018-07-27T00:00:00+08:00">2018-07-27</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2021-01-10 00:00:19" itemprop="dateModified" datetime="2021-01-10T00:00:19+08:00">2021-01-10</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">In</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
-<li>这篇文章提出了几种CNN结构用于处理视频<ul>
-<li>single frame</li>
-<li>early fusion：将CNN的input做改造一次接收多张图片</li>
-<li>late fusion：两个CNN同时跑，在FC层做合并</li>
-<li>slow fusion：两者融合，在这篇paper中获得best performance，但计算更慢</li>
-</ul>
-</li>
-<li>类比于图像处理，视频处理更加耗时，在文章中提出了双流结构用于对计算速度进行优化<ul>
-<li>context stream: 处理整张图片，输入的大小将为原来的一半</li>
-<li>fovea stream: 处理图像的中间部分，大小为原图的一半，不过分辨率更高</li>
-<li>然后在FC层附近将两个流的结果融合</li>
-<li>总体来看运算时间得以降低，但是精度却没有太多下降</li>
-</ul>
-</li>
-<li>作者探讨了这个网络的迁移学习能力，又拿UCF-101做了实验，fine-tune 前三层的网络的效果最好</li>
-</ul>
-<h2 id="Abstract"><a href="#Abstract" class="headerlink" title="Abstract"></a>Abstract</h2><p>We provide an extensive empirical evaluation of CNNs on large-scale video classification</p>
-<h2 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h2>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2018/07/27/Large-scale%20Video%20Classification%20with%20Convolutional%20Neural%20Networks/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1680,7 +1680,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">48</span>
+          <span class="site-state-item-count">49</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
