@@ -162,6 +162,102 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2018/08/16/Temporal%20Segment%20Networks/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2018/08/16/Temporal%20Segment%20Networks/" class="post-title-link" itemprop="url">Temporal Segment Networks</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-08-16 00:00:00" itemprop="dateCreated datePublished" datetime="2018-08-16T00:00:00+08:00">2018-08-16</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-10 00:02:58" itemprop="dateModified" datetime="2021-01-10T00:02:58+08:00">2021-01-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>本文提出了TSN方法，将视频分段，每个段中随机采样帧/光流进行训练，用来解决传统方法对于长视频训练乏力的问题</li>
+<li>在网络的输入方面，除了two-stream的RGB路和optical flow，TSN尝试了RGB diff和warped optical flow等多种方式，最终是使用RGB + optical flow + warped optical flow的效果最好</li>
+<li>训练方面使用了几种方案降低过拟合<ul>
+<li>pre-train，不仅对RGB，对其他路也用pre-train做初始化</li>
+<li>冻结BN，加大dropout</li>
+<li>scale jittering</li>
+</ul>
+</li>
+<li>测试了多帧融合的方法，在max，avg，weighted avg中做选择，综合选取了avg方法，但是RGB单路中使用weighted AVG效果最好</li>
+</ul>
+<h2 id="Abstract"><a href="#Abstract" class="headerlink" title="Abstract"></a>Abstract</h2><p>This paper aims to discover the principles to design effective ConvNet architectures for action recognition in videos</p>
+<ul>
+<li>Our first contribution is temporal segment network (TSN)</li>
+<li>The other contribution is our study on a series of good practices in learning ConvNets on video data with the help of temporal segment network</li>
+</ul>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2018/08/16/Temporal%20Segment%20Networks/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
     <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2018/07/27/Large-scale%20Video%20Classification%20with%20Convolutional%20Neural%20Networks/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1531,117 +1627,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2017/10/31/Inception%E6%80%BB%E7%BB%93/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Berwyn Zhang">
-      <meta itemprop="description" content="Learn & output">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Berwyn's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2017/10/31/Inception%E6%80%BB%E7%BB%93/" class="post-title-link" itemprop="url">Inception总结</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2017-10-31 00:00:00" itemprop="dateCreated datePublished" datetime="2017-10-31T00:00:00+08:00">2017-10-31</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2021-01-09 22:11:34" itemprop="dateModified" datetime="2021-01-09T22:11:34+08:00">2021-01-09</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">In</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <div class="table-container">
-<table>
-<thead>
-<tr>
-<th style="text-align:center">论文</th>
-<th style="text-align:center">备注</th>
-<th style="text-align:center">top5 error</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:center"><a href="/2017/05/19/Network%20In%20Network/">Network In Network</a></td>
-<td style="text-align:center">提出了1 x 1卷积核代替maxout 提供了更好的多filter聚合能力</td>
-<td style="text-align:center">CIFAR-100 数据集 1 model; 1 crop; top1 error: 35.68%</td>
-</tr>
-<tr>
-<td style="text-align:center"><a href="/2017/05/26/Going%20deeper%20with%20convolutions/">Going deeper with convolutions</a></td>
-<td style="text-align:center">将NIN中子网络的概念更加泛化利用多个不同大小的filter抽取信息利用1 X 1卷积增加信息稠密程度减少计算量</td>
-<td style="text-align:center">ILSVRC 2014 数据集1 model; 1 crop: 10.07%ensemble(7 models, 144 crops): 6.67%</td>
-</tr>
-<tr>
-<td style="text-align:center"><a href="/2017/06/04/Batch%20Normalization_%20Accelerating%20Deep%20Network%20Training%20by%20Reducing%20Internal%20Covariate%20Shift/">Batch Normalization Accelerating Deep Network Training by Reducing Internal Covariate Shift</a></td>
-<td style="text-align:center">提出并利用BN结构解决内部协变量漂移问题大幅提升网络训练速度</td>
-<td style="text-align:center">LSVRC 2012 数据集ensemble(6 models, 144 crops): 4.94%</td>
-</tr>
-<tr>
-<td style="text-align:center"><a href="/2017/06/11/Rethinking%20the%20Inception%20Architecture%20for%20Computer%20Vision/">Rethinking the Inception Architecture for Computer Vision</a></td>
-<td style="text-align:center">提出了4个设计网络的原则 <br>提出了用多个小卷积代替大卷积的方法<br> 提出了用非对称卷积<br> 提出了更高效的pooling方式——conv和pool并行计算然后concat到一起<br> 提出新的正则化方式——标签平滑</td>
-<td style="text-align:center">LSVRC 2012 数据集 1 model; 1 crop:5.6% ensemble(4 models, 144 crops): 3.58%</td>
-</tr>
-<tr>
-<td style="text-align:center"><a href="/2017/06/18/Inception-v4,%20Inception-ResNet%20and%20the%20Impact%20of%20Residual%20Connection%20on%20Learning/">Inception-v4, Inception-ResNet and the Impact of Residual Connection on Learning</a></td>
-<td style="text-align:center">在v3的基础上加了一些小改动提出v4与ResNet结合提出Inception-ResNet提出了当filter数量超过1000的时候防止训练崩溃的缩放残差方法</td>
-<td style="text-align:center">ILSVRC 2012 数据集 1 model; 1 crop: <br> Inception-v4: 5.0% <br>Inception-ResNet-v1: 5.5% <br> Inception-ResNet-v2: 4.9% <br> Inception-v4 + 3 * Inception-ResNet-v2: 3.1%</td>
-</tr>
-</tbody>
-</table>
-</div>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1711,7 +1696,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">49</span>
+          <span class="site-state-item-count">50</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
