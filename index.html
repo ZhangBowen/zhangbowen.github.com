@@ -162,6 +162,102 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2023/12/18/I3D%20Two-Stream%20Inflated%203D%20ConvNet/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2023/12/18/I3D%20Two-Stream%20Inflated%203D%20ConvNet/" class="post-title-link" itemprop="url">I3D Two-Stream Inflated 3D ConvNet</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2023-12-18 00:00:00" itemprop="dateCreated datePublished" datetime="2023-12-18T00:00:00+08:00">2023-12-18</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2024-03-18 23:31:32" itemprop="dateModified" datetime="2024-03-18T23:31:32+08:00">2024-03-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>提出了一个新模型I3D和一个新的数据集Kinetics，这个数据集基本是动作识别必做的一个数据集。</li>
+<li>做这个数据集主要是因为主流的数据集太小了，区分度小。并且这个数据集每个视频都来自于一个独立的视频片段，标注的非常好。</li>
+<li>所谓I3D是指inflated 3D，特点是把已经设计好的2D网络扩展成3D的形式然后应用在视频上面。本文的模型还加上了光流</li>
+<li>对比传统方式<ul>
+<li>CNN + LSTM：后验效果不好，这个方向基本没有后续了</li>
+<li>3DCNN：参数量过于巨大且数据量小，无法做很深的建模，比如c3d</li>
+<li>双流：这个东西作者认为有用，在本文也拿过来用了</li>
+</ul>
+</li>
+</ul>
+<p><img src="/assets/image/I3D Two-Stream Inflated 3D ConvNet/0.png" alt="0f3480251f1c410a19bd480e7ecfae20.png"></p>
+<ul>
+<li>启用inflated操作后可以直接利用效果好的2D网络作为初始化模型，本文使用的inceptionV1，（不用resnet是因为在视频领域后验效果不如，但是后面的non local是用resnet来做的，所以后面再说I3D就是指resnet版本的）</li>
+</ul>
+<h2 id="模型"><a href="#模型" class="headerlink" title="模型"></a>模型</h2>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2023/12/18/I3D%20Two-Stream%20Inflated%203D%20ConvNet/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
     <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2023/12/10/Two-Stream%20Convolutional%20Networks/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1513,100 +1609,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2018/08/23/CNN-Architectures-for-Large-Scale-Audio-Classification/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Berwyn Zhang">
-      <meta itemprop="description" content="Learn & output">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Berwyn's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2018/08/23/CNN-Architectures-for-Large-Scale-Audio-Classification/" class="post-title-link" itemprop="url">CNN Architectures for Large-Scale Audio Classification</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2018-08-23 00:00:00" itemprop="dateCreated datePublished" datetime="2018-08-23T00:00:00+08:00">2018-08-23</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2021-01-10 22:56:17" itemprop="dateModified" datetime="2021-01-10T22:56:17+08:00">2021-01-10</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">In</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
-<li>这篇文章提出了用CNN处理特征代替之前抽取MFCCs + 分类器的方式，获得了比较好的效果</li>
-<li>比较关注将一段音频处理为音频输入的方法<ul>
-<li>将音频按照960ms切段</li>
-<li>960ms的音频每10ms用短时傅里叶变换处理（25ms）的窗口</li>
-<li>将生成的光谱图分到64个mel-spaced frequency bins里面</li>
-<li>每个桶的结果取log</li>
-<li>就生成96 * 64的二维向量然后用CNN的方式搞</li>
-</ul>
-</li>
-<li>后面文章对比了多种模型和数据集大小的结果基本上越深的模型越好，数据集越大越好</li>
-</ul>
-<h2 id="Abstract"><a href="#Abstract" class="headerlink" title="Abstract"></a>Abstract</h2><p>Finding that analogs of the CNNs used in image classification do well on our audio classification task</p>
-<h2 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h2>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2018/08/23/CNN-Architectures-for-Large-Scale-Audio-Classification/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1676,7 +1678,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">50</span>
+          <span class="site-state-item-count">51</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
