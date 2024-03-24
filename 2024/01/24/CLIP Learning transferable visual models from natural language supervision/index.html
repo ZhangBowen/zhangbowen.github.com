@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"berwynzhang.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="总结 提出CLIP, for Contrastive Language-Image Pre-training 在imagenet上，无监督训练打平Res50，堪比alexnet 训练流程如下，使用已有图片、文本对的数据集进行pairwise训练。4亿条清洗过的数据    这种方式训练是没有分类头的无法直接落地应用。作者引入prompt template机制，也是pair wise的去做分类。用句子">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CLIP Learning transferable visual models from natural language supervision">
+<meta property="og:url" content="https://berwynzhang.com/2024/01/24/CLIP%20Learning%20transferable%20visual%20models%20from%20natural%20language%20supervision/index.html">
+<meta property="og:site_name" content="Berwyn&#39;s Blog">
+<meta property="og:description" content="总结 提出CLIP, for Contrastive Language-Image Pre-training 在imagenet上，无监督训练打平Res50，堪比alexnet 训练流程如下，使用已有图片、文本对的数据集进行pairwise训练。4亿条清洗过的数据    这种方式训练是没有分类头的无法直接落地应用。作者引入prompt template机制，也是pair wise的去做分类。用句子">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/CLIP%20Learning%20transferable%20visual%20models%20from%20natural%20language%20supervision/0.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/CLIP%20Learning%20transferable%20visual%20models%20from%20natural%20language%20supervision/1.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/CLIP%20Learning%20transferable%20visual%20models%20from%20natural%20language%20supervision/2.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/CLIP%20Learning%20transferable%20visual%20models%20from%20natural%20language%20supervision/3.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/CLIP%20Learning%20transferable%20visual%20models%20from%20natural%20language%20supervision/4.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/CLIP%20Learning%20transferable%20visual%20models%20from%20natural%20language%20supervision/5.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/CLIP%20Learning%20transferable%20visual%20models%20from%20natural%20language%20supervision/6.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/CLIP%20Learning%20transferable%20visual%20models%20from%20natural%20language%20supervision/7.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/CLIP%20Learning%20transferable%20visual%20models%20from%20natural%20language%20supervision/8.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/CLIP%20Learning%20transferable%20visual%20models%20from%20natural%20language%20supervision/9.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/CLIP%20Learning%20transferable%20visual%20models%20from%20natural%20language%20supervision/10.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/CLIP%20Learning%20transferable%20visual%20models%20from%20natural%20language%20supervision/11.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/CLIP%20Learning%20transferable%20visual%20models%20from%20natural%20language%20supervision/12.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/CLIP%20Learning%20transferable%20visual%20models%20from%20natural%20language%20supervision/13.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/CLIP%20Learning%20transferable%20visual%20models%20from%20natural%20language%20supervision/14.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/CLIP%20Learning%20transferable%20visual%20models%20from%20natural%20language%20supervision/15.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/CLIP%20Learning%20transferable%20visual%20models%20from%20natural%20language%20supervision/16.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/CLIP%20Learning%20transferable%20visual%20models%20from%20natural%20language%20supervision/17.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/CLIP%20Learning%20transferable%20visual%20models%20from%20natural%20language%20supervision/18.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/CLIP%20Learning%20transferable%20visual%20models%20from%20natural%20language%20supervision/19.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/CLIP%20Learning%20transferable%20visual%20models%20from%20natural%20language%20supervision/20.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/CLIP%20Learning%20transferable%20visual%20models%20from%20natural%20language%20supervision/21.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/CLIP%20Learning%20transferable%20visual%20models%20from%20natural%20language%20supervision/22.png">
+<meta property="article:published_time" content="2024-01-23T16:00:00.000Z">
+<meta property="article:modified_time" content="2024-03-24T15:56:46.221Z">
+<meta property="article:author" content="Berwyn Zhang">
+<meta property="article:tag" content="machine_learning">
+<meta property="article:tag" content="note">
+<meta property="article:tag" content="transformer">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://berwynzhang.com/assets/image/CLIP%20Learning%20transferable%20visual%20models%20from%20natural%20language%20supervision/0.png">
+
+<link rel="canonical" href="https://berwynzhang.com/2024/01/24/CLIP%20Learning%20transferable%20visual%20models%20from%20natural%20language%20supervision/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>CLIP Learning transferable visual models from natural language supervision | Berwyn's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Berwyn's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2024/01/24/CLIP%20Learning%20transferable%20visual%20models%20from%20natural%20language%20supervision/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          CLIP Learning transferable visual models from natural language supervision
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2024-01-24 00:00:00" itemprop="dateCreated datePublished" datetime="2024-01-24T00:00:00+08:00">2024-01-24</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2024-03-24 23:56:46" itemprop="dateModified" datetime="2024-03-24T23:56:46+08:00">2024-03-24</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>提出CLIP, for Contrastive Language-Image Pre-training</li>
+<li>在imagenet上，无监督训练打平Res50，堪比alexnet</li>
+<li>训练流程如下，使用已有图片、文本对的数据集进行pairwise训练。<strong>4亿条清洗过</strong>的数据</li>
+</ul>
+<p><img src="/assets/image/CLIP Learning transferable visual models from natural language supervision/0.png" alt="6862b5ea521a83ee846c2eb8a9714e7f.png"></p>
+<ul>
+<li>这种方式训练是没有分类头的无法直接落地应用。作者引入prompt template机制，也是pair wise的去做分类。用句子效果比用直接裸的单词效果更好，因为训练的时候看到的都是划分好的句子么。这个template也是有一些讲究的，所以后面还提到了prompt engineering和prompt ensemble</li>
+<li>这种方式可以很好的拓展，不局限于训练中所使用的的类别，摆脱了categorical label的限制</li>
+<li>迁移效果非常好，在<a target="_blank" rel="noopener" href="https://openai.com/research/clip">OpenAI官网</a>上列举了各个不同数据集的效果。但是这块有点存疑的是数据量级的差别4亿对100万</li>
+</ul>
+<p><img src="/assets/image/CLIP Learning transferable visual models from natural language supervision/1.png" alt="2d40348cd2792782c86a6f1798005067.png"></p>
+<ul>
+<li>clip后面的拓展工作<ul>
+<li>clip + styleGan，ICCV oral</li>
+<li>ciipDraw</li>
+<li>clip + 目标检测</li>
+<li>clips 视频检索，通过文本去搜视频里的内容，case都很惊艳</li>
+</ul>
+</li>
+</ul>
+<h2 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h2><ul>
+<li>目前已有的方法是在固定类别的数据集上进行学习，作者想引入语义的信息当做监督信号进行学习</li>
+<li>所用数据集体量大约4亿，可以和有监督的Resnet在ImageNet上面打平</li>
+<li>开源了预训练模型和推理代码</li>
+<li>受到文本模态（GPT3）的启发，想在CV领域应用无监督</li>
+<li>和之前17年的工作有一些相似之处，但是17年并没有transformer，所以效果并不是特别好</li>
+<li>transformer之后还有挺多的工作和clip比较像，但是在训练方式和数据集规模上都有一定的差距</li>
+<li>还有一些弱监督工作的探索，类目拓展了，但是还没有到可以摆脱类目限制的地步</li>
+<li>作者总结是主要是数据规模和模型规模上的差异</li>
+<li>因为要展示模型的迁移能力，作者在30个数据集上都取得了不错的效果</li>
+</ul>
+<h2 id="模型"><a href="#模型" class="headerlink" title="模型"></a>模型</h2><ul>
+<li>用文本监督信号去训练视觉模型非常有潜力</li>
+<li>造了一个很大的数据集，和训练GPT-2的那个数据集比较接近</li>
+<li>训练效率很重要，动辄需要训练很多十几个GPU年，训练由预测型任务（给一张图片输出预测词）改为对比学习，训练效率提升<strong>四倍</strong></li>
+<li>encoder出来的向量通过投射层投射到多模态空间，这个投射层是线性投射，怀疑之前在对比学习非线性投射层的涨点主要是针对图片单模态的涨点</li>
+<li>温度参数可训练</li>
+<li>图片模型是resnet或transformer，文本模态使用transformer</li>
+<li>用最小的resnet50去做超参搜索</li>
+<li>batch size是3w+（SimCLR是8000+）</li>
+<li>混合精度</li>
+</ul>
+<h2 id="实验"><a href="#实验" class="headerlink" title="实验"></a>实验</h2><ul>
+<li>研究transfer 的动机：标签闭集训练的结果还是需要有标签的数据去做微调</li>
+<li>prompt 工作：歧义性、训练推理一致性<ul>
+<li>一个简单的模板直接提升了1.3%的准确率</li>
+<li>加类型限定、双引号标注</li>
+<li>ensemble多种提示方式叠加</li>
+<li>最终使用的模板数量多达80个</li>
+</ul>
+</li>
+<li>在多个数据集上验证，效果有好有坏，通常来说简单物体数据集效果好，抽象数据集效果差</li>
+</ul>
+<p><img src="/assets/image/CLIP Learning transferable visual models from natural language supervision/2.png" alt="f6b9ba44d7f4871727b953ef54c5de2c.png"></p>
+<ul>
+<li>作者认为有些特定领域的问题做zero shot肯定是不合理的，所以又加了few shot的结果对比（把图片模态冻住，只训练文本）</li>
+</ul>
+<p><img src="/assets/image/CLIP Learning transferable visual models from natural language supervision/3.png" alt="88df0cd849f7052f938572cbb1eb7c2c.png"></p>
+<ul>
+<li>表征学习有个悖论：如果你把网络全部放开无法证明预训练模型的好坏；如果冻住主干只训练分类头，那么就很不灵活，无法达到很好的效果</li>
+<li>clip在数据分布变化比较大的数据集上有很好的表现</li>
+</ul>
+<p><img src="/assets/image/CLIP Learning transferable visual models from natural language supervision/4.png" alt="7c10602c7b7f3b5d42e9f61a175317b7.png"></p>
+<ul>
+<li>和人类对比（5个人，一个数据集），很有意思的点<ul>
+<li>人类oneshot和twoshot在准确率上没有差别</li>
+<li>对于clip和人来说各个类别难易度的趋势是一致的</li>
+</ul>
+</li>
+<li>数据去重实验，验证clip本身效果就比较好</li>
+</ul>
+<h2 id="局限性"><a href="#局限性" class="headerlink" title="局限性"></a>局限性</h2><ul>
+<li>和state of art的有监督训练模型比有差距</li>
+<li>有很多领域，比如一些抽象概念的领域，clip都不行</li>
+<li>数据分布如果差距特别大，泛化性也不行，比如MNIST</li>
+<li>会有few shot不如zero shot的情况</li>
+</ul>
+<h2 id="以CLIP为基础的工作"><a href="#以CLIP为基础的工作" class="headerlink" title="以CLIP为基础的工作"></a>以CLIP为基础的工作</h2><h3 id="LSeg-language-driven-semantic-segmentation"><a href="#LSeg-language-driven-semantic-segmentation" class="headerlink" title="LSeg: language driven semantic segmentation"></a>LSeg: language driven semantic segmentation</h3><ul>
+<li>分割任务效果拔群，模型结构如下</li>
+</ul>
+<p><img src="/assets/image/CLIP Learning transferable visual models from natural language supervision/5.png" alt="03348c2edd335a6bed370bb6939adec2.png"></p>
+<ul>
+<li>图像编码器是DPT结构 = ViT + decoder（upscale维度）</li>
+<li>文本编码器是CLIP的参数没有进行训练，可能是分割数据集整体比较小的原因</li>
+</ul>
+<p><img src="/assets/image/CLIP Learning transferable visual models from natural language supervision/6.png" alt="4ea88f38030932b771ebb74da4ea402c.png"></p>
+<ul>
+<li>效果超过之前zero shot的方法，但是和有监督one shot还是差距特别远</li>
+</ul>
+<h3 id="GroupViT"><a href="#GroupViT" class="headerlink" title="GroupViT"></a>GroupViT</h3><ul>
+<li>摆脱分割任务对于标注的需求量</li>
+<li>引入grouping block和grouping tokens</li>
+</ul>
+<p><img src="/assets/image/CLIP Learning transferable visual models from natural language supervision/7.png" alt="06deee31ffacb8c4847b4a1e57ae2f3d.png"></p>
+<ul>
+<li>主体框架是12层Vit，输入除了image patch之外，还有group token。这个token的维度和patch的维度是对齐。patch维度是196 <em> 384，token是64 </em> 384。这个group token其实和文本分类中的cls token效果类似，这里可以看作为聚类中心</li>
+<li>原始的输入经过6层transformer之后通过group block把image token分配到每个聚类中心，同时在下一层再引入新的更少的聚类中心（8 * 384）。因为分配操作不可导，所以用gumbel softmax替代</li>
+<li>训练是文本和图像的对比学习loss，8个聚类中心过avg pooling得到一个384维度特征，与文本特征进行学习</li>
+<li>分割的时候对每个聚类中心去算距离最近的文本，得到改聚类中心的所属类别实现分割</li>
+</ul>
+<p><img src="/assets/image/CLIP Learning transferable visual models from natural language supervision/8.png" alt="bc6cee3e89b69b952a0ed927b8252cc6.png"></p>
+<ul>
+<li>从实验效果上来看和有监督方法的差距还是比较大，分割的很好但是分类问题很大，背景的相似度阈值是个比较麻烦的点</li>
+</ul>
+<h3 id="ViLD"><a href="#ViLD" class="headerlink" title="ViLD"></a>ViLD</h3><ul>
+<li>因为目前的检测任务标注类别总体很有限，作者想做开集合的目标检测</li>
+</ul>
+<p><img src="/assets/image/CLIP Learning transferable visual models from natural language supervision/9.png" alt="627dfb0eedf01b9d0e2a7b6cebcf43cd.png"></p>
+<ul>
+<li>Base版本模型类似于RCNN，两阶段训练。文章提出的结构基本都是从第二阶段开始的，输入是已经提取好的proposal</li>
+<li>ViLD-text：提取出每个region的embedding后和文本（经过prompt）提取的embedding和一个特殊的背景类embedding点乘做分类，目前还是用基础的标签类别来做有监督学习</li>
+<li>ViLD-image：使用CLIP图像编码器部分去提取embedding，让我们的网络和CLIP这个网络去做知识蒸馏，学习clip的输出（L1 Loss）。这样可以突破现有标签体系的限制；为了节约CLIP的计算开销预先提取好proposal给到CLIP去计算缓存下来</li>
+<li>ViLD完整版就是用蒸馏好的模型来做检测任务</li>
+</ul>
+<p><img src="/assets/image/CLIP Learning transferable visual models from natural language supervision/10.png" alt="62dd716d3b9b7fc99d17016c36af3320.png"></p>
+<ul>
+<li>实验效果在长尾数据集上超越了有监督学习（但是这个数据集长尾数据标注确实很少），总体精度不如有监督训练</li>
+</ul>
+<h3 id="GLIP"><a href="#GLIP" class="headerlink" title="GLIP"></a>GLIP</h3><ul>
+<li>结合目标检测和phrase grounding，实现detection任务的无监督训练</li>
+<li>grounding计算过程是模型分别计算图片和文本的embedding，然后计算相似度</li>
+</ul>
+<p><img src="/assets/image/CLIP Learning transferable visual models from natural language supervision/11.png" alt="eec152fca10ab800369fd2d02e4fb264.png"></p>
+<ul>
+<li>优化alignment loss和localization loss之前多加了一些层去融合图像特征和文本特征</li>
+</ul>
+<p><img src="/assets/image/CLIP Learning transferable visual models from natural language supervision/12.png" alt="7987d3f15349367b4e2bdae568f5cf5c.png"></p>
+<ul>
+<li>效果比很多有监督训练模型都要好</li>
+</ul>
+<h3 id="CLIPasso"><a href="#CLIPasso" class="headerlink" title="CLIPasso"></a>CLIPasso</h3><ul>
+<li>照片到简笔画</li>
+</ul>
+<p><img src="/assets/image/CLIP Learning transferable visual models from natural language supervision/13.png" alt="00cfc730851081585a1bc855caad333d.png"></p>
+<ul>
+<li>以往的工作是data driven的，种类和生成图片的抽象程度都比较受限</li>
+<li>以往有分析(Multimodal neurons in artificial neural networks)研究了CLIP在简笔画上的表现，发现很好，作者就尝试了CLIP</li>
+<li>建模基于贝兹曲线，本文用四个点定义一个曲线，通过模型参数去学习这个曲线的形状</li>
+</ul>
+<p><img src="/assets/image/CLIP Learning transferable visual models from natural language supervision/14.png" alt="f4de0f755e4a2295b6428c8e96422510.png"></p>
+<ul>
+<li>训练流程分别用原始图像和简笔画过CLIP模型，让生成出的特征尽可能相似（语义目标函数Ls）。同时用CLIP前几层的函数值也一起去做损失函数计算（几何目标函数Lg）</li>
+<li>实验发现初始化方式对结果影响很大，所以又探索了一个让结果更稳定的初始化方法。使用ViT过一遍图像，用最后一层的加权注意力头做平均，得到一个注意力的热力图，在注意力高的地方去采点</li>
+<li>作者有加了一个后处理流程，一次生成多张图片，把每个图片的loss比较下，返回更低的那个图</li>
+<li>此模型有很多优势：<ul>
+<li>可以画不常见的物体的简笔画</li>
+<li>可以通过控制每个贝兹曲线点的数量来调解简笔画的抽象程度</li>
+</ul>
+</li>
+<li>目前也有一些问题：<ul>
+<li>如果原图有背景，那么效果就会大打折扣（先用一个网络把物体抠出来）</li>
+<li>贝兹曲线的点需要手动控制</li>
+</ul>
+</li>
+</ul>
+<h3 id="CLIP4Clip"><a href="#CLIP4Clip" class="headerlink" title="CLIP4Clip"></a>CLIP4Clip</h3><ul>
+<li>文本和视频匹配的任务，整体结构和CLIP一样，只是图像侧加了时间维度变成了视频</li>
+</ul>
+<p><img src="/assets/image/CLIP Learning transferable visual models from natural language supervision/15.png" alt="cc29de1a988a97d618c82b45570ced1b.png"></p>
+<ul>
+<li>由于图像那边变成了多个CLS token，怎么和文本算相似度就成了一个问题，作者这里尝试了三种方法<ul>
+<li>直接平均，简单效果也不差，没有时序信息</li>
+<li>用transformer / LSTM做序列建模</li>
+<li>把文本和多个图像token一起扔给transformer进行训练，相当于early fusion</li>
+</ul>
+</li>
+</ul>
+<p><img src="/assets/image/CLIP Learning transferable visual models from natural language supervision/16.png" alt="a3f052588976e50385817c228ec322a8.png"></p>
+<ul>
+<li>实验结果来看CLIP本身zero shot的结果已经很强了</li>
+<li>训练数据少的时候直接做平均的效果就很好，多的时候用transformer效果好，但不多，大多数情况下直接做meanpooling就可以了</li>
+</ul>
+<h3 id="ActionClip"><a href="#ActionClip" class="headerlink" title="ActionClip"></a>ActionClip</h3><ul>
+<li>动作识别的标签比物体视频任务更难获得，并且有些还比较抽象，所以想迁移CLIP来做动作识别</li>
+</ul>
+<p><img src="/assets/image/CLIP Learning transferable visual models from natural language supervision/17.png" alt="223d58a61c45761f4d7f7b24b82c500d.png"></p>
+<ul>
+<li>一个batch中一个视频可能与多个label构成正样本，所以损失函数由之前CLIP训练的cross entropy换为了KL散度</li>
+</ul>
+<p><img src="/assets/image/CLIP Learning transferable visual models from natural language supervision/18.png" alt="639eb12308e578e4eb507340de757d0c.png"></p>
+<ul>
+<li>整体流程就是文本视频分别编码算相似度，但是有一些创新<ul>
+<li>文本用了prompt包装</li>
+<li>图像这边也用了prompt<ul>
+<li>加pos bias</li>
+<li>使用shift 操作，对channel维度进行偏移，即某些通道来自于上一时刻，某些通道来自于下一时刻，增加时序建模</li>
+<li>多帧特征融合为单帧特征，用的是clip4clip方案</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><img src="/assets/image/CLIP Learning transferable visual models from natural language supervision/19.png" alt="e8458fceabe7eb5cd57a3f7c4eeabc60.png"></p>
+<ul>
+<li>初始化参数的效果非常显著</li>
+<li>文本的初始化没有那么重要</li>
+</ul>
+<h3 id="CLIP-ViL"><a href="#CLIP-ViL" class="headerlink" title="CLIP-ViL"></a>CLIP-ViL</h3><ul>
+<li>没有新方法，只是把视觉编码器换成了CLIP看看效果</li>
+</ul>
+<h3 id="Audio-CLIP"><a href="#Audio-CLIP" class="headerlink" title="Audio-CLIP"></a>Audio-CLIP</h3><ul>
+<li>语音领域的CLIP，训练时加入了音频模态</li>
+</ul>
+<p><img src="/assets/image/CLIP Learning transferable visual models from natural language supervision/20.png" alt="eb25f621f66abaa06cfc7b466c22ec40.png"></p>
+<ul>
+<li>语音编码器使用EsResNeXT的模型</li>
+</ul>
+<h3 id="Point-CLIP"><a href="#Point-CLIP" class="headerlink" title="Point-CLIP"></a>Point-CLIP</h3><ul>
+<li>应用到3D点云领域</li>
+</ul>
+<p><img src="/assets/image/CLIP Learning transferable visual models from natural language supervision/21.png" alt="8a3a9fa43ee8c94edc01fbd579a85146.png"></p>
+<ul>
+<li>作者使用一种映射把3D点云映射到2D，然后就是应用到CLIP的范式</li>
+<li>没想到CLIP应用的下游任务领域这么广……深度图都可以</li>
+</ul>
+<h3 id="Depth-CLIP"><a href="#Depth-CLIP" class="headerlink" title="Depth-CLIP"></a>Depth-CLIP</h3><ul>
+<li>使用CLIP模型处理深度信息任务</li>
+</ul>
+<p><img src="/assets/image/CLIP Learning transferable visual models from natural language supervision/22.png" alt="d5a23aa393caf63b3ee1ed78bb4d84d1.png"></p>
+<ul>
+<li>把深度回归问题变为分类问题，图像特征和文本特征相乘，然后argmax一下得到图片每个位置的深度分类结果</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/machine-learning/" rel="tag"># machine_learning</a>
+              <a href="/tags/note/" rel="tag"># note</a>
+              <a href="/tags/transformer/" rel="tag"># transformer</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2024/01/02/%E8%A7%86%E9%A2%91%E7%90%86%E8%A7%A3%E7%BB%BC%E8%BF%B0/" rel="prev" title="视频理解综述">
+      <i class="fa fa-chevron-left"></i> 视频理解综述
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2024/01/28/MAE%20masked%20autoencoders%20are%20scalable%20vision%20learners/" rel="next" title="MAE: masked autoencoders are scalable vision learners">
+      MAE: masked autoencoders are scalable vision learners <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">1.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%91%98%E8%A6%81"><span class="nav-number">2.</span> <span class="nav-text">摘要</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B"><span class="nav-number">3.</span> <span class="nav-text">模型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C"><span class="nav-number">4.</span> <span class="nav-text">实验</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B1%80%E9%99%90%E6%80%A7"><span class="nav-number">5.</span> <span class="nav-text">局限性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%A5CLIP%E4%B8%BA%E5%9F%BA%E7%A1%80%E7%9A%84%E5%B7%A5%E4%BD%9C"><span class="nav-number">6.</span> <span class="nav-text">以CLIP为基础的工作</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#LSeg-language-driven-semantic-segmentation"><span class="nav-number">6.1.</span> <span class="nav-text">LSeg: language driven semantic segmentation</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#GroupViT"><span class="nav-number">6.2.</span> <span class="nav-text">GroupViT</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ViLD"><span class="nav-number">6.3.</span> <span class="nav-text">ViLD</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#GLIP"><span class="nav-number">6.4.</span> <span class="nav-text">GLIP</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CLIPasso"><span class="nav-number">6.5.</span> <span class="nav-text">CLIPasso</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CLIP4Clip"><span class="nav-number">6.6.</span> <span class="nav-text">CLIP4Clip</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ActionClip"><span class="nav-number">6.7.</span> <span class="nav-text">ActionClip</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CLIP-ViL"><span class="nav-number">6.8.</span> <span class="nav-text">CLIP-ViL</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Audio-CLIP"><span class="nav-number">6.9.</span> <span class="nav-text">Audio-CLIP</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Point-CLIP"><span class="nav-number">6.10.</span> <span class="nav-text">Point-CLIP</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Depth-CLIP"><span class="nav-number">6.11.</span> <span class="nav-text">Depth-CLIP</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Berwyn Zhang</p>
+  <div class="site-description" itemprop="description">Learn & output</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">54</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">38</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-address-card"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Berwyn Zhang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+</body>
+</html>

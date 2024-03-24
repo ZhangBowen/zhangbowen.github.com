@@ -162,6 +162,303 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2017/05/19/Network%20In%20Network/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2017/05/19/Network%20In%20Network/" class="post-title-link" itemprop="url">Network In Network</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2017-05-19 00:00:00" itemprop="dateCreated datePublished" datetime="2017-05-19T00:00:00+08:00">2017-05-19</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-04 23:54:42" itemprop="dateModified" datetime="2021-01-04T23:54:42+08:00">2021-01-04</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>CNN中的卷积层的filter个数可以增加网络的表达能力</li>
+<li>但是过多的数量会让计算开销增加的太大</li>
+<li>传统方法用maxout函数来达到增加表达能力又不增加太多计算开销的目的</li>
+<li>当没有对于隐藏层分布先验信息的情况来说，用一个能拟合所有函数的结构要更适合一些（maxout只能拟合所有凸函数）</li>
+<li>比较常见的能拟合所有函数的结构有两个<ul>
+<li>radial basis network</li>
+<li>multilayer perceptron</li>
+</ul>
+</li>
+<li>本文选择了multilayer perceptron 有如下两个原因<ul>
+<li>multilayer perceptron可以使用反向传播训练与CNN结合的比较好</li>
+<li>可以扩展，自己当做一个深层网络</li>
+</ul>
+</li>
+<li>新的结构就叫做mlpconv，其实就是后面接了两层1X1卷积</li>
+<li>此外还提出了一种新的结构全局平均池（Global Average Pooling）代替传统最后一层的FC层<ul>
+<li>先为每个分类结果项生成一个feature map（最后一层卷积的filter数量等于类别数量即可）</li>
+<li>然后对每个feature map取平均得到一个向量</li>
+<li>直接用改向量做softmax</li>
+</ul>
+</li>
+<li>这么做的好处有两个<ul>
+<li>让最终feature map的结果更加直观</li>
+<li>这种结构没有参数，避免过拟合</li>
+</ul>
+</li>
+<li>CIFAR-100实验结果<ul>
+<li>top1 35.68%</li>
+</ul>
+</li>
+</ul>
+<h2 id="Abstract"><a href="#Abstract" class="headerlink" title="Abstract"></a>Abstract</h2><p>We propose a novel deep network structure called “Network In Network”(NIN) to enhance model discriminability.<br>We build micro neural networks with more complex structures to abstract the data within the receptive field.</p>
+<h2 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h2>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2017/05/19/Network%20In%20Network/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2017/02/15/A%20Gradient%20Boosting%20Machine/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2017/02/15/A%20Gradient%20Boosting%20Machine/" class="post-title-link" itemprop="url">A Gradient Boosting Machine</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2017-02-15 00:00:00" itemprop="dateCreated datePublished" datetime="2017-02-15T00:00:00+08:00">2017-02-15</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-04 23:50:03" itemprop="dateModified" datetime="2021-01-04T23:50:03+08:00">2021-01-04</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>GBDT = <code>Gradient Boosting</code> + <code>Decision Tree</code><br>another names:</p>
+<ul>
+<li>MART(Multiple Additive Regression Tree)</li>
+<li>GBRT(Gradient Boosting Regression Tree)</li>
+<li>Tree Net</li>
+</ul>
+<h2 id="Ensemble-learning"><a href="#Ensemble-learning" class="headerlink" title="Ensemble learning"></a>Ensemble learning</h2><h3 id="why-ensemble"><a href="#why-ensemble" class="headerlink" title="why ensemble?"></a>why ensemble?</h3><ul>
+<li>statistics<br><img src="/assets/image/AGradientBoostingMachine/1486544965885.png" alt="Alt text"></li>
+<li>calculation<br><img src="/assets/image/AGradientBoostingMachine/1486544993574.png" alt="Alt text"></li>
+<li>representation<br><img src="/assets/image/AGradientBoostingMachine/1486545080464.png" alt="Alt text"></li>
+</ul>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2017/02/15/A%20Gradient%20Boosting%20Machine/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2017/01/22/Factorization%20Machines/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2017/01/22/Factorization%20Machines/" class="post-title-link" itemprop="url">Factorization Machines</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2017-01-22 00:00:00" itemprop="dateCreated datePublished" datetime="2017-01-22T00:00:00+08:00">2017-01-22</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-04 23:46:25" itemprop="dateModified" datetime="2021-01-04T23:46:25+08:00">2021-01-04</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <ul>
+<li>Factorization Machine are a new model class that combines the advantages of Support Vector Machines</li>
+<li>able to estimate interactions even in problems with huge sparsity</li>
+<li>dual form is not necessary, estimate model parameters directly</li>
+</ul>
+<h2 id="INTRODUCTION"><a href="#INTRODUCTION" class="headerlink" title="INTRODUCTION"></a>INTRODUCTION</h2><p>the advantages of FM:</p>
+<ul>
+<li>FMs allow parameter estimation under very sparse data where SVMs fail</li>
+<li>FMs have linear complexity, can be optimized in the primal and do not rely on support vectors like SVMs</li>
+<li>FMs are a general predictor that can work with any real valued feature vector. In contrast to this, other state-of-art factorization models work only on  very restricted input data</li>
+</ul>
+<h2 id="PREDICTION-UNDER-SPARSITY"><a href="#PREDICTION-UNDER-SPARSITY" class="headerlink" title="PREDICTION UNDER SPARSITY"></a>PREDICTION UNDER SPARSITY</h2>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2017/01/22/Factorization%20Machines/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
     <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2017/01/04/%E5%90%B4%E6%81%A9%E8%BE%BE%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -739,7 +1036,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">51</span>
+          <span class="site-state-item-count">54</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
