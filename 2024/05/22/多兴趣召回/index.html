@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"berwynzhang.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="胶囊网络 创新点：“vector in vector out”代替“scalar in scalar out”? NLP很多任务其实做过类似的事情。 提出了一种新的“vector in vector out”方案，并且带有一定的可解释性   胶囊等同于向量。作者的说法是表达更多更丰富的信息。NLP中one-hot词表和embedding做类比？    对于下一层的某一个点的向量计算方式是这样的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="多兴趣召回">
+<meta property="og:url" content="https://berwynzhang.com/2024/05/22/%E5%A4%9A%E5%85%B4%E8%B6%A3%E5%8F%AC%E5%9B%9E/index.html">
+<meta property="og:site_name" content="Berwyn&#39;s Blog">
+<meta property="og:description" content="胶囊网络 创新点：“vector in vector out”代替“scalar in scalar out”? NLP很多任务其实做过类似的事情。 提出了一种新的“vector in vector out”方案，并且带有一定的可解释性   胶囊等同于向量。作者的说法是表达更多更丰富的信息。NLP中one-hot词表和embedding做类比？    对于下一层的某一个点的向量计算方式是这样的">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/多兴趣召回/0.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/多兴趣召回/1.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/多兴趣召回/2.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/多兴趣召回/3.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/多兴趣召回/4.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/多兴趣召回/5.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/多兴趣召回/6.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/多兴趣召回/7.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/多兴趣召回/8.png">
+<meta property="og:image" content="https://berwynzhang.com/assets/image/多兴趣召回/9.png">
+<meta property="article:published_time" content="2024-05-21T16:00:00.000Z">
+<meta property="article:modified_time" content="2024-05-26T14:42:11.558Z">
+<meta property="article:author" content="Berwyn Zhang">
+<meta property="article:tag" content="machine_learning">
+<meta property="article:tag" content="note">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://berwynzhang.com/assets/image/多兴趣召回/0.png">
+
+<link rel="canonical" href="https://berwynzhang.com/2024/05/22/%E5%A4%9A%E5%85%B4%E8%B6%A3%E5%8F%AC%E5%9B%9E/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>多兴趣召回 | Berwyn's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Berwyn's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2024/05/22/%E5%A4%9A%E5%85%B4%E8%B6%A3%E5%8F%AC%E5%9B%9E/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          多兴趣召回
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2024-05-22 00:00:00" itemprop="dateCreated datePublished" datetime="2024-05-22T00:00:00+08:00">2024-05-22</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2024-05-26 22:42:11" itemprop="dateModified" datetime="2024-05-26T22:42:11+08:00">2024-05-26</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="胶囊网络"><a href="#胶囊网络" class="headerlink" title="胶囊网络"></a>胶囊网络</h2><ul>
+<li>创新点：“vector in vector out”代替“scalar in scalar out”?<ul>
+<li>NLP很多任务其实做过类似的事情。</li>
+<li>提出了一种新的“vector in vector out”方案，并且带有一定的可解释性</li>
+</ul>
+</li>
+<li>胶囊等同于向量。作者的说法是表达更多更丰富的信息。NLP中one-hot词表和embedding做类比？</li>
+</ul>
+<p><img src="/assets/image/多兴趣召回/0.png" alt="11c80f7a1c5a00f0d3cec4e5d2b1d599.png"></p>
+<ul>
+<li>对于下一层的某一个点的向量计算方式是这样的</li>
+</ul>
+<p><img src="/assets/image/多兴趣召回/1.png" alt="26b5ab201d2c43ed2f57fe489a799f44.png"></p>
+<ul>
+<li>可以看做上面一层向量的聚类中心。胶囊的可解释性来源就是“输出是输入的某种聚类结果”</li>
+</ul>
+<h4 id="Squash"><a href="#Squash" class="headerlink" title="Squash"></a>Squash</h4><ul>
+<li>作者希望能够通过向量的模长来表达特征的显著程度</li>
+</ul>
+<p><img src="/assets/image/多兴趣召回/2.png" alt="eade5ec5574b15e714afd15aa1e86c5a.png"></p>
+<ul>
+<li>后一部分是把x的模长变为1，前面一部分是把模长变为0~1</li>
+<li>为啥要用这种方式不清楚，可能是实验科学</li>
+</ul>
+<h3 id="动态路由"><a href="#动态路由" class="headerlink" title="动态路由"></a>动态路由</h3><ul>
+<li>计算$v_j$的时候实际上是用到$v_j$本身，这个有点反直觉</li>
+<li>本文的做法是把$v_j$初始化为$u_i$的均值，然后反复迭代，这就是动态路由</li>
+</ul>
+<p><img src="/assets/image/多兴趣召回/3.png" alt="756f4cef13f9a689415589453d594502.png"></p>
+<h3 id="矩阵变换"><a href="#矩阵变换" class="headerlink" title="矩阵变换"></a>矩阵变换</h3><ul>
+<li>上述方法可以迭代去求解$v_j$，但是下一层的所有节点理论上就都是一样的了，所以在计算的时候实际上需要做一个矩阵变换</li>
+</ul>
+<p><img src="/assets/image/多兴趣召回/4.png" alt="0d546ca31ecf95b789f0fcd204ef9e76.png"></p>
+<ul>
+<li>这里的$W_{ji}$是待训得参数矩阵</li>
+</ul>
+<h3 id="共享参数"><a href="#共享参数" class="headerlink" title="共享参数"></a>共享参数</h3><ul>
+<li>可以让不同u的参数矩阵共享，从而达到减少参数数量和摆脱输入层数量的限制的效果</li>
+</ul>
+<script type="math/tex; mode=display">W_{ji} \equiv W_{j}</script><ul>
+<li>这个有点像从全连接转到卷积网络</li>
+</ul>
+<h2 id="CIKM-2019-MIND"><a href="#CIKM-2019-MIND" class="headerlink" title="CIKM 2019 MIND"></a>CIKM 2019 MIND</h2><ul>
+<li>为每个用户生成多个embedding来表征用户兴趣</li>
+</ul>
+<p><img src="/assets/image/多兴趣召回/5.png" alt="f075046654e81c43e734c30947968f62.png"></p>
+<ul>
+<li>输入特征为用户特征、用户行为序列以及target（行为序列后下一个交互的item）</li>
+<li>先过embedding层然后过胶囊网络聚类多个特征，与用户特征concat后过多层relu成为用户侧特征<ul>
+<li>初始化权重服从一个正态分布，代替原文的都是0</li>
+<li>参数矩阵共享权重，输入可以变长（用户行为序列的长度不一致）</li>
+</ul>
+</li>
+<li>训练时把用户侧特征当做K、V，target embedding当做Q去过attention得到新的用户特征，用新用户特征和target做内积算softmax loss</li>
+<li>服务的时候直接用用户侧特征去做召回</li>
+</ul>
+<h2 id="KDD-2020-ComiRec"><a href="#KDD-2020-ComiRec" class="headerlink" title="KDD 2020 ComiRec"></a>KDD 2020 ComiRec</h2><ul>
+<li>提出了一种在统一的推荐系统中集成了可控性（controllability）和多兴趣模块的框架</li>
+<li>通过在线上推荐系统的实现和学习，探索了个性化系统可控性的作用</li>
+</ul>
+<h3 id="结构"><a href="#结构" class="headerlink" title="结构"></a>结构</h3><p><img src="/assets/image/多兴趣召回/6.png" alt="9350a9cff553549e49481d797bd8b49a.png"></p>
+<ul>
+<li>通过Multi-Interest Framework抽取兴趣聚类，得到K个interest embedding<ul>
+<li>两种方案一个是ComiRec-DR，就是胶囊网络方案</li>
+<li>另外一是ComiRec-SA，自注意力方案</li>
+</ul>
+</li>
+<li>训练时会选取与target embedding最近的interest embedding做计算算softmax loss</li>
+<li>在线上服务的时候会用每个interest embedding去召回N个item，然后再通过aggregation module合并成N个item返回</li>
+</ul>
+<h3 id="ComiRec-SA"><a href="#ComiRec-SA" class="headerlink" title="ComiRec-SA"></a>ComiRec-SA</h3><script type="math/tex; mode=display">W = softmax(w_2^T tanh(w_1H))^T</script><ul>
+<li>其中$H \in R^{d \times n}$, $w_1 \in R^{d_n \times d}$, $w_2 \in R^{d_n}$</li>
+<li>将$w_2$ 的维度变为 $d_n \times K$即可得到K组结果</li>
+</ul>
+<h3 id="Agregation-Mdule"><a href="#Agregation-Mdule" class="headerlink" title="Agregation Mdule"></a>Agregation Mdule</h3><ul>
+<li>比较朴素的方式就是按照内积的值排序。这也是MIND用的方法</li>
+</ul>
+<p><img src="/assets/image/多兴趣召回/7.png" alt="962b6e06c1f2a41a887d41a3c1391270.png"></p>
+<ul>
+<li>作者认为需要引入多样性，所以就变成了这样</li>
+</ul>
+<p><img src="/assets/image/多兴趣召回/8.png" alt="39ad9bf7fc5dd790646e4b432482ad4c.png"></p>
+<p><img src="/assets/image/多兴趣召回/9.png" alt="879c60e45111465034da855a344937cd.png"></p>
+<ul>
+<li>通过$\lambda$来控制多样性的指标</li>
+</ul>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/568781562">ComiRec</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/404281900">多兴趣综述</a></li>
+<li><a target="_blank" rel="noopener" href="https://spaces.ac.cn/archives/4819">胶囊网络</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/140989406">MIND</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/machine-learning/" rel="tag"># machine_learning</a>
+              <a href="/tags/note/" rel="tag"># note</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2024/01/28/MAE%20masked%20autoencoders%20are%20scalable%20vision%20learners/" rel="prev" title="MAE: masked autoencoders are scalable vision learners">
+      <i class="fa fa-chevron-left"></i> MAE: masked autoencoders are scalable vision learners
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%83%B6%E5%9B%8A%E7%BD%91%E7%BB%9C"><span class="nav-number">1.</span> <span class="nav-text">胶囊网络</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Squash"><span class="nav-number">1.0.1.</span> <span class="nav-text">Squash</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8A%A8%E6%80%81%E8%B7%AF%E7%94%B1"><span class="nav-number">1.1.</span> <span class="nav-text">动态路由</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%9F%A9%E9%98%B5%E5%8F%98%E6%8D%A2"><span class="nav-number">1.2.</span> <span class="nav-text">矩阵变换</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B1%E4%BA%AB%E5%8F%82%E6%95%B0"><span class="nav-number">1.3.</span> <span class="nav-text">共享参数</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CIKM-2019-MIND"><span class="nav-number">2.</span> <span class="nav-text">CIKM 2019 MIND</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#KDD-2020-ComiRec"><span class="nav-number">3.</span> <span class="nav-text">KDD 2020 ComiRec</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%93%E6%9E%84"><span class="nav-number">3.1.</span> <span class="nav-text">结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ComiRec-SA"><span class="nav-number">3.2.</span> <span class="nav-text">ComiRec-SA</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Agregation-Mdule"><span class="nav-number">3.3.</span> <span class="nav-text">Agregation Mdule</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">4.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Berwyn Zhang</p>
+  <div class="site-description" itemprop="description">Learn & output</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">55</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">38</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-address-card"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Berwyn Zhang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+</body>
+</html>

@@ -162,6 +162,112 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2017/05/26/Going%20deeper%20with%20convolutions/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Berwyn Zhang">
+      <meta itemprop="description" content="Learn & output">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Berwyn's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2017/05/26/Going%20deeper%20with%20convolutions/" class="post-title-link" itemprop="url">Going deeper with convolutions</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2017-05-26 00:00:00" itemprop="dateCreated datePublished" datetime="2017-05-26T00:00:00+08:00">2017-05-26</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-04 23:58:30" itemprop="dateModified" datetime="2021-01-04T23:58:30+08:00">2021-01-04</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/machine-learning/" itemprop="url" rel="index"><span itemprop="name">machine_learning</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>提出了一个代号为Inception的神经网络结构，开头点出此结构的最大作用是<strong>提升计算资源的利用率</strong></li>
+<li>是NIN的deep版本</li>
+<li>参考Serre et al. <sup><a href="#fn_15" id="reffn_15">15</a></sup> 用多个size的filter来抽取信息；有两个不同点<ul>
+<li>所有网络中的filter都是学习得来</li>
+<li>重复使用Inception结构组成一个更深的网络</li>
+</ul>
+</li>
+<li>又参考了Lin et al. <sup><a href="#fn_12" id="reffn_12">12</a></sup>使用1 * 1的卷积核来提升模型的表达能力；并且可以减少维度，使在同等的计算资源下网络可以更深更宽，从而提升效果</li>
+<li>ILSVRC 2014 数据集<ul>
+<li>1 model; 1 crops; top5 error: 10.07%</li>
+<li>ensemble(7 models, 144 crops); top5 error: 6.67%</li>
+</ul>
+</li>
+</ul>
+<h3 id="Inception-诞生的心路历程"><a href="#Inception-诞生的心路历程" class="headerlink" title="Inception 诞生的心路历程"></a>Inception 诞生的心路历程</h3><ul>
+<li>现如今提升网络效果主要靠提升网络的宽度和深度；这么做有两个问题：<ul>
+<li>容易过拟合</li>
+<li>计算资源需求快速增长</li>
+</ul>
+</li>
+<li>因为权重矩阵中有很多的0，因此人们提出从全连接结构改成稀疏链接结构的方式</li>
+<li>后来证明不行，因为稀疏结构的查找开销太大盖过了计算开销的节省，还不如不用</li>
+<li>后来提出了用网络结构解决此问题的方式——Inception</li>
+</ul>
+<h3 id="Inception结构详解"><a href="#Inception结构详解" class="headerlink" title="Inception结构详解"></a>Inception结构详解</h3>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2017/05/26/Going%20deeper%20with%20convolutions/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
     <link itemprop="mainEntityOfPage" href="https://berwynzhang.com/2017/05/19/Network%20In%20Network/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1036,7 +1142,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">54</span>
+          <span class="site-state-item-count">55</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
